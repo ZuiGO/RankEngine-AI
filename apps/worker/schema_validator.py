@@ -51,6 +51,7 @@ def validate_json_ld(html_content: str, url: str, crawl_job_id: str) -> list:
     has_faq = False
     has_howto = False
     has_article = False
+    valid_schema_types = set()
 
     # Validate found schemas
     for obj in schema_objects:
@@ -64,6 +65,7 @@ def validate_json_ld(html_content: str, url: str, crawl_job_id: str) -> list:
         # 1. FAQPage Validation
         if "FAQPage" in types:
             has_faq = True
+            issue_count_before = len(issues)
             main_entity = obj.get("mainEntity")
             if not main_entity:
                 issues.append({
@@ -112,9 +114,13 @@ def validate_json_ld(html_content: str, url: str, crawl_job_id: str) -> list:
                                 "recommendation": "Provide a clear text response inside the 'text' property of the acceptedAnswer object."
                             })
 
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("FAQPage")
+
         # 2. HowTo Validation
         if "HowTo" in types:
             has_howto = True
+            issue_count_before = len(issues)
             steps = obj.get("step")
             if not steps:
                 issues.append({
@@ -161,10 +167,14 @@ def validate_json_ld(html_content: str, url: str, crawl_job_id: str) -> list:
                                 "recommendation": "Ensure each HowToStep contains a short summary 'name' and complete description 'text'."
                             })
 
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("HowTo")
+
         # 3. Article Validation (and sub-types like BlogPosting, NewsArticle)
         article_types = {"Article", "BlogPosting", "NewsArticle", "TechArticle", "ScholarlyArticle"}
         if any(t in article_types for t in types):
             has_article = True
+            issue_count_before = len(issues)
             headline = obj.get("headline")
             if not headline or not str(headline).strip():
                 issues.append({
@@ -175,7 +185,7 @@ def validate_json_ld(html_content: str, url: str, crawl_job_id: str) -> list:
                     "description": "Article schema is missing the required 'headline' property",
                     "recommendation": "Add a headline string matching the page main title header."
                 })
-            
+
             author = obj.get("author")
             if not author:
                 issues.append({
@@ -210,6 +220,21 @@ def validate_json_ld(html_content: str, url: str, crawl_job_id: str) -> list:
                     "description": "Article schema is missing the required 'datePublished' date property",
                     "recommendation": "Provide the ISO 8601 publication timestamp in the 'datePublished' property."
                 })
+
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("Article")
+
+    # Emit a positive result for each valid schema type. The crawler converts
+    # these per-page signals into one crawl-level summary per schema type.
+    for schema_type in sorted(valid_schema_types):
+        issues.append({
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": "passed",
+            "category": "schema",
+            "url": url,
+            "description": f"Page has valid {schema_type} structured data",
+            "recommendation": "No action needed."
+        })
 
     # Scan content for missing schema opportunities (Missed AI Overview Opportunities)
     # Extract all heading text

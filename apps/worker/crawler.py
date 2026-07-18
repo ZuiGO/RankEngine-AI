@@ -178,7 +178,9 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
                         
                         # Extract internal links from page HTML to follow
                         if "html" in page_data:
-                            html = page_data.pop("html")  # Extract and delete raw html from page data
+                            # Keep the HTML until issue aggregation so JSON-LD can be
+                            # validated. It is removed before the CrawlResult is saved.
+                            html = page_data["html"]
                             soup = BeautifulSoup(html, 'html.parser')
                             for anchor in soup.find_all('a', href=True):
                                 raw_href = anchor['href']
@@ -250,6 +252,15 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
 
 def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
     issues = []
+    total_pages = len(crawled_pages)
+    passed_counts = {
+        "http_status": 0,
+        "meta_title": 0,
+        "meta_description": 0,
+        "single_h1": 0,
+    }
+    schema_passed_counts = {}
+
     for page in crawled_pages:
         url = page.get("url")
         status = page.get("statusCode", 200)
@@ -264,10 +275,12 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
                 "description": f"Page returned error status code {status}",
                 "recommendation": "Fix routing errors, database queries, or server-side configurations."
             })
+        elif 200 <= status < 400:
+            passed_counts["http_status"] += 1
 
         # Check Title Issues
         title = page.get("metaTitle", "")
-        if not title:
+        if not isinstance(title, str) or not title.strip():
             issues.append({
                 "crawlJobId": ObjectId(crawl_job_id),
                 "severity": "warning",
@@ -277,18 +290,11 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
                 "recommendation": "Add a unique and descriptive meta title tag of 50-60 characters to improve visibility."
             })
         else:
-            issues.append({
-                "crawlJobId": ObjectId(crawl_job_id),
-                "severity": "passed",
-                "category": "meta",
-                "url": url,
-                "description": "Meta title is present and non-empty",
-                "recommendation": ""
-            })
+            passed_counts["meta_title"] += 1
 
         # Check Description Issues
         desc = page.get("metaDescription", "")
-        if not desc:
+        if not isinstance(desc, str) or not desc.strip():
             issues.append({
                 "crawlJobId": ObjectId(crawl_job_id),
                 "severity": "warning",
@@ -298,14 +304,7 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
                 "recommendation": "Provide a descriptive snippet of 150-160 characters summarizing the page subject."
             })
         else:
-            issues.append({
-                "crawlJobId": ObjectId(crawl_job_id),
-                "severity": "passed",
-                "category": "meta",
-                "url": url,
-                "description": "Meta description is present and non-empty",
-                "recommendation": ""
-            })
+            passed_counts["meta_description"] += 1
 
         # Check H1 Header count
         h1s = page.get("h1", [])
@@ -321,14 +320,7 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
                 "recommendation": "Configure templates to output exactly one H1 header representing primary subject."
             })
         else:
-            issues.append({
-                "crawlJobId": ObjectId(crawl_job_id),
-                "severity": "passed",
-                "category": "meta",
-                "url": url,
-                "description": "Page has exactly one H1 tag",
-                "recommendation": ""
-            })
+            passed_counts["single_h1"] += 1
 
         # Check structured schema issues and opportunities
         html = page.get("html")
@@ -336,9 +328,46 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
             from schema_validator import validate_json_ld
             try:
                 schema_issues = validate_json_ld(html, url, crawl_job_id)
-                issues.extend(schema_issues)
+                for schema_issue in schema_issues:
+                    if schema_issue.get("severity") == "passed":
+                        description = schema_issue.get("description", "Valid structured data")
+                        schema_passed_counts[description] = schema_passed_counts.get(description, 0) + 1
+                    else:
+                        issues.append(schema_issue)
             except Exception as e:
                 log_json("ERROR", "schema_validation_error", url=url, error=str(e))
+
+    # Passed checks are stored as one crawl-level summary per check type. This
+    # keeps a 5,000-page audit from flooding the checklist and LLM context.
+    passed_summaries = [
+        ("http_status", "returned a successful HTTP status"),
+        ("meta_title", "have a meta title present and well-formed"),
+        ("meta_description", "have a meta description present and well-formed"),
+        ("single_h1", "have exactly one H1 tag"),
+    ]
+    for check_type, outcome in passed_summaries:
+        passed_count = passed_counts[check_type]
+        if passed_count:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "passed",
+                "category": "meta",
+                "url": "N/A",
+                "description": f"{passed_count} of {total_pages} crawled pages {outcome}",
+                "recommendation": "No action needed."
+            })
+
+    for description, passed_count in schema_passed_counts.items():
+        schema_type = description.removeprefix("Page has valid ").removesuffix(" structured data")
+        issues.append({
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": "passed",
+            "category": "schema",
+            "url": "N/A",
+            "description": f"{passed_count} of {total_pages} crawled pages have valid {schema_type} structured data",
+            "recommendation": "No action needed."
+        })
+
     return issues
 
 

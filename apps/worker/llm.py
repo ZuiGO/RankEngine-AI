@@ -45,6 +45,11 @@ def summarize_issues(issues: List[dict]) -> str:
             
     summary_lines = []
     for (category, severity, desc), urls in summary_map.items():
+        if severity == "passed":
+            summary_lines.append(
+                f"- [PASSED] Category: {category} | Positive confirmation: {desc}"
+            )
+            continue
         urls_str = ", ".join(urls[:10])  # Cap at 10 URLs per group for token limits
         if len(urls) > 10:
             urls_str += f" (and {len(urls) - 10} more)"
@@ -95,6 +100,7 @@ Summarized Issues:
 Your task:
 Consolidate these page-level audit findings into a high-level developer checklist.
 Translate technical jargon into actionable, plain-English titles and recommendations targeted at web developers (e.g. "Fix redirect loop on staging server", not raw status codes).
+For every PASSED item, preserve it as a positive checklist confirmation with severity "passed" and a "No action needed" recommendation; never rewrite it as a problem to fix.
 
 CRITICAL REQUIREMENT:
 You must respond with ONLY a valid JSON object matching the following schema. No explanations, no introductory text, no markdown wrappers except valid json.
@@ -103,11 +109,11 @@ JSON Schema format:
 {{
   "items": [
     {{
-      "title": "Clear plain English description of what needs to be fixed",
+      "title": "Clear plain English issue description or positive confirmation",
       "category": "redirect" | "meta" | "schema" | "core-web-vitals",
       "severity": "critical" | "warning" | "passed",
       "affectedUrls": ["url1", "url2"],
-      "recommendation": "Detailed actionable fix instructions"
+      "recommendation": "Detailed actionable fix instructions, or 'No action needed' for passed items"
     }}
   ]
 }}

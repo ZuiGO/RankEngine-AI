@@ -133,9 +133,24 @@ async def test_clean_page_emits_passed_seo_checks():
                 "metaTitle": "Test Site",
                 "metaDescription": "A concise description of the test site.",
                 "h1": ["Welcome"],
-            }
+            },
+            {
+                "url": "https://test-site.com/about",
+                "statusCode": 200,
+                "metaTitle": "About Test Site",
+                "metaDescription": "A concise description of the about page.",
+                "h1": ["About"],
+            },
         ],
         "507f1f77bcf86cd799439011",
     )
 
-    assert [issue["severity"] for issue in issues] == ["passed", "passed", "passed"]
+    assert len(issues) == 4
+    assert all(issue["severity"] == "passed" for issue in issues)
+    assert all(issue["url"] == "N/A" for issue in issues)
+    assert {issue["description"] for issue in issues} == {
+        "2 of 2 crawled pages returned a successful HTTP status",
+        "2 of 2 crawled pages have a meta title present and well-formed",
+        "2 of 2 crawled pages have a meta description present and well-formed",
+        "2 of 2 crawled pages have exactly one H1 tag",
+    }

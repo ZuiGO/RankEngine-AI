@@ -9,10 +9,23 @@ os.environ["PLAYWRIGHT_HEADLESS"] = "True"
 import pytest
 import json
 from unittest.mock import AsyncMock, patch, MagicMock
-from llm import generate_fix_list
+from llm import generate_fix_list, summarize_issues
 
 # Mark all test cases in this file as async
 pytestmark = pytest.mark.asyncio
+
+def test_summarize_issues_keeps_passed_summary_as_positive_confirmation():
+    summary = summarize_issues([
+        {
+            "category": "meta",
+            "severity": "passed",
+            "url": "N/A",
+            "description": "4850 of 5000 crawled pages have a meta title present and well-formed",
+        }
+    ])
+
+    assert "[PASSED] Category: meta | Positive confirmation:" in summary
+    assert "Affected URLs" not in summary
 
 async def test_llm_fix_list_successful_generation():
     # Successful Groq JSON response structure

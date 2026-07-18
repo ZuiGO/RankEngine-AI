@@ -34,8 +34,9 @@ def test_valid_faqpage_schema():
     </html>
     """
     issues = validate_json_ld(html, "https://site.com/faq", "507f1f77bcf86cd799439011")
-    # Valid FAQPage schema should pass without issues
-    assert len(issues) == 0
+    assert len(issues) == 1
+    assert issues[0]["severity"] == "passed"
+    assert issues[0]["description"] == "Page has valid FAQPage structured data"
 
 def test_faqpage_missing_accepted_answer():
     html = """
