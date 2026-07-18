@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { RequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { HealthCheckResponse, CrawlJob } from '@rankengine/shared-types';
@@ -51,11 +51,10 @@ app.use(
  * Per-route stricter limits (e.g. the grading endpoint at 10 req/s)
  * are defined directly in their route files and compose on top of this.
  */
-const globalRateLimiter = rateLimiter(
-  config.RATE_LIMIT_MAX,
-  config.RATE_LIMIT_WINDOW_MS,
-  () => process.env.NODE_ENV === 'test' // Per-route limits remain testable.
-);
+const globalRateLimiter: RequestHandler =
+  process.env.NODE_ENV === 'test'
+    ? (_req, _res, next) => next() // Per-route limits remain testable.
+    : rateLimiter(config.RATE_LIMIT_MAX, config.RATE_LIMIT_WINDOW_MS);
 
 app.use(globalRateLimiter);
 

@@ -1,7 +1,7 @@
 import { rateLimit, Store, Options, IncrementResponse } from 'express-rate-limit';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import IORedis from 'ioredis';
-import config from '../config';
+import { redisOptions } from '../queues/redisConnection';
 
 // ── Redis-backed sliding-window store ────────────────────────────────────────
 // Uses a single sorted-set per key: members are random tokens, scores are
@@ -26,20 +26,26 @@ class RedisRateLimitStore implements Store {
     const redisKey = `rl:${key}`;
     const member = `${now}:${Math.random()}`;
 
-    const pipeline = this.client.pipeline();
+    // MULTI/EXEC keeps each window update atomic when several API replicas
+    // increment the same key at once.
+    const pipeline = this.client.multi();
     // Remove timestamps outside the current window
     pipeline.zremrangebyscore(redisKey, '-inf', windowStart);
     // Add current timestamp
     pipeline.zadd(redisKey, now, member);
     // Count remaining members (= requests in window)
     pipeline.zcard(redisKey);
+    // The oldest surviving request determines the next retry time.
+    pipeline.zrange(redisKey, 0, 0, 'WITHSCORES');
     // Ensure the key expires after the window so Redis self-cleans idle entries
     pipeline.pexpire(redisKey, this.windowMs);
 
     const results = await pipeline.exec();
-    // zcard result is at index 2 in pipeline
+    // zcard result is at index 2 in the transaction.
     const totalHits = (results?.[2]?.[1] as number) ?? 1;
-    const resetTime = new Date(now + this.windowMs);
+    const oldest = results?.[3]?.[1] as string[] | undefined;
+    const oldestTimestamp = oldest?.[1] ? Number(oldest[1]) : now;
+    const resetTime = new Date(oldestTimestamp + this.windowMs);
 
     return { totalHits, resetTime };
   }
@@ -64,7 +70,8 @@ let _redisClient: IORedis | null = null;
 
 function getRedisClient(): IORedis {
   if (!_redisClient) {
-    _redisClient = new IORedis(config.REDIS_URL, {
+    _redisClient = new IORedis({
+      ...redisOptions,
       maxRetriesPerRequest: 3,
       enableReadyCheck: false,
       lazyConnect: true,
@@ -80,11 +87,7 @@ function getRedisClient(): IORedis {
  * @param limit      Maximum number of requests allowed per window
  * @param windowMs   Window length in milliseconds
  */
-export const rateLimiter = (
-  limit: number,
-  windowMs: number,
-  skip?: (req: Request) => boolean
-) => {
+export const rateLimiter = (limit: number, windowMs: number) => {
   const store = new RedisRateLimitStore(getRedisClient());
 
   return rateLimit({
@@ -97,7 +100,14 @@ export const rateLimiter = (
     message: {
       error: 'Too many requests, please try again later.',
     },
-    skip,
+    handler: (req: Request, res: Response) => {
+      const rateLimitRequest = req as Request & { rateLimit?: { resetTime?: Date } };
+      const resetTime = rateLimitRequest.rateLimit?.resetTime?.getTime() ?? Date.now() + windowMs;
+      res.status(429).json({
+        error: 'Too many requests, please try again later.',
+        retryAfterMs: Math.max(0, resetTime - Date.now()),
+      });
+    },
     // Completely disable express-rate-limit internal validations to prevent test crashes
     validate: false,
     store,

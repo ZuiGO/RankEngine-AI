@@ -50,8 +50,8 @@ beforeAll(async () => {
   userId = res.body.user.id;
 });
 
-beforeEach(() => {
-  _clearRateLimitStore();
+beforeEach(async () => {
+  await _clearRateLimitStore();
 });
 
 afterAll(async () => {
@@ -124,10 +124,16 @@ This is paragraph two. We are writing multiple words to ensure we pass the parag
     }
 
     // The 11th request must fail with 429 Too Many Requests
-    await request
+    const res = await request
       .post('/api/content/grade')
       .set('Authorization', `Bearer ${userToken}`)
       .send({ text: 'Eleventh request' })
       .expect(429);
+
+    expect(res.body).toEqual({
+      error: 'Too many requests, please try again later.',
+      retryAfterMs: expect.any(Number),
+    });
+    expect(res.body.retryAfterMs).toBeGreaterThan(0);
   });
 });
