@@ -35,16 +35,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# The worker is normally internal-only. An explicit allowlist is available for
-# deployments that expose its health endpoint through a browser-facing proxy.
-worker_cors_origins = [
+# The worker has no authenticated browser endpoints, so CORS is opt-in and credential-free.
+worker_allowed_origins = [
     origin.strip()
-    for origin in settings.WORKER_CORS_ORIGINS.split(",")
+    for origin in settings.WORKER_ALLOWED_ORIGINS.split(",")
     if origin.strip()
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=worker_cors_origins,
+    allow_origins=worker_allowed_origins,
     allow_credentials=False,
     allow_methods=["GET"],
     allow_headers=[],

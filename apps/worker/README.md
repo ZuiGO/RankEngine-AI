@@ -52,7 +52,7 @@ Example response:
 ```
 
 The worker does not allow browser cross-origin access by default. If a
-browser-facing health proxy is required, set `WORKER_CORS_ORIGINS` to a
+browser-facing health proxy is required, set `WORKER_ALLOWED_ORIGINS` to a
 comma-separated allowlist (for example,
 `https://app.rankengine.ai,http://localhost:5173`).
 

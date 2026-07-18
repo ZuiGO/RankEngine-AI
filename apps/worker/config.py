@@ -14,8 +14,7 @@ class Settings(BaseSettings):
     LLM_API_KEY: str
     PLAYWRIGHT_HEADLESS: bool = True
     # Comma-separated browser origins permitted to call the health endpoint.
-    # Empty by default because the worker is intended for internal networking.
-    WORKER_CORS_ORIGINS: str = ""
+    WORKER_ALLOWED_ORIGINS: str = ""
 
 def load_settings() -> Settings:
     try:
