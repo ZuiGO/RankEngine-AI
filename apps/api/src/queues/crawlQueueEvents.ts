@@ -2,6 +2,41 @@ import { QueueEvents } from 'bullmq';
 import redisConnection from './redisConnection';
 import { CrawlJob } from '../models/CrawlJob';
 
+type CrawlCompletionResult = {
+  pageCount: number;
+  rawResultsRef?: string;
+};
+
+/**
+ * BullMQ serializes a worker return value on Redis. Accept both its serialized
+ * form and the object form used by adapters/tests, without inventing a result
+ * reference when the worker did not provide one.
+ */
+export const parseCrawlCompletionResult = (returnvalue: unknown): CrawlCompletionResult => {
+  let value = returnvalue;
+
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return { pageCount: 0 };
+    }
+  }
+
+  if (!value || typeof value !== 'object') {
+    return { pageCount: 0 };
+  }
+
+  const result = value as Record<string, unknown>;
+  const pageCount = typeof result.pageCount === 'number' ? result.pageCount : 0;
+  const rawResultsRef =
+    typeof result.rawResultsRef === 'string' && result.rawResultsRef.trim()
+      ? result.rawResultsRef
+      : undefined;
+
+  return { pageCount, rawResultsRef };
+};
+
 export const crawlQueueEvents = new QueueEvents('crawl-jobs', {
   connection: redisConnection,
 });
@@ -35,31 +70,22 @@ crawlQueueEvents.on('active', async ({ jobId }) => {
 crawlQueueEvents.on('completed', async ({ jobId, returnvalue }) => {
   console.log(`[QueueEvents]: Job ${jobId} completed successfully`);
   try {
-    let pageCount = 0;
-    let rawResultsRef = '';
-
-    // Attempt to parse returnvalue
-    if (returnvalue) {
-      try {
-        const parsed = JSON.parse(returnvalue);
-        pageCount = parsed.pageCount || 0;
-        rawResultsRef = parsed.rawResultsRef || '';
-      } catch {
-        // Fallback if not stringified JSON
-        if (typeof returnvalue === 'object') {
-          const valObj = returnvalue as any;
-          pageCount = valObj.pageCount || 0;
-          rawResultsRef = valObj.rawResultsRef || '';
-        }
-      }
-    }
-
-    await CrawlJob.findByIdAndUpdate(jobId, {
+    const { pageCount, rawResultsRef } = parseCrawlCompletionResult(returnvalue);
+    const update: Record<string, unknown> = {
       status: 'completed',
       completedAt: new Date(),
       pageCount,
-      rawResultsRef: rawResultsRef || `mock-path/${jobId}.json`,
-    });
+    };
+
+    if (rawResultsRef) {
+      update.rawResultsRef = rawResultsRef;
+    } else {
+      console.warn(
+        `[QueueEvents]: Job ${jobId} completed without a valid rawResultsRef; leaving CrawlJob.rawResultsRef unset`
+      );
+    }
+
+    await CrawlJob.findByIdAndUpdate(jobId, update);
   } catch (error) {
     console.error(`Failed to update status to completed for Job ${jobId}:`, error);
   }

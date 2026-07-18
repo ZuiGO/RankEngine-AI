@@ -1,0 +1,331 @@
+﻿2026-07-17T16:48:03.0363133Z ##[group]Run docker build -f apps/worker/Dockerfile -t rankengine-worker:test .
+2026-07-17T16:48:03.0363770Z [36;1mdocker build -f apps/worker/Dockerfile -t rankengine-worker:test .[0m
+2026-07-17T16:48:03.0426406Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:48:03.0426709Z ##[endgroup]
+2026-07-17T16:48:03.3250174Z #0 building with "default" instance using docker driver
+2026-07-17T16:48:03.3250956Z 
+2026-07-17T16:48:03.3251246Z #1 [internal] load build definition from Dockerfile
+2026-07-17T16:48:03.3251850Z #1 transferring dockerfile: 778B done
+2026-07-17T16:48:03.3252330Z #1 DONE 0.0s
+2026-07-17T16:48:03.3252540Z 
+2026-07-17T16:48:03.3253007Z #2 [internal] load metadata for mcr.microsoft.com/playwright/python:v1.42.0-jammy
+2026-07-17T16:48:03.4188584Z #2 DONE 0.2s
+2026-07-17T16:48:03.5314279Z 
+2026-07-17T16:48:03.5315301Z #3 [internal] load .dockerignore
+2026-07-17T16:48:03.5316294Z #3 transferring context: 2B done
+2026-07-17T16:48:03.5316954Z #3 DONE 0.0s
+2026-07-17T16:48:03.5317526Z 
+2026-07-17T16:48:03.5317767Z #4 [internal] load build context
+2026-07-17T16:48:03.5318135Z #4 transferring context: 90.09kB done
+2026-07-17T16:48:03.5318402Z #4 DONE 0.0s
+2026-07-17T16:48:03.5318517Z 
+2026-07-17T16:48:03.5319000Z #5 [1/7] FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy@sha256:f70c0a857208369b0df3741c170edad334b7bd17d5a4aa4c1c0a20da4fc2eea0
+2026-07-17T16:48:03.5319982Z #5 resolve mcr.microsoft.com/playwright/python:v1.42.0-jammy@sha256:f70c0a857208369b0df3741c170edad334b7bd17d5a4aa4c1c0a20da4fc2eea0 done
+2026-07-17T16:48:03.5321243Z #5 sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 0B / 30.45MB 0.1s
+2026-07-17T16:48:03.5322320Z #5 sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 2.10MB / 43.07MB 0.1s
+2026-07-17T16:48:03.5323598Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 10.49MB / 73.84MB 0.1s
+2026-07-17T16:48:03.5324562Z #5 sha256:f70c0a857208369b0df3741c170edad334b7bd17d5a4aa4c1c0a20da4fc2eea0 743B / 743B done
+2026-07-17T16:48:03.5325728Z #5 sha256:f62eff9946fa2df4e34479c795e29776222ccf77cd4c8c2120645279c3d39466 1.17kB / 1.17kB done
+2026-07-17T16:48:03.5326865Z #5 sha256:24d54adc844caa6316f37ed45e391bc44a1c7968b613125bfb719458a26fa33a 4.20kB / 4.20kB done
+2026-07-17T16:48:03.6966468Z #5 sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 30.45MB / 30.45MB 0.2s
+2026-07-17T16:48:03.6968968Z #5 sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 35.65MB / 43.07MB 0.2s
+2026-07-17T16:48:03.6976682Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 33.55MB / 73.84MB 0.2s
+2026-07-17T16:48:03.6978605Z #5 extracting sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c
+2026-07-17T16:48:03.7972290Z #5 sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 30.45MB / 30.45MB 0.2s done
+2026-07-17T16:48:03.7973931Z #5 sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 43.07MB / 43.07MB 0.2s done
+2026-07-17T16:48:03.7974775Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 63.96MB / 73.84MB 0.3s
+2026-07-17T16:48:03.7978720Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 4.19MB / 601.62MB 0.3s
+2026-07-17T16:48:03.9308179Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 73.84MB / 73.84MB 0.3s done
+2026-07-17T16:48:03.9309975Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 67.11MB / 601.62MB 0.5s
+2026-07-17T16:48:04.3942627Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 100.66MB / 601.62MB 0.9s
+2026-07-17T16:48:04.8492489Z #5 extracting sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 1.1s done
+2026-07-17T16:48:04.8494228Z #5 extracting sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571
+2026-07-17T16:48:05.0537940Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 134.22MB / 601.62MB 1.6s
+2026-07-17T16:48:05.5305326Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 209.72MB / 601.62MB 2.1s
+2026-07-17T16:48:05.6307371Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 242.22MB / 601.62MB 2.2s
+2026-07-17T16:48:05.7528118Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 274.73MB / 601.62MB 2.3s
+2026-07-17T16:48:05.8925975Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 312.48MB / 601.62MB 2.4s
+2026-07-17T16:48:05.9994484Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 342.88MB / 601.62MB 2.5s
+2026-07-17T16:48:06.1312630Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 414.19MB / 601.62MB 2.7s
+2026-07-17T16:48:06.2426264Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 446.69MB / 601.62MB 2.8s
+2026-07-17T16:48:06.6305794Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 484.44MB / 601.62MB 3.2s
+2026-07-17T16:48:06.7308790Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 515.90MB / 601.62MB 3.3s
+2026-07-17T16:48:06.8309514Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 547.36MB / 601.62MB 3.4s
+2026-07-17T16:48:06.9309827Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 581.96MB / 601.62MB 3.5s
+2026-07-17T16:48:07.1307790Z #5 extracting sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 2.1s done
+2026-07-17T16:48:08.3320154Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 601.62MB / 601.62MB 4.8s done
+2026-07-17T16:48:08.8268255Z #5 extracting sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9
+2026-07-17T16:48:09.2043200Z #5 extracting sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 0.3s done
+2026-07-17T16:48:09.2046299Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce
+2026-07-17T16:48:14.2669504Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 5.1s
+2026-07-17T16:48:19.6256331Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 10.4s
+2026-07-17T16:48:21.1017661Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 11.7s done
+2026-07-17T16:48:24.2517832Z #5 DONE 20.8s
+2026-07-17T16:48:24.4378297Z 
+2026-07-17T16:48:24.4378983Z #6 [2/7] WORKDIR /app
+2026-07-17T16:48:24.4379515Z #6 DONE 0.0s
+2026-07-17T16:48:24.4379701Z 
+2026-07-17T16:48:24.4379891Z #7 [3/7] RUN pip install --no-cache-dir poetry
+2026-07-17T16:48:24.8729809Z #7 0.585 Collecting poetry
+2026-07-17T16:48:24.9823897Z #7 0.625   Downloading poetry-2.4.1-py3-none-any.whl.metadata (7.5 kB)
+2026-07-17T16:48:24.9825420Z #7 0.671 Collecting build<2.0.0,>=1.2.1 (from poetry)
+2026-07-17T16:48:24.9826261Z #7 0.674   Downloading build-1.5.0-py3-none-any.whl.metadata (5.7 kB)
+2026-07-17T16:48:24.9827467Z #7 0.695 Collecting cachecontrol<0.15.0,>=0.14.0 (from cachecontrol[filecache]<0.15.0,>=0.14.0->poetry)
+2026-07-17T16:48:25.1664059Z #7 0.700   Downloading cachecontrol-0.14.4-py3-none-any.whl.metadata (3.1 kB)
+2026-07-17T16:48:25.1665333Z #7 0.725 Collecting cleo<3.0.0,>=2.1.0 (from poetry)
+2026-07-17T16:48:25.1666522Z #7 0.729   Downloading cleo-2.1.0-py3-none-any.whl.metadata (12 kB)
+2026-07-17T16:48:25.2202836Z #7 0.933 Collecting dulwich<2,>=0.25.0 (from poetry)
+2026-07-17T16:48:25.3344439Z #7 0.937   Downloading dulwich-1.2.11-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (6.0 kB)
+2026-07-17T16:48:25.3346141Z #7 0.953 Collecting fastjsonschema<3.0.0,>=2.18.0 (from poetry)
+2026-07-17T16:48:25.3347375Z #7 0.957   Downloading fastjsonschema-2.21.2-py3-none-any.whl.metadata (2.3 kB)
+2026-07-17T16:48:25.3348545Z #7 0.974 Collecting findpython<0.9.0,>=0.6.2 (from poetry)
+2026-07-17T16:48:25.3349646Z #7 0.978   Downloading findpython-0.8.0-py3-none-any.whl.metadata (5.4 kB)
+2026-07-17T16:48:25.3350724Z #7 0.995 Collecting installer<2.0.0,>=0.7.0 (from poetry)
+2026-07-17T16:48:25.3352157Z #7 0.999   Downloading installer-1.0.1-py3-none-any.whl.metadata (1.2 kB)
+2026-07-17T16:48:25.3353150Z #7 1.047 Collecting keyring<26.0.0,>=25.1.0 (from poetry)
+2026-07-17T16:48:25.4356504Z #7 1.051   Downloading keyring-25.7.0-py3-none-any.whl.metadata (21 kB)
+2026-07-17T16:48:25.4357380Z #7 1.077 Collecting packaging>=24.2 (from poetry)
+2026-07-17T16:48:25.4358137Z #7 1.083   Downloading packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+2026-07-17T16:48:25.4359229Z #7 1.117 Collecting pbs-installer>=2025.6.10 (from pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:25.4360435Z #7 1.121   Downloading pbs_installer-2026.6.10-py3-none-any.whl.metadata (1.0 kB)
+2026-07-17T16:48:25.4361302Z #7 1.142 Collecting pkginfo<2.0,>=1.12 (from poetry)
+2026-07-17T16:48:25.4362104Z #7 1.147   Downloading pkginfo-1.12.1.2-py3-none-any.whl.metadata (13 kB)
+2026-07-17T16:48:25.4363374Z #7 1.148 Requirement already satisfied: platformdirs<5,>=3.0.0 in /usr/local/lib/python3.10/dist-packages (from poetry) (4.2.0)
+2026-07-17T16:48:25.5451216Z #7 1.182 Collecting poetry-core==2.4.0 (from poetry)
+2026-07-17T16:48:25.5452952Z #7 1.186   Downloading poetry_core-2.4.0-py3-none-any.whl.metadata (3.8 kB)
+2026-07-17T16:48:25.5454522Z #7 1.199 Collecting pyproject-hooks<2.0.0,>=1.0.0 (from poetry)
+2026-07-17T16:48:25.5456329Z #7 1.202   Downloading pyproject_hooks-1.2.0-py3-none-any.whl.metadata (1.3 kB)
+2026-07-17T16:48:25.5457770Z #7 1.239 Collecting requests<3.0,>=2.26 (from poetry)
+2026-07-17T16:48:25.5458971Z #7 1.243   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+2026-07-17T16:48:25.5460088Z #7 1.258 Collecting requests-toolbelt<2.0.0,>=1.0.0 (from poetry)
+2026-07-17T16:48:25.6698906Z #7 1.262   Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+2026-07-17T16:48:25.6700419Z #7 1.283 Collecting shellingham<2.0,>=1.5 (from poetry)
+2026-07-17T16:48:25.6701908Z #7 1.286   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+2026-07-17T16:48:25.6703279Z #7 1.345 Collecting tomli<3.0.0,>=2.0.1 (from poetry)
+2026-07-17T16:48:25.6704303Z #7 1.349   Downloading tomli-2.4.1-py3-none-any.whl.metadata (10 kB)
+2026-07-17T16:48:25.6705466Z #7 1.382 Collecting tomlkit<1.0.0,>=0.11.4 (from poetry)
+2026-07-17T16:48:25.8053247Z #7 1.386   Downloading tomlkit-0.15.1-py3-none-any.whl.metadata (3.3 kB)
+2026-07-17T16:48:25.8054253Z #7 1.422 Collecting trove-classifiers>=2022.5.19 (from poetry)
+2026-07-17T16:48:25.8055638Z #7 1.426   Downloading trove_classifiers-2026.6.1.19-py3-none-any.whl.metadata (2.3 kB)
+2026-07-17T16:48:25.8056455Z #7 1.518 Collecting virtualenv>=20.26.6 (from poetry)
+2026-07-17T16:48:25.9355960Z #7 1.522   Downloading virtualenv-21.6.1-py3-none-any.whl.metadata (3.4 kB)
+2026-07-17T16:48:25.9358105Z #7 1.648 Collecting msgpack<2.0.0,>=0.5.2 (from cachecontrol<0.15.0,>=0.14.0->cachecontrol[filecache]<0.15.0,>=0.14.0->poetry)
+2026-07-17T16:48:26.1129980Z #7 1.652   Downloading msgpack-1.2.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.3 kB)
+2026-07-17T16:48:26.1132017Z #7 1.657 Requirement already satisfied: filelock>=3.8.0 in /usr/local/lib/python3.10/dist-packages (from cachecontrol[filecache]<0.15.0,>=0.14.0->poetry) (3.13.1)
+2026-07-17T16:48:26.1133491Z #7 1.671 Collecting crashtest<0.5.0,>=0.4.1 (from cleo<3.0.0,>=2.1.0->poetry)
+2026-07-17T16:48:26.1134419Z #7 1.675   Downloading crashtest-0.4.1-py3-none-any.whl.metadata (1.1 kB)
+2026-07-17T16:48:26.6048384Z #7 2.317 Collecting rapidfuzz<4.0.0,>=3.0.0 (from cleo<3.0.0,>=2.1.0->poetry)
+2026-07-17T16:48:26.7446065Z #7 2.321   Downloading rapidfuzz-3.14.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (12 kB)
+2026-07-17T16:48:26.7447447Z #7 2.379 Collecting urllib3>=2.2.2 (from dulwich<2,>=0.25.0->poetry)
+2026-07-17T16:48:26.7448381Z #7 2.383   Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+2026-07-17T16:48:26.7449378Z #7 2.457 Collecting typing_extensions>=4.6.0 (from dulwich<2,>=0.25.0->poetry)
+2026-07-17T16:48:26.8510391Z #7 2.461   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-07-17T16:48:26.8512438Z #7 2.503 Collecting platformdirs<5,>=3.0.0 (from poetry)
+2026-07-17T16:48:26.8513916Z #7 2.507   Downloading platformdirs-4.10.0-py3-none-any.whl.metadata (5.5 kB)
+2026-07-17T16:48:26.8515723Z #7 2.545 Collecting SecretStorage>=3.2 (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.8516662Z #7 2.549   Downloading secretstorage-3.5.0-py3-none-any.whl.metadata (4.0 kB)
+2026-07-17T16:48:26.8517548Z #7 2.564 Collecting jeepney>=0.4.2 (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.9578363Z #7 2.568   Downloading jeepney-0.9.0-py3-none-any.whl.metadata (1.2 kB)
+2026-07-17T16:48:26.9579405Z #7 2.624 Collecting importlib_metadata>=4.11.4 (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.9580460Z #7 2.628   Downloading importlib_metadata-9.0.0-py3-none-any.whl.metadata (4.5 kB)
+2026-07-17T16:48:26.9581408Z #7 2.645 Collecting jaraco.classes (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.9582772Z #7 2.648   Downloading jaraco.classes-3.4.0-py3-none-any.whl.metadata (2.6 kB)
+2026-07-17T16:48:26.9583729Z #7 2.670 Collecting jaraco.functools (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:27.0734075Z #7 2.674   Downloading jaraco_functools-4.6.0-py3-none-any.whl.metadata (2.9 kB)
+2026-07-17T16:48:27.0735663Z #7 2.692 Collecting jaraco.context (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:27.0736718Z #7 2.696   Downloading jaraco_context-6.1.2-py3-none-any.whl.metadata (4.2 kB)
+2026-07-17T16:48:27.0737963Z #7 2.786 Collecting backports.zstd>=1.0.0 (from pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.2629054Z #7 2.790   Downloading backports_zstd-1.6.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (6.8 kB)
+2026-07-17T16:48:27.2630855Z #7 2.821 Collecting httpx<1,>=0.27.0 (from pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.2631952Z #7 2.825   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-07-17T16:48:27.2664724Z #7 2.979 Collecting charset_normalizer<4,>=2 (from requests<3.0,>=2.26->poetry)
+2026-07-17T16:48:27.3806296Z #7 2.983   Downloading charset_normalizer-3.4.9-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (41 kB)
+2026-07-17T16:48:27.3808638Z #7 2.986      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.7/41.7 kB 205.3 MB/s eta 0:00:00
+2026-07-17T16:48:27.3809885Z #7 3.009 Collecting idna<4,>=2.5 (from requests<3.0,>=2.26->poetry)
+2026-07-17T16:48:27.3811241Z #7 3.013   Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+2026-07-17T16:48:27.3812471Z #7 3.047 Collecting certifi>=2023.5.7 (from requests<3.0,>=2.26->poetry)
+2026-07-17T16:48:27.3813724Z #7 3.051   Downloading certifi-2026.6.17-py3-none-any.whl.metadata (2.5 kB)
+2026-07-17T16:48:27.3816228Z #7 3.093 Requirement already satisfied: distlib<1,>=0.3.7 in /usr/local/lib/python3.10/dist-packages (from virtualenv>=20.26.6->poetry) (0.3.8)
+2026-07-17T16:48:27.5246651Z #7 3.133 Collecting filelock>=3.8.0 (from cachecontrol[filecache]<0.15.0,>=0.14.0->poetry)
+2026-07-17T16:48:27.5248078Z #7 3.137   Downloading filelock-3.30.3-py3-none-any.whl.metadata (2.0 kB)
+2026-07-17T16:48:27.5249299Z #7 3.160 Collecting python-discovery>=1.4.2 (from virtualenv>=20.26.6->poetry)
+2026-07-17T16:48:27.5250586Z #7 3.164   Downloading python_discovery-1.4.4-py3-none-any.whl.metadata (5.6 kB)
+2026-07-17T16:48:27.5251875Z #7 3.237 Collecting anyio (from httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.6415993Z #7 3.242   Downloading anyio-4.14.2-py3-none-any.whl.metadata (4.6 kB)
+2026-07-17T16:48:27.6417269Z #7 3.269 Collecting httpcore==1.* (from httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.6418254Z #7 3.273   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-07-17T16:48:27.6419408Z #7 3.297 Collecting h11>=0.16 (from httpcore==1.*->httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.6420688Z #7 3.300   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-07-17T16:48:27.6421540Z #7 3.354 Collecting zipp>=3.20 (from importlib_metadata>=4.11.4->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:27.7964093Z #7 3.358   Downloading zipp-4.1.0-py3-none-any.whl.metadata (3.6 kB)
+2026-07-17T16:48:28.0393883Z #7 3.752 Collecting cryptography>=2.0 (from SecretStorage>=3.2->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.1413551Z #7 3.756   Downloading cryptography-49.0.0-cp39-abi3-manylinux_2_34_x86_64.whl.metadata (4.3 kB)
+2026-07-17T16:48:28.1415595Z #7 3.813 Collecting more-itertools (from jaraco.classes->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.1417088Z #7 3.817   Downloading more_itertools-11.1.0-py3-none-any.whl.metadata (41 kB)
+2026-07-17T16:48:28.1418426Z #7 3.819      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.4/41.4 kB 182.1 MB/s eta 0:00:00
+2026-07-17T16:48:28.1419313Z #7 3.850 Collecting backports.tarfile (from jaraco.context->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.1420633Z #7 3.854   Downloading backports.tarfile-1.2.0-py3-none-any.whl.metadata (2.0 kB)
+2026-07-17T16:48:28.2974972Z #7 4.010 Collecting cffi>=2.0.0 (from cryptography>=2.0->SecretStorage>=3.2->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.4056428Z #7 4.014   Downloading cffi-2.1.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+2026-07-17T16:48:28.4058150Z #7 4.063 Collecting exceptiongroup>=1.0.2 (from anyio->httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:28.4059538Z #7 4.067   Downloading exceptiongroup-1.3.1-py3-none-any.whl.metadata (6.7 kB)
+2026-07-17T16:48:28.4060878Z #7 4.118 Collecting pycparser (from cffi>=2.0.0->cryptography>=2.0->SecretStorage>=3.2->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.5164114Z #7 4.122   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-07-17T16:48:28.5165478Z #7 4.160 Downloading poetry-2.4.1-py3-none-any.whl (292 kB)
+2026-07-17T16:48:28.5167056Z #7 4.169    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 292.3/292.3 kB 47.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.5168157Z #7 4.172 Downloading poetry_core-2.4.0-py3-none-any.whl (374 kB)
+2026-07-17T16:48:28.5169354Z #7 4.178    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 374.8/374.8 kB 130.9 MB/s eta 0:00:00
+2026-07-17T16:48:28.5170446Z #7 4.181 Downloading build-1.5.0-py3-none-any.whl (26 kB)
+2026-07-17T16:48:28.5171383Z #7 4.185 Downloading cachecontrol-0.14.4-py3-none-any.whl (22 kB)
+2026-07-17T16:48:28.5172341Z #7 4.188 Downloading cleo-2.1.0-py3-none-any.whl (78 kB)
+2026-07-17T16:48:28.5173531Z #7 4.191    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.7/78.7 kB 276.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.5174450Z #7 4.199 Downloading dulwich-1.2.11-cp310-cp310-manylinux_2_28_x86_64.whl (1.5 MB)
+2026-07-17T16:48:28.6173807Z #7 4.229    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 52.4 MB/s eta 0:00:00
+2026-07-17T16:48:28.6175468Z #7 4.233 Downloading fastjsonschema-2.21.2-py3-none-any.whl (24 kB)
+2026-07-17T16:48:28.6176767Z #7 4.236 Downloading findpython-0.8.0-py3-none-any.whl (21 kB)
+2026-07-17T16:48:28.6177993Z #7 4.240 Downloading installer-1.0.1-py3-none-any.whl (464 kB)
+2026-07-17T16:48:28.6179142Z #7 4.244    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 464.5/464.5 kB 284.4 MB/s eta 0:00:00
+2026-07-17T16:48:28.6179890Z #7 4.248 Downloading keyring-25.7.0-py3-none-any.whl (39 kB)
+2026-07-17T16:48:28.6180548Z #7 4.251 Downloading packaging-26.2-py3-none-any.whl (100 kB)
+2026-07-17T16:48:28.6181345Z #7 4.254    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.2/100.2 kB 277.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.6182067Z #7 4.258 Downloading pbs_installer-2026.6.10-py3-none-any.whl (75 kB)
+2026-07-17T16:48:28.6182913Z #7 4.260    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 75.7/75.7 kB 271.9 MB/s eta 0:00:00
+2026-07-17T16:48:28.6183600Z #7 4.264 Downloading pkginfo-1.12.1.2-py3-none-any.whl (32 kB)
+2026-07-17T16:48:28.6184271Z #7 4.268 Downloading platformdirs-4.10.0-py3-none-any.whl (22 kB)
+2026-07-17T16:48:28.6185582Z #7 4.271 Downloading pyproject_hooks-1.2.0-py3-none-any.whl (10 kB)
+2026-07-17T16:48:28.6186050Z #7 4.274 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+2026-07-17T16:48:28.6186620Z #7 4.277    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.1/73.1 kB 274.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.6187121Z #7 4.280 Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+2026-07-17T16:48:28.6187723Z #7 4.282    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.5/54.5 kB 265.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.6188211Z #7 4.286 Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+2026-07-17T16:48:28.6188660Z #7 4.289 Downloading tomli-2.4.1-py3-none-any.whl (14 kB)
+2026-07-17T16:48:28.6189083Z #7 4.293 Downloading tomlkit-0.15.1-py3-none-any.whl (49 kB)
+2026-07-17T16:48:28.6189601Z #7 4.295    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 49.4/49.4 kB 251.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.6190112Z #7 4.298 Downloading trove_classifiers-2026.6.1.19-py3-none-any.whl (14 kB)
+2026-07-17T16:48:28.6190837Z #7 4.302 Downloading virtualenv-21.6.1-py3-none-any.whl (5.5 MB)
+2026-07-17T16:48:28.6191373Z #7 4.326    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.5/5.5 MB 255.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.6192081Z #7 4.330 Downloading backports_zstd-1.6.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (492 kB)
+2026-07-17T16:48:28.7206812Z #7 4.334    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 492.5/492.5 kB 292.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.7207814Z #7 4.338 Downloading certifi-2026.6.17-py3-none-any.whl (133 kB)
+2026-07-17T16:48:28.7209017Z #7 4.340    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.3/133.3 kB 286.6 MB/s eta 0:00:00
+2026-07-17T16:48:28.7210429Z #7 4.345 Downloading charset_normalizer-3.4.9-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (223 kB)
+2026-07-17T16:48:28.7211904Z #7 4.347    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 223.8/223.8 kB 292.3 MB/s eta 0:00:00
+2026-07-17T16:48:28.7212793Z #7 4.351 Downloading crashtest-0.4.1-py3-none-any.whl (7.6 kB)
+2026-07-17T16:48:28.7213554Z #7 4.354 Downloading filelock-3.30.3-py3-none-any.whl (94 kB)
+2026-07-17T16:48:28.7214535Z #7 4.356    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 94.5/94.5 kB 281.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.7215532Z #7 4.360 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-07-17T16:48:28.7216095Z #7 4.363    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 232.1 MB/s eta 0:00:00
+2026-07-17T16:48:28.7216550Z #7 4.366 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-07-17T16:48:28.7217073Z #7 4.368    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 283.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.7217501Z #7 4.373 Downloading idna-3.18-py3-none-any.whl (65 kB)
+2026-07-17T16:48:28.7217998Z #7 4.375    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 65.5/65.5 kB 246.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.7218466Z #7 4.379 Downloading importlib_metadata-9.0.0-py3-none-any.whl (27 kB)
+2026-07-17T16:48:28.7218933Z #7 4.382 Downloading jeepney-0.9.0-py3-none-any.whl (49 kB)
+2026-07-17T16:48:28.7219694Z #7 4.384    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 49.0/49.0 kB 220.3 MB/s eta 0:00:00
+2026-07-17T16:48:28.7220328Z #7 4.388 Downloading msgpack-1.2.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (407 kB)
+2026-07-17T16:48:28.7221047Z #7 4.391    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 407.6/407.6 kB 311.2 MB/s eta 0:00:00
+2026-07-17T16:48:28.7221507Z #7 4.395 Downloading python_discovery-1.4.4-py3-none-any.whl (34 kB)
+2026-07-17T16:48:28.7222087Z #7 4.398 Downloading rapidfuzz-3.14.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (3.2 MB)
+2026-07-17T16:48:28.7222730Z #7 4.413    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 259.3 MB/s eta 0:00:00
+2026-07-17T16:48:28.7223173Z #7 4.417 Downloading secretstorage-3.5.0-py3-none-any.whl (15 kB)
+2026-07-17T16:48:28.7223641Z #7 4.420 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-07-17T16:48:28.7224322Z #7 4.422    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 248.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.7224751Z #7 4.426 Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
+2026-07-17T16:48:28.7225531Z #7 4.428    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 131.1/131.1 kB 274.2 MB/s eta 0:00:00
+2026-07-17T16:48:28.7225984Z #7 4.433 Downloading jaraco.classes-3.4.0-py3-none-any.whl (6.8 kB)
+2026-07-17T16:48:28.9448459Z #7 4.437 Downloading jaraco_context-6.1.2-py3-none-any.whl (7.9 kB)
+2026-07-17T16:48:28.9449851Z #7 4.441 Downloading jaraco_functools-4.6.0-py3-none-any.whl (11 kB)
+2026-07-17T16:48:28.9450800Z #7 4.445 Downloading cryptography-49.0.0-cp39-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+2026-07-17T16:48:28.9452277Z #7 4.466    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 250.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.9453063Z #7 4.470 Downloading zipp-4.1.0-py3-none-any.whl (10 kB)
+2026-07-17T16:48:28.9453771Z #7 4.474 Downloading anyio-4.14.2-py3-none-any.whl (125 kB)
+2026-07-17T16:48:28.9454749Z #7 4.476    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.8/125.8 kB 280.4 MB/s eta 0:00:00
+2026-07-17T16:48:28.9455913Z #7 4.481 Downloading backports.tarfile-1.2.0-py3-none-any.whl (30 kB)
+2026-07-17T16:48:28.9456782Z #7 4.485 Downloading more_itertools-11.1.0-py3-none-any.whl (72 kB)
+2026-07-17T16:48:28.9457807Z #7 4.487    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 72.2/72.2 kB 259.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.9458846Z #7 4.491 Downloading cffi-2.1.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (218 kB)
+2026-07-17T16:48:28.9460060Z #7 4.493    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 218.8/218.8 kB 301.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.9460914Z #7 4.497 Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)
+2026-07-17T16:48:28.9461687Z #7 4.501 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2026-07-17T16:48:28.9462399Z #7 4.504 Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+2026-07-17T16:48:28.9463365Z #7 4.507    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 48.2/48.2 kB 266.7 MB/s eta 0:00:00
+2026-07-17T16:48:29.2046721Z #7 4.917 Installing collected packages: trove-classifiers, fastjsonschema, zipp, urllib3, typing_extensions, tomlkit, tomli, shellingham, rapidfuzz, pyproject-hooks, pycparser, poetry-core, platformdirs, pkginfo, pbs-installer, packaging, msgpack, more-itertools, jeepney, installer, idna, h11, filelock, crashtest, charset_normalizer, certifi, backports.zstd, backports.tarfile, requests, python-discovery, jaraco.functools, jaraco.context, jaraco.classes, importlib_metadata, httpcore, findpython, exceptiongroup, dulwich, cleo, cffi, build, virtualenv, requests-toolbelt, cryptography, cachecontrol, anyio, SecretStorage, httpx, keyring, poetry
+2026-07-17T16:48:29.7318057Z #7 5.444   Attempting uninstall: platformdirs
+2026-07-17T16:48:29.8879873Z #7 5.445     Found existing installation: platformdirs 4.2.0
+2026-07-17T16:48:29.8880641Z #7 5.448     Uninstalling platformdirs-4.2.0:
+2026-07-17T16:48:29.8881313Z #7 5.450       Successfully uninstalled platformdirs-4.2.0
+2026-07-17T16:48:30.0204556Z #7 5.733   Attempting uninstall: filelock
+2026-07-17T16:48:30.1765282Z #7 5.734     Found existing installation: filelock 3.13.1
+2026-07-17T16:48:30.1766089Z #7 5.736     Uninstalling filelock-3.13.1:
+2026-07-17T16:48:30.1766710Z #7 5.738       Successfully uninstalled filelock-3.13.1
+2026-07-17T16:48:30.8468794Z #7 6.560   Attempting uninstall: virtualenv
+2026-07-17T16:48:31.0200581Z #7 6.560     Found existing installation: virtualenv 20.25.1
+2026-07-17T16:48:31.0201201Z #7 6.577     Uninstalling virtualenv-20.25.1:
+2026-07-17T16:48:31.0201708Z #7 6.582       Successfully uninstalled virtualenv-20.25.1
+2026-07-17T16:48:31.6185169Z #7 7.330 Successfully installed SecretStorage-3.5.0 anyio-4.14.2 backports.tarfile-1.2.0 backports.zstd-1.6.0 build-1.5.0 cachecontrol-0.14.4 certifi-2026.6.17 cffi-2.1.0 charset_normalizer-3.4.9 cleo-2.1.0 crashtest-0.4.1 cryptography-49.0.0 dulwich-1.2.11 exceptiongroup-1.3.1 fastjsonschema-2.21.2 filelock-3.30.3 findpython-0.8.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.18 importlib_metadata-9.0.0 installer-1.0.1 jaraco.classes-3.4.0 jaraco.context-6.1.2 jaraco.functools-4.6.0 jeepney-0.9.0 keyring-25.7.0 more-itertools-11.1.0 msgpack-1.2.1 packaging-26.2 pbs-installer-2026.6.10 pkginfo-1.12.1.2 platformdirs-4.10.0 poetry-2.4.1 poetry-core-2.4.0 pycparser-3.0 pyproject-hooks-1.2.0 python-discovery-1.4.4 rapidfuzz-3.14.5 requests-2.34.2 requests-toolbelt-1.0.0 shellingham-1.5.4 tomli-2.4.1 tomlkit-0.15.1 trove-classifiers-2026.6.1.19 typing_extensions-4.16.0 urllib3-2.7.0 virtualenv-21.6.1 zipp-4.1.0
+2026-07-17T16:48:31.7688172Z #7 7.331 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+2026-07-17T16:48:31.7744319Z #7 7.487 
+2026-07-17T16:48:31.7745524Z #7 7.487 [notice] A new release of pip is available: 24.0 -> 26.1.2
+2026-07-17T16:48:31.7746668Z #7 7.487 [notice] To update, run: python -m pip install --upgrade pip
+2026-07-17T16:48:32.5026963Z #7 DONE 8.2s
+2026-07-17T16:48:32.6538296Z 
+2026-07-17T16:48:32.6538856Z #8 [4/7] RUN poetry config virtualenvs.create false
+2026-07-17T16:48:33.0576214Z #8 DONE 0.6s
+2026-07-17T16:48:33.2303156Z 
+2026-07-17T16:48:33.2303722Z #9 [5/7] COPY apps/worker/pyproject.toml ./
+2026-07-17T16:48:33.2304555Z #9 DONE 0.0s
+2026-07-17T16:48:33.2304851Z 
+2026-07-17T16:48:33.2305619Z #10 [6/7] RUN poetry lock && poetry install --no-root --no-interaction --no-ansi
+2026-07-17T16:48:33.6593245Z #10 0.580 Skipping virtualenv creation, as specified in config file.
+2026-07-17T16:48:33.7776139Z #10 0.698 Updating dependencies
+2026-07-17T16:48:33.9282027Z #10 0.698 Resolving dependencies...
+2026-07-17T16:48:37.2731744Z #10 4.193 
+2026-07-17T16:48:37.2732183Z #10 4.193 Writing lock file
+2026-07-17T16:48:38.0597016Z #10 4.980 Skipping virtualenv creation, as specified in config file.
+2026-07-17T16:48:38.1781755Z #10 5.098 Installing dependencies from lock file
+2026-07-17T16:48:38.3677444Z #10 5.288 
+2026-07-17T16:48:38.3681020Z #10 5.288 Package operations: 32 installs, 0 updates, 0 removals
+2026-07-17T16:48:38.3681583Z #10 5.288 
+2026-07-17T16:48:38.5311836Z #10 5.289   - Installing annotated-types (0.7.0)
+2026-07-17T16:48:38.5313401Z #10 5.290   - Installing async-timeout (5.0.1)
+2026-07-17T16:48:38.5314360Z #10 5.290   - Installing backports-asyncio-runner (1.2.0)
+2026-07-17T16:48:38.5316081Z #10 5.290   - Installing beautifulsoup4 (4.15.0)
+2026-07-17T16:48:38.5316669Z #10 5.292   - Installing bullmq (2.25.3)
+2026-07-17T16:48:38.5317185Z #10 5.296   - Installing click (8.4.2)
+2026-07-17T16:48:38.5317679Z #10 5.299   - Installing distro (1.9.0)
+2026-07-17T16:48:38.5318171Z #10 5.301   - Installing dnspython (2.8.0)
+2026-07-17T16:48:38.5704494Z #10 5.491   - Installing fastapi (0.110.3)
+2026-07-17T16:48:38.6778663Z #10 5.492   - Installing greenlet (3.5.3)
+2026-07-17T16:48:38.6779287Z #10 5.523   - Installing groq (1.5.0)
+2026-07-17T16:48:38.6779755Z #10 5.541   - Installing hiredis (3.4.0)
+2026-07-17T16:48:38.6780586Z #10 5.598   - Installing iniconfig (2.3.0)
+2026-07-17T16:48:38.8224266Z #10 5.653   - Installing motor (3.7.1)
+2026-07-17T16:48:38.8225583Z #10 5.683   - Installing playwright (1.61.0)
+2026-07-17T16:48:38.8226263Z #10 5.743   - Installing pluggy (1.6.0)
+2026-07-17T16:48:38.9302322Z #10 5.746   - Installing pydantic (2.13.4)
+2026-07-17T16:48:38.9303525Z #10 5.795   - Installing pydantic-core (2.46.4)
+2026-07-17T16:48:38.9304401Z #10 5.850   - Installing pydantic-settings (2.14.2)
+2026-07-17T16:48:39.0807554Z #10 5.933   - Installing pyee (13.0.1)
+2026-07-17T16:48:39.0808263Z #10 6.001   - Installing pygments (2.20.0)
+2026-07-17T16:48:39.2003877Z #10 6.025   - Installing pymongo (4.17.0)
+2026-07-17T16:48:39.2004725Z #10 6.069   - Installing pytest (9.1.1)
+2026-07-17T16:48:39.2005579Z #10 6.121   - Installing pytest-asyncio (1.4.0)
+2026-07-17T16:48:39.3547449Z #10 6.197   - Installing python-dotenv (1.2.2)
+2026-07-17T16:48:39.3547985Z #10 6.275   - Installing redis (6.4.0)
+2026-07-17T16:48:39.4886850Z #10 6.300   - Installing semver (3.0.4)
+2026-07-17T16:48:39.4887362Z #10 6.352   - Installing sniffio (1.3.1)
+2026-07-17T16:48:39.4887694Z #10 6.409   - Installing soupsieve (2.8.4)
+2026-07-17T16:48:39.7335946Z #10 6.441   - Installing starlette (0.37.2)
+2026-07-17T16:48:39.7336942Z #10 6.496   - Installing typing-inspection (0.4.2)
+2026-07-17T16:48:39.7337618Z #10 6.503   - Installing uvicorn (0.28.1)
+2026-07-17T16:48:41.6818238Z #10 DONE 8.6s
+2026-07-17T16:48:41.8478299Z 
+2026-07-17T16:48:41.8479214Z #11 [7/7] COPY apps/worker/ ./
+2026-07-17T16:48:41.8479961Z #11 DONE 0.0s
+2026-07-17T16:48:41.8480365Z 
+2026-07-17T16:48:41.8480695Z #12 exporting to image
+2026-07-17T16:48:41.8481264Z #12 exporting layers
+2026-07-17T16:48:45.3085603Z #12 exporting layers 3.6s done
+2026-07-17T16:48:45.3276968Z #12 writing image sha256:3811846aa3a6a98227b76af7b59a8f34927da394b4f31dce577b782a0ce753f1 done
+2026-07-17T16:48:45.3278159Z #12 naming to docker.io/library/rankengine-worker:test done
+2026-07-17T16:48:45.3278781Z #12 DONE 3.6s

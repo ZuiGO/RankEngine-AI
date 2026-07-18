@@ -1,0 +1,25 @@
+﻿2026-07-17T16:46:56.1871049Z ##[group]Run npm run lint
+2026-07-17T16:46:56.1871364Z [36;1mnpm run lint[0m
+2026-07-17T16:46:56.1930389Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:46:56.1930686Z ##[endgroup]
+2026-07-17T16:46:56.3086069Z 
+2026-07-17T16:46:56.3086874Z > rankengine-ai-monorepo@1.0.0 lint
+2026-07-17T16:46:56.3087427Z > npm run lint --workspaces --if-present
+2026-07-17T16:46:56.3087696Z 
+2026-07-17T16:46:56.4401158Z 
+2026-07-17T16:46:56.4402147Z > @rankengine/api@1.0.0 lint
+2026-07-17T16:46:56.4403031Z > eslint . --ext .ts
+2026-07-17T16:46:56.4403533Z 
+2026-07-17T16:46:58.9685785Z 
+2026-07-17T16:46:58.9686474Z > @rankengine/web@0.0.0 lint
+2026-07-17T16:46:58.9687078Z > oxlint
+2026-07-17T16:46:58.9687215Z 
+2026-07-17T16:46:59.0227418Z ##[warning]Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+2026-07-17T16:46:59.0239979Z ##[warning]Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+2026-07-17T16:46:59.0243165Z ##[warning]React Hook useEffect has a missing dependency: 'fetchProjects'
+2026-07-17T16:46:59.0245516Z ##[warning]React Hook useEffect has a missing dependency: 'fetchGraderResults'
+2026-07-17T16:46:59.0248081Z ##[warning]React Hook useEffect has a missing dependency: 'fetchKeywords'
+2026-07-17T16:46:59.0250254Z ##[warning]React Hook useEffect has a missing dependency: 'fetchHistory'
+2026-07-17T16:46:59.0251387Z 
+2026-07-17T16:46:59.0251690Z Found 6 warnings and 0 errors.
+2026-07-17T16:46:59.0252621Z Finished in 11ms on 14 files with 103 rules using 4 threads.

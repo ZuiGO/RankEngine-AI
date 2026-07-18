@@ -1,0 +1,128 @@
+﻿2026-07-17T16:47:10.2080099Z ##[group]Run npm test --workspace=apps/api
+2026-07-17T16:47:10.2080489Z [36;1mnpm test --workspace=apps/api[0m
+2026-07-17T16:47:10.2138676Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:47:10.2138932Z env:
+2026-07-17T16:47:10.2139116Z   NODE_ENV: test
+2026-07-17T16:47:10.2139411Z   MONGODB_URI: mongodb://127.0.0.1:27017/rankengine_test
+2026-07-17T16:47:10.2139785Z   REDIS_URL: redis://127.0.0.1:6379
+2026-07-17T16:47:10.2140091Z   JWT_SECRET: test_secret_key_long_enough_for_jwt
+2026-07-17T16:47:10.2140383Z   JWT_EXPIRY: 1h
+2026-07-17T16:47:10.2140707Z   ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+2026-07-17T16:47:10.2141114Z   LLM_API_KEY: mock-llm-key
+2026-07-17T16:47:10.2141362Z   SERP_API_KEY: mock-serp-key
+2026-07-17T16:47:10.2141605Z   SERP_API_PROVIDER: mock
+2026-07-17T16:47:10.2142043Z ##[endgroup]
+2026-07-17T16:47:10.3532128Z 
+2026-07-17T16:47:10.3532845Z > @rankengine/api@1.0.0 test
+2026-07-17T16:47:10.3533541Z > jest --runInBand --detectOpenHandles
+2026-07-17T16:47:10.3533948Z 
+2026-07-17T16:47:19.0175191Z PASS __tests__/projects.test.ts (8.149 s)
+2026-07-17T16:47:20.5216301Z PASS __tests__/competitorAlerts.test.ts
+2026-07-17T16:47:24.1712023Z FAIL __tests__/auth.test.ts
+2026-07-17T16:47:24.1713181Z   ● Authentication Flow › Middleware requireAuth & GET /api/auth/me › should fail if token is expired
+2026-07-17T16:47:24.1713999Z 
+2026-07-17T16:47:24.1714239Z     expect(received).toBe(expected) // Object.is equality
+2026-07-17T16:47:24.1714534Z 
+2026-07-17T16:47:24.1714707Z     Expected: "Unauthorized: Token expired"
+2026-07-17T16:47:24.1715414Z     Received: "Unauthorized: Invalid token"
+2026-07-17T16:47:24.1715914Z 
+2026-07-17T16:47:24.1717614Z     [0m [90m 221 |[39m         [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`***
+2026-07-17T16:47:24.1718890Z      [90m 222 |[39m         [33m.[39mexpect([35m401[39m)[33m;[39m
+2026-07-17T16:47:24.1720888Z     [31m[1m>[22m[39m[90m 223 |[39m       expect(res[33m.[39mbody[33m.[39merror)[33m.[39mtoBe([32m'Unauthorized: Token expired'[39m)[33m;[39m
+2026-07-17T16:47:24.1722501Z      [90m     |[39m                              [31m[1m^[22m[39m
+2026-07-17T16:47:24.1723202Z      [90m 224 |[39m     })[33m;[39m
+2026-07-17T16:47:24.1723804Z      [90m 225 |[39m   })[33m;[39m
+2026-07-17T16:47:24.1724209Z      [90m 226 |[39m })[33m;[39m[0m
+2026-07-17T16:47:24.1724412Z 
+2026-07-17T16:47:24.1724657Z       at Object.<anonymous> (__tests__/auth.test.ts:223:30)
+2026-07-17T16:47:24.1724906Z 
+2026-07-17T16:47:25.5679236Z PASS __tests__/crawlJobs.test.ts
+2026-07-17T16:47:26.8552515Z PASS __tests__/migration.test.ts
+2026-07-17T16:47:27.8755877Z PASS __tests__/serp.test.ts
+2026-07-17T16:47:27.8841433Z   ● Console
+2026-07-17T16:47:27.8841673Z 
+2026-07-17T16:47:27.8842038Z     console.log
+2026-07-17T16:47:27.8842773Z       [SerpAnalysis]: Cache miss for keyword: "seo audit". Running analysis.
+2026-07-17T16:47:27.8843340Z 
+2026-07-17T16:47:27.8843571Z       at src/routes/content.ts:48:13
+2026-07-17T16:47:27.8843935Z 
+2026-07-17T16:47:27.8844094Z     console.log
+2026-07-17T16:47:27.8844742Z       [SerpAnalysis]: Cache miss for keyword: "seo audit". Running analysis.
+2026-07-17T16:47:27.8845279Z 
+2026-07-17T16:47:27.8845491Z       at src/routes/content.ts:48:13
+2026-07-17T16:47:27.8845832Z 
+2026-07-17T16:47:27.8845980Z     console.log
+2026-07-17T16:47:27.8846409Z       [SerpAnalysis]: Cache hit for keyword: "seo audit"
+2026-07-17T16:47:27.8846683Z 
+2026-07-17T16:47:27.8846845Z       at src/routes/content.ts:34:15
+2026-07-17T16:47:27.8847063Z 
+2026-07-17T16:47:29.0310717Z PASS __tests__/checklist.test.ts
+2026-07-17T16:47:30.0717117Z PASS __tests__/grade.test.ts
+2026-07-17T16:47:30.8961496Z PASS __tests__/schemaChecklist.test.ts
+2026-07-17T16:47:32.3766870Z PASS __tests__/rankTracker.test.ts
+2026-07-17T16:47:32.3798703Z   ● Console
+2026-07-17T16:47:32.3798910Z 
+2026-07-17T16:47:32.3799107Z     console.log
+2026-07-17T16:47:32.3799607Z       [RankTracker]: Starting snapshots collection for 2 keywords.
+2026-07-17T16:47:32.3800272Z 
+2026-07-17T16:47:32.3800566Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:138:11)
+2026-07-17T16:47:32.3800896Z 
+2026-07-17T16:47:32.3800991Z     console.log
+2026-07-17T16:47:32.3801373Z       [MockSerpProvider]: Fetching top 10 results for keyword: "seo tool"
+2026-07-17T16:47:32.3801698Z 
+2026-07-17T16:47:32.3802281Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3802712Z 
+2026-07-17T16:47:32.3802813Z     console.log
+2026-07-17T16:47:32.3803209Z       [MockSerpProvider]: Fetching top 10 results for keyword: "schema checker"
+2026-07-17T16:47:32.3803534Z 
+2026-07-17T16:47:32.3803777Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3804079Z 
+2026-07-17T16:47:32.3804170Z     console.log
+2026-07-17T16:47:32.3804464Z       [RankTracker]: Completed snapshots collection.
+2026-07-17T16:47:32.3804706Z 
+2026-07-17T16:47:32.3804978Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:148:11)
+2026-07-17T16:47:32.3805309Z 
+2026-07-17T16:47:32.3805396Z     console.log
+2026-07-17T16:47:32.3805738Z       [RankTracker]: Starting snapshots collection for 1 keywords.
+2026-07-17T16:47:32.3806006Z 
+2026-07-17T16:47:32.3806269Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:138:11)
+2026-07-17T16:47:32.3806784Z 
+2026-07-17T16:47:32.3806869Z     console.log
+2026-07-17T16:47:32.3807223Z       [MockSerpProvider]: Fetching top 10 results for keyword: "seo tool"
+2026-07-17T16:47:32.3807520Z 
+2026-07-17T16:47:32.3807763Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3808059Z 
+2026-07-17T16:47:32.3808149Z     console.log
+2026-07-17T16:47:32.3808427Z       [RankTracker]: Completed snapshots collection.
+2026-07-17T16:47:32.3808654Z 
+2026-07-17T16:47:32.3808908Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:148:11)
+2026-07-17T16:47:32.3809222Z 
+2026-07-17T16:47:32.3809310Z     console.log
+2026-07-17T16:47:32.3809642Z       [RankTracker]: Starting snapshots collection for 1 keywords.
+2026-07-17T16:47:32.3809913Z 
+2026-07-17T16:47:32.3810170Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:138:11)
+2026-07-17T16:47:32.3810484Z 
+2026-07-17T16:47:32.3810573Z     console.log
+2026-07-17T16:47:32.3811094Z       [MockSerpProvider]: Fetching top 10 results for keyword: "seo tool"
+2026-07-17T16:47:32.3811539Z 
+2026-07-17T16:47:32.3812134Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3812598Z 
+2026-07-17T16:47:32.3812687Z     console.log
+2026-07-17T16:47:32.3812962Z       [RankTracker]: Completed snapshots collection.
+2026-07-17T16:47:32.3813187Z 
+2026-07-17T16:47:32.3813432Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:148:11)
+2026-07-17T16:47:32.3813726Z 
+2026-07-17T16:47:32.3813738Z 
+2026-07-17T16:47:32.3819718Z Test Suites: 1 failed, 9 passed, 10 total
+2026-07-17T16:47:32.3820441Z Tests:       1 failed, 51 passed, 52 total
+2026-07-17T16:47:32.3820791Z Snapshots:   0 total
+2026-07-17T16:47:32.3821033Z Time:        21.718 s
+2026-07-17T16:47:32.3821270Z Ran all test suites.
+2026-07-17T16:47:32.7419698Z npm error Lifecycle script `test` failed with error:
+2026-07-17T16:47:32.7425112Z npm error code 1
+2026-07-17T16:47:32.7426289Z npm error path /home/runner/work/RankEngine-AI/RankEngine-AI/apps/api
+2026-07-17T16:47:32.7427187Z npm error workspace @rankengine/api@1.0.0
+2026-07-17T16:47:32.7428111Z npm error location /home/runner/work/RankEngine-AI/RankEngine-AI/apps/api
+2026-07-17T16:47:32.7428913Z npm error command failed
+2026-07-17T16:47:32.7429666Z npm error command sh -c jest --runInBand --detectOpenHandles
+2026-07-17T16:47:32.7477150Z ##[error]Process completed with exit code 1.

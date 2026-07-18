@@ -243,7 +243,7 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
         "crawler_finished",
         crawlJobId=crawl_job_id,
         pagesCrawled=len(crawled_pages),
-        crawlResultId=str(crawl_result_id)
+        rawResultsRef=str(crawl_result_id)
     )
 
     return str(crawl_result_id), len(crawled_pages)
@@ -713,7 +713,7 @@ async def run_migration_check(crawl_job_id: str, live_domain: str, staging_domai
         crawlJobId=crawl_job_id,
         pagesChecked=len(discovered_urls),
         issuesFound=len(issues_to_create),
-        crawlResultId=str(crawl_result_id)
+        rawResultsRef=str(crawl_result_id)
     )
     
     return str(crawl_result_id), len(discovered_urls)

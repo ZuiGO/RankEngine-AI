@@ -1,0 +1,38 @@
+﻿2026-07-17T16:46:33.8577340Z ##[group]Run curl -sSL https://install.python-poetry.org | python3 -
+2026-07-17T16:46:33.8578249Z [36;1mcurl -sSL https://install.python-poetry.org | python3 -[0m
+2026-07-17T16:46:33.8578924Z [36;1mecho "$HOME/.local/bin" >> $GITHUB_PATH[0m
+2026-07-17T16:46:33.8705876Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:46:33.8706333Z env:
+2026-07-17T16:46:33.8706764Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:46:33.8707515Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+2026-07-17T16:46:33.8708223Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:46:33.8708847Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:46:33.8709461Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:46:33.8710090Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+2026-07-17T16:46:33.8710622Z ##[endgroup]
+2026-07-17T16:46:46.1210854Z Retrieving Poetry metadata
+2026-07-17T16:46:46.1211427Z 
+2026-07-17T16:46:46.1211692Z # Welcome to Poetry!
+2026-07-17T16:46:46.1211973Z 
+2026-07-17T16:46:46.1212417Z This will download and install the latest version of Poetry,
+2026-07-17T16:46:46.1213253Z a dependency and package manager for Python.
+2026-07-17T16:46:46.1213639Z 
+2026-07-17T16:46:46.1214367Z It will add the `poetry` command to Poetry's bin directory, located at:
+2026-07-17T16:46:46.1214801Z 
+2026-07-17T16:46:46.1214931Z /home/runner/.local/bin
+2026-07-17T16:46:46.1215136Z 
+2026-07-17T16:46:46.1215485Z You can uninstall at any time by executing this script with the --uninstall option,
+2026-07-17T16:46:46.1216110Z and these changes will be reverted.
+2026-07-17T16:46:46.1216384Z 
+2026-07-17T16:46:46.1216516Z Installing Poetry (2.4.1)
+2026-07-17T16:46:46.1216897Z Installing Poetry (2.4.1): Creating environment
+2026-07-17T16:46:46.1217347Z Installing Poetry (2.4.1): Installing Poetry
+2026-07-17T16:46:46.1217773Z Installing Poetry (2.4.1): Creating script
+2026-07-17T16:46:46.1218509Z Installing Poetry (2.4.1): Done
+2026-07-17T16:46:46.1218747Z 
+2026-07-17T16:46:46.1218907Z Poetry (2.4.1) is installed now. Great!
+2026-07-17T16:46:46.1219163Z 
+2026-07-17T16:46:46.1219424Z You can test that everything is set up by executing:
+2026-07-17T16:46:46.1219745Z 
+2026-07-17T16:46:46.1219873Z `poetry --version`
+2026-07-17T16:46:46.1220058Z 

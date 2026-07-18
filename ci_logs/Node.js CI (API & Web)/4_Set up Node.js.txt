@@ -1,0 +1,31 @@
+﻿2026-07-17T16:46:38.3912735Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-17T16:46:38.3914338Z ##[group]Run actions/setup-node@v4
+2026-07-17T16:46:38.3914588Z with:
+2026-07-17T16:46:38.3914773Z   node-version: 20
+2026-07-17T16:46:38.3914969Z   cache: npm
+2026-07-17T16:46:38.3915158Z   always-auth: false
+2026-07-17T16:46:38.3915365Z   check-latest: false
+2026-07-17T16:46:38.3917818Z   token: ***
+2026-07-17T16:46:38.3918013Z ##[endgroup]
+2026-07-17T16:46:38.5483088Z Attempting to download 20...
+2026-07-17T16:46:38.5588973Z (node:2837) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-17T16:46:38.5590185Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-17T16:46:39.4573693Z Acquiring 20.20.2 - x64 from https://github.com/actions/node-versions/releases/download/20.20.2-23521894959/node-20.20.2-linux-x64.tar.gz
+2026-07-17T16:46:40.0150766Z Extracting ...
+2026-07-17T16:46:40.0272007Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/324bbb19-3d37-4c2c-80bc-18310bafedb4 -f /home/runner/work/_temp/7a36ecf9-5025-4293-b9bb-1f682a86edc7
+2026-07-17T16:46:41.0788024Z Adding to the cache ...
+2026-07-17T16:46:42.9351438Z ##[group]Environment details
+2026-07-17T16:46:43.2349859Z node: v20.20.2
+2026-07-17T16:46:43.2350285Z npm: 10.8.2
+2026-07-17T16:46:43.2350599Z yarn: 1.22.22
+2026-07-17T16:46:43.2351179Z ##[endgroup]
+2026-07-17T16:46:43.2373153Z [command]/opt/hostedtoolcache/node/20.20.2/x64/bin/npm config get cache
+2026-07-17T16:46:43.3386547Z /home/runner/.npm
+2026-07-17T16:46:43.5835511Z Cache hit for: node-cache-Linux-x64-npm-e4ddb1b87234f5d99992a36b05bb7cd08fa8b511db3961d69ee84073c411be72
+2026-07-17T16:46:43.5941001Z (node:2837) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-07-17T16:46:44.8952211Z Received 29360128 of 97178381 (30.2%), 28.0 MBs/sec
+2026-07-17T16:46:45.4749556Z Received 97178381 of 97178381 (100.0%), 58.7 MBs/sec
+2026-07-17T16:46:45.4751325Z Cache Size: ~93 MB (97178381 B)
+2026-07-17T16:46:45.4865512Z [command]/usr/bin/tar -xf /home/runner/work/_temp/e04c49d5-9566-42d3-8ed0-0687e9103544/cache.tzst -P -C /home/runner/work/RankEngine-AI/RankEngine-AI --use-compress-program unzstd
+2026-07-17T16:46:45.8146824Z Cache restored successfully
+2026-07-17T16:46:45.8220948Z Cache restored from key: node-cache-Linux-x64-npm-e4ddb1b87234f5d99992a36b05bb7cd08fa8b511db3961d69ee84073c411be72

@@ -1,0 +1,123 @@
+﻿2026-07-17T16:46:21.4979059Z ##[group]Checking docker version
+2026-07-17T16:46:21.4992324Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-07-17T16:46:21.5708484Z '1.48'
+2026-07-17T16:46:21.5720258Z Docker daemon API version: '1.48'
+2026-07-17T16:46:21.5721054Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-07-17T16:46:21.5887530Z '1.48'
+2026-07-17T16:46:21.5902107Z Docker client API version: '1.48'
+2026-07-17T16:46:21.5907673Z ##[endgroup]
+2026-07-17T16:46:21.5910137Z ##[group]Clean up resources from previous jobs
+2026-07-17T16:46:21.5915680Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=7abef8"
+2026-07-17T16:46:21.6055949Z ##[command]/usr/bin/docker network prune --force --filter "label=7abef8"
+2026-07-17T16:46:21.6186916Z ##[endgroup]
+2026-07-17T16:46:21.6187466Z ##[group]Create local container network
+2026-07-17T16:46:21.6197803Z ##[command]/usr/bin/docker network create --label 7abef8 github_network_9fb822a44ee14d769d0ce029acbb8387
+2026-07-17T16:46:21.6802108Z e2a570d38fe9ed852a0f0139ae45598aaa4d854030cb82421738742bf75dbcbe
+2026-07-17T16:46:21.6819649Z ##[endgroup]
+2026-07-17T16:46:21.6843632Z ##[group]Starting mongodb service container
+2026-07-17T16:46:21.6864355Z ##[command]/usr/bin/docker pull mongo:latest
+2026-07-17T16:46:21.9623784Z latest: Pulling from library/mongo
+2026-07-17T16:46:22.0475761Z ca2678b20700: Pulling fs layer
+2026-07-17T16:46:22.0476831Z e2a132d8e302: Pulling fs layer
+2026-07-17T16:46:22.0477542Z d60daeb7b51e: Pulling fs layer
+2026-07-17T16:46:22.0478337Z 3647363b6a04: Pulling fs layer
+2026-07-17T16:46:22.0479115Z 690606b575e4: Pulling fs layer
+2026-07-17T16:46:22.0479897Z 664e5a5a5402: Pulling fs layer
+2026-07-17T16:46:22.0480668Z 31e270117e3b: Pulling fs layer
+2026-07-17T16:46:22.0481443Z a81e773c224c: Pulling fs layer
+2026-07-17T16:46:22.0482170Z 690606b575e4: Waiting
+2026-07-17T16:46:22.0483004Z 31e270117e3b: Waiting
+2026-07-17T16:46:22.0483590Z a81e773c224c: Waiting
+2026-07-17T16:46:22.0484029Z 664e5a5a5402: Waiting
+2026-07-17T16:46:22.0484630Z 3647363b6a04: Waiting
+2026-07-17T16:46:22.0987394Z e2a132d8e302: Verifying Checksum
+2026-07-17T16:46:22.0988493Z e2a132d8e302: Download complete
+2026-07-17T16:46:22.1328426Z d60daeb7b51e: Verifying Checksum
+2026-07-17T16:46:22.1329519Z d60daeb7b51e: Download complete
+2026-07-17T16:46:22.1821113Z 690606b575e4: Verifying Checksum
+2026-07-17T16:46:22.1835002Z 690606b575e4: Download complete
+2026-07-17T16:46:22.1911724Z 3647363b6a04: Verifying Checksum
+2026-07-17T16:46:22.1913527Z 3647363b6a04: Download complete
+2026-07-17T16:46:22.2342341Z 664e5a5a5402: Verifying Checksum
+2026-07-17T16:46:22.2343625Z 664e5a5a5402: Download complete
+2026-07-17T16:46:22.2397635Z ca2678b20700: Verifying Checksum
+2026-07-17T16:46:22.2398495Z ca2678b20700: Download complete
+2026-07-17T16:46:22.2940781Z a81e773c224c: Verifying Checksum
+2026-07-17T16:46:22.2947679Z a81e773c224c: Download complete
+2026-07-17T16:46:23.2350447Z 31e270117e3b: Verifying Checksum
+2026-07-17T16:46:23.2353345Z 31e270117e3b: Download complete
+2026-07-17T16:46:23.4925713Z ca2678b20700: Pull complete
+2026-07-17T16:46:25.1142433Z e2a132d8e302: Pull complete
+2026-07-17T16:46:25.2411717Z d60daeb7b51e: Pull complete
+2026-07-17T16:46:25.2861502Z 3647363b6a04: Pull complete
+2026-07-17T16:46:25.2955505Z 690606b575e4: Pull complete
+2026-07-17T16:46:25.3047835Z 664e5a5a5402: Pull complete
+2026-07-17T16:46:31.1711688Z 31e270117e3b: Pull complete
+2026-07-17T16:46:31.1836332Z a81e773c224c: Pull complete
+2026-07-17T16:46:31.1874864Z Digest: sha256:951c2ff9fc6bdb6cb89b1dfea4a0e8ae3ee4fb287c0bf579b2bba54c7803f75d
+2026-07-17T16:46:31.1887474Z Status: Downloaded newer image for mongo:latest
+2026-07-17T16:46:31.1896496Z docker.io/library/mongo:latest
+2026-07-17T16:46:31.1934392Z ##[command]/usr/bin/docker create --name 575df522e4f744eba6512ff36cd643f5_mongolatest_3a7792 --label 7abef8 --network github_network_9fb822a44ee14d769d0ce029acbb8387 --network-alias mongodb -p 27017:27017  -e GITHUB_ACTIONS=true -e CI=true mongo:latest
+2026-07-17T16:46:31.2230082Z adcff33f24ccb45515beef81cd50f657dabba5c338676857bee2fe475ed31600
+2026-07-17T16:46:31.2253748Z ##[command]/usr/bin/docker start adcff33f24ccb45515beef81cd50f657dabba5c338676857bee2fe475ed31600
+2026-07-17T16:46:31.4292455Z adcff33f24ccb45515beef81cd50f657dabba5c338676857bee2fe475ed31600
+2026-07-17T16:46:31.4315248Z ##[command]/usr/bin/docker ps --all --filter id=adcff33f24ccb45515beef81cd50f657dabba5c338676857bee2fe475ed31600 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-07-17T16:46:31.4456909Z adcff33f24ccb45515beef81cd50f657dabba5c338676857bee2fe475ed31600 Up Less than a second
+2026-07-17T16:46:31.4478670Z ##[command]/usr/bin/docker port adcff33f24ccb45515beef81cd50f657dabba5c338676857bee2fe475ed31600
+2026-07-17T16:46:31.4603343Z 27017/tcp -> 0.0.0.0:27017
+2026-07-17T16:46:31.4604172Z 27017/tcp -> [::]:27017
+2026-07-17T16:46:31.4649899Z ##[endgroup]
+2026-07-17T16:46:31.4651210Z ##[group]Starting redis service container
+2026-07-17T16:46:31.4652555Z ##[command]/usr/bin/docker pull redis:alpine
+2026-07-17T16:46:31.7273494Z alpine: Pulling from library/redis
+2026-07-17T16:46:31.8241195Z e6f31ffc071e: Pulling fs layer
+2026-07-17T16:46:31.8242409Z 181cd4ffd5c9: Pulling fs layer
+2026-07-17T16:46:31.8243415Z eeab38c295a8: Pulling fs layer
+2026-07-17T16:46:31.8243976Z 5da8100e7e68: Pulling fs layer
+2026-07-17T16:46:31.8244419Z dc3229b74aab: Pulling fs layer
+2026-07-17T16:46:31.8244798Z 4f4fb700ef54: Pulling fs layer
+2026-07-17T16:46:31.8245189Z 05922fb64b47: Pulling fs layer
+2026-07-17T16:46:31.8245548Z dc3229b74aab: Waiting
+2026-07-17T16:46:31.8245895Z 4f4fb700ef54: Waiting
+2026-07-17T16:46:31.8246287Z 05922fb64b47: Waiting
+2026-07-17T16:46:31.8246646Z 5da8100e7e68: Waiting
+2026-07-17T16:46:31.8785945Z 181cd4ffd5c9: Verifying Checksum
+2026-07-17T16:46:31.8787076Z 181cd4ffd5c9: Download complete
+2026-07-17T16:46:31.8889880Z eeab38c295a8: Verifying Checksum
+2026-07-17T16:46:31.8890595Z eeab38c295a8: Download complete
+2026-07-17T16:46:31.9369631Z e6f31ffc071e: Verifying Checksum
+2026-07-17T16:46:31.9370659Z e6f31ffc071e: Download complete
+2026-07-17T16:46:31.9387161Z dc3229b74aab: Verifying Checksum
+2026-07-17T16:46:31.9390716Z dc3229b74aab: Download complete
+2026-07-17T16:46:31.9906610Z 4f4fb700ef54: Verifying Checksum
+2026-07-17T16:46:31.9907534Z 4f4fb700ef54: Download complete
+2026-07-17T16:46:31.9931776Z 05922fb64b47: Verifying Checksum
+2026-07-17T16:46:31.9933472Z 05922fb64b47: Download complete
+2026-07-17T16:46:32.0684976Z e6f31ffc071e: Pull complete
+2026-07-17T16:46:32.1012308Z 5da8100e7e68: Verifying Checksum
+2026-07-17T16:46:32.1013211Z 5da8100e7e68: Download complete
+2026-07-17T16:46:32.1039071Z 181cd4ffd5c9: Pull complete
+2026-07-17T16:46:32.2464849Z eeab38c295a8: Pull complete
+2026-07-17T16:46:32.8062714Z 5da8100e7e68: Pull complete
+2026-07-17T16:46:32.8149312Z dc3229b74aab: Pull complete
+2026-07-17T16:46:32.8253176Z 4f4fb700ef54: Pull complete
+2026-07-17T16:46:32.8351291Z 05922fb64b47: Pull complete
+2026-07-17T16:46:32.8386883Z Digest: sha256:9d317178eceac8454a2284a9e6df2466b93c745529947f0cd42a0fa9609d7005
+2026-07-17T16:46:32.8399615Z Status: Downloaded newer image for redis:alpine
+2026-07-17T16:46:32.8406985Z docker.io/library/redis:alpine
+2026-07-17T16:46:32.8425130Z ##[command]/usr/bin/docker create --name 0da0d288abb847cbae7c5968ab454bea_redisalpine_bcb968 --label 7abef8 --network github_network_9fb822a44ee14d769d0ce029acbb8387 --network-alias redis -p 6379:6379  -e GITHUB_ACTIONS=true -e CI=true redis:alpine
+2026-07-17T16:46:32.8653641Z 8c1d15f6a14a43793c0c3c6892ebb59ffb7fd1f3ec0c731422ef0a543697f9bc
+2026-07-17T16:46:32.8667894Z ##[command]/usr/bin/docker start 8c1d15f6a14a43793c0c3c6892ebb59ffb7fd1f3ec0c731422ef0a543697f9bc
+2026-07-17T16:46:33.0236482Z 8c1d15f6a14a43793c0c3c6892ebb59ffb7fd1f3ec0c731422ef0a543697f9bc
+2026-07-17T16:46:33.0270287Z ##[command]/usr/bin/docker ps --all --filter id=8c1d15f6a14a43793c0c3c6892ebb59ffb7fd1f3ec0c731422ef0a543697f9bc --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-07-17T16:46:33.0428231Z 8c1d15f6a14a43793c0c3c6892ebb59ffb7fd1f3ec0c731422ef0a543697f9bc Up Less than a second
+2026-07-17T16:46:33.0445905Z ##[command]/usr/bin/docker port 8c1d15f6a14a43793c0c3c6892ebb59ffb7fd1f3ec0c731422ef0a543697f9bc
+2026-07-17T16:46:33.0692481Z 6379/tcp -> 0.0.0.0:6379
+2026-07-17T16:46:33.0709256Z 6379/tcp -> [::]:6379
+2026-07-17T16:46:33.0714755Z ##[endgroup]
+2026-07-17T16:46:33.0726845Z ##[group]Waiting for all services to be ready
+2026-07-17T16:46:33.0743827Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" adcff33f24ccb45515beef81cd50f657dabba5c338676857bee2fe475ed31600
+2026-07-17T16:46:33.0977469Z mongodb service is healthy.
+2026-07-17T16:46:33.0979116Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 8c1d15f6a14a43793c0c3c6892ebb59ffb7fd1f3ec0c731422ef0a543697f9bc
+2026-07-17T16:46:33.1121217Z redis service is healthy.
+2026-07-17T16:46:33.1121614Z ##[endgroup]

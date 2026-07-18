@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import supertest from 'supertest';
 
 let mongoServer: MongoMemoryServer;
+const mockQueueEventHandlers: Record<string, (event: any) => Promise<void> | void> = {};
 
 // Mock BullMQ to prevent tests from needing a running Redis server
 jest.mock('bullmq', () => {
@@ -12,7 +13,9 @@ jest.mock('bullmq', () => {
     })),
     Worker: jest.fn(),
     QueueEvents: jest.fn().mockImplementation(() => ({
-      on: jest.fn(),
+      on: jest.fn((event: string, handler: (payload: any) => Promise<void> | void) => {
+        mockQueueEventHandlers[event] = handler;
+      }),
     })),
   };
 });
@@ -29,6 +32,7 @@ const { User } = require('../src/models/User');
 const { Project } = require('../src/models/Project');
 const { CrawlJob } = require('../src/models/CrawlJob');
 const { AuditIssue } = require('../src/models/AuditIssue');
+require('../src/queues/crawlQueueEvents');
 
 const request = supertest(app);
 
@@ -97,6 +101,29 @@ beforeEach(async () => {
 });
 
 describe('Crawl Jobs REST API & Background Queues', () => {
+  it('persists the worker rawResultsRef when BullMQ emits the completed event', async () => {
+    const crawlJob = await CrawlJob.create({
+      projectId: new mongoose.Types.ObjectId(projectAId),
+      status: 'running',
+    });
+    const rawResultsRef = new mongoose.Types.ObjectId().toString();
+
+    await mockQueueEventHandlers.completed({
+      jobId: crawlJob._id.toString(),
+      returnvalue: JSON.stringify({
+        status: 'completed',
+        pageCount: 7,
+        rawResultsRef,
+      }),
+    });
+
+    const completedJob = await CrawlJob.findById(crawlJob._id);
+    expect(completedJob!.status).toBe('completed');
+    expect(completedJob!.pageCount).toBe(7);
+    expect(completedJob!.rawResultsRef).toBe(rawResultsRef);
+    expect(completedJob!.rawResultsRef).not.toMatch(/^mock-path\//);
+  });
+
   describe('POST /api/projects/:id/crawl - Trigger Project Crawl', () => {
     it('should queue a crawl job for Project A when requested by User A (owner)', async () => {
       const res = await request

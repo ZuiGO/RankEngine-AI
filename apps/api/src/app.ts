@@ -1,12 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { HealthCheckResponse, CrawlJob } from '@rankengine/shared-types';
 
 import config from './config';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
+import { rateLimiter } from './middleware/rateLimiter';
 
 import authRouter from './routes/auth';
 import projectsRouter from './routes/projects';
@@ -51,14 +51,11 @@ app.use(
  * Per-route stricter limits (e.g. the grading endpoint at 10 req/s)
  * are defined directly in their route files and compose on top of this.
  */
-const globalRateLimiter = rateLimit({
-  windowMs: config.RATE_LIMIT_WINDOW_MS,
-  max: config.RATE_LIMIT_MAX,
-  standardHeaders: true, // Return RateLimit-* headers per RFC 6585
-  legacyHeaders: false, // Disable X-RateLimit-* headers
-  message: { error: 'Too many requests. Please slow down and try again.' },
-  skip: () => process.env.NODE_ENV === 'test', // Never rate-limit during tests
-});
+const globalRateLimiter = rateLimiter(
+  config.RATE_LIMIT_MAX,
+  config.RATE_LIMIT_WINDOW_MS,
+  () => process.env.NODE_ENV === 'test' // Per-route limits remain testable.
+);
 
 app.use(globalRateLimiter);
 

@@ -80,7 +80,11 @@ function getRedisClient(): IORedis {
  * @param limit      Maximum number of requests allowed per window
  * @param windowMs   Window length in milliseconds
  */
-export const rateLimiter = (limit: number, windowMs: number) => {
+export const rateLimiter = (
+  limit: number,
+  windowMs: number,
+  skip?: (req: Request) => boolean
+) => {
   const store = new RedisRateLimitStore(getRedisClient());
 
   return rateLimit({
@@ -93,6 +97,7 @@ export const rateLimiter = (limit: number, windowMs: number) => {
     message: {
       error: 'Too many requests, please try again later.',
     },
+    skip,
     // Completely disable express-rate-limit internal validations to prevent test crashes
     validate: false,
     store,

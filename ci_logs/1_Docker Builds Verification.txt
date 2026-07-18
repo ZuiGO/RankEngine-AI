@@ -1,0 +1,749 @@
+﻿2026-07-17T16:46:22.7125453Z Current runner version: '2.335.1'
+2026-07-17T16:46:22.7150204Z ##[group]Runner Image Provisioner
+2026-07-17T16:46:22.7151279Z Hosted Compute Agent
+2026-07-17T16:46:22.7151935Z Version: 20260707.563
+2026-07-17T16:46:22.7152626Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-07-17T16:46:22.7153346Z Build Date: 2026-07-07T19:33:50Z
+2026-07-17T16:46:22.7154091Z Worker ID: {4d7faedc-65e0-4fbd-be72-dcd2e06ccc45}
+2026-07-17T16:46:22.7154839Z Azure Region: westus
+2026-07-17T16:46:22.7155836Z ##[endgroup]
+2026-07-17T16:46:22.7157545Z ##[group]Operating System
+2026-07-17T16:46:22.7158198Z Ubuntu
+2026-07-17T16:46:22.7158781Z 24.04.4
+2026-07-17T16:46:22.7159309Z LTS
+2026-07-17T16:46:22.7159825Z ##[endgroup]
+2026-07-17T16:46:22.7160449Z ##[group]Runner Image
+2026-07-17T16:46:22.7161073Z Image: ubuntu-24.04
+2026-07-17T16:46:22.7161617Z Version: 20260714.240.1
+2026-07-17T16:46:22.7162951Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-17T16:46:22.7164613Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+2026-07-17T16:46:22.7166022Z ##[endgroup]
+2026-07-17T16:46:22.7167305Z ##[group]GITHUB_TOKEN Permissions
+2026-07-17T16:46:22.7169686Z Contents: read
+2026-07-17T16:46:22.7170344Z Metadata: read
+2026-07-17T16:46:22.7171003Z Packages: read
+2026-07-17T16:46:22.7171559Z ##[endgroup]
+2026-07-17T16:46:22.7173735Z Secret source: Actions
+2026-07-17T16:46:22.7174607Z Prepare workflow directory
+2026-07-17T16:46:22.7589965Z Prepare all required actions
+2026-07-17T16:46:22.7629648Z Getting action download info
+2026-07-17T16:46:23.1239728Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-07-17T16:46:23.3643381Z Complete job name: Docker Builds Verification
+2026-07-17T16:46:23.4501821Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-17T16:46:23.4511182Z ##[group]Run actions/checkout@v4
+2026-07-17T16:46:23.4511956Z with:
+2026-07-17T16:46:23.4512423Z   repository: jayesh5103/RankEngine-AI
+2026-07-17T16:46:23.4516896Z   token: ***
+2026-07-17T16:46:23.4517340Z   ssh-strict: true
+2026-07-17T16:46:23.4517788Z   ssh-user: git
+2026-07-17T16:46:23.4518236Z   persist-credentials: true
+2026-07-17T16:46:23.4518728Z   clean: true
+2026-07-17T16:46:23.4519172Z   sparse-checkout-cone-mode: true
+2026-07-17T16:46:23.4519682Z   fetch-depth: 1
+2026-07-17T16:46:23.4520127Z   fetch-tags: false
+2026-07-17T16:46:23.4520638Z   show-progress: true
+2026-07-17T16:46:23.4521089Z   lfs: false
+2026-07-17T16:46:23.4521536Z   submodules: false
+2026-07-17T16:46:23.4521981Z   set-safe-directory: true
+2026-07-17T16:46:23.4522772Z ##[endgroup]
+2026-07-17T16:46:23.5531097Z Syncing repository: jayesh5103/RankEngine-AI
+2026-07-17T16:46:23.5533864Z ##[group]Getting Git version info
+2026-07-17T16:46:23.5535517Z Working directory is '/home/runner/work/RankEngine-AI/RankEngine-AI'
+2026-07-17T16:46:23.5537258Z [command]/usr/bin/git version
+2026-07-17T16:46:23.5615351Z git version 2.54.0
+2026-07-17T16:46:23.5649222Z ##[endgroup]
+2026-07-17T16:46:23.5658340Z Temporarily overriding HOME='/home/runner/work/_temp/b40bdc42-6d34-41cb-99ab-8020677c3ea0' before making global git config changes
+2026-07-17T16:46:23.5661109Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-17T16:46:23.5676812Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RankEngine-AI/RankEngine-AI
+2026-07-17T16:46:23.5735750Z Deleting the contents of '/home/runner/work/RankEngine-AI/RankEngine-AI'
+2026-07-17T16:46:23.5746949Z ##[group]Initializing the repository
+2026-07-17T16:46:23.5748824Z [command]/usr/bin/git init /home/runner/work/RankEngine-AI/RankEngine-AI
+2026-07-17T16:46:23.5889375Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-17T16:46:23.5891139Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-17T16:46:23.5892139Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-17T16:46:23.5892969Z hint: call:
+2026-07-17T16:46:23.5893450Z hint:
+2026-07-17T16:46:23.5894072Z hint: 	git config --global init.defaultBranch <name>
+2026-07-17T16:46:23.5894761Z hint:
+2026-07-17T16:46:23.5895773Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-17T16:46:23.5896797Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-17T16:46:23.5897608Z hint:
+2026-07-17T16:46:23.5898095Z hint: 	git branch -m <name>
+2026-07-17T16:46:23.5898640Z hint:
+2026-07-17T16:46:23.5899378Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-17T16:46:23.6014819Z Initialized empty Git repository in /home/runner/work/RankEngine-AI/RankEngine-AI/.git/
+2026-07-17T16:46:23.6018177Z [command]/usr/bin/git remote add origin https://github.com/jayesh5103/RankEngine-AI
+2026-07-17T16:46:23.6078333Z ##[endgroup]
+2026-07-17T16:46:23.6079560Z ##[group]Disabling automatic garbage collection
+2026-07-17T16:46:23.6083548Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-17T16:46:23.6123687Z ##[endgroup]
+2026-07-17T16:46:23.6124755Z ##[group]Setting up auth
+2026-07-17T16:46:23.6132484Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-17T16:46:23.6171560Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-17T16:46:23.6593182Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-17T16:46:23.6627793Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-17T16:46:23.6871209Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-17T16:46:23.6908635Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-17T16:46:23.7169469Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-17T16:46:23.7209852Z ##[endgroup]
+2026-07-17T16:46:23.7211143Z ##[group]Fetching the repository
+2026-07-17T16:46:23.7220426Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b2fe3399769f5f6b70624baa756fad2a4ad5f0a8:refs/remotes/origin/main
+2026-07-17T16:46:24.2155663Z From https://github.com/jayesh5103/RankEngine-AI
+2026-07-17T16:46:24.2157940Z  * [new ref]         b2fe3399769f5f6b70624baa756fad2a4ad5f0a8 -> origin/main
+2026-07-17T16:46:24.2195556Z ##[endgroup]
+2026-07-17T16:46:24.2197035Z ##[group]Determining the checkout info
+2026-07-17T16:46:24.2198631Z ##[endgroup]
+2026-07-17T16:46:24.2204860Z [command]/usr/bin/git sparse-checkout disable
+2026-07-17T16:46:24.2255864Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-17T16:46:24.2288891Z ##[group]Checking out the ref
+2026-07-17T16:46:24.2294424Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-17T16:46:24.2422322Z Switched to a new branch 'main'
+2026-07-17T16:46:24.2424841Z branch 'main' set up to track 'origin/main'.
+2026-07-17T16:46:24.2432559Z ##[endgroup]
+2026-07-17T16:46:24.2482027Z [command]/usr/bin/git log -1 --format=%H
+2026-07-17T16:46:24.2510999Z b2fe3399769f5f6b70624baa756fad2a4ad5f0a8
+2026-07-17T16:46:24.2736375Z ##[group]Run docker build -f apps/api/Dockerfile -t rankengine-api:test .
+2026-07-17T16:46:24.2737435Z [36;1mdocker build -f apps/api/Dockerfile -t rankengine-api:test .[0m
+2026-07-17T16:46:24.2819252Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:46:24.2820112Z ##[endgroup]
+2026-07-17T16:46:27.8857535Z #0 building with "default" instance using docker driver
+2026-07-17T16:46:27.8858328Z 
+2026-07-17T16:46:27.8858855Z #1 [internal] load build definition from Dockerfile
+2026-07-17T16:46:27.8860373Z #1 transferring dockerfile: 1.38kB 0.0s done
+2026-07-17T16:46:27.8861254Z #1 DONE 0.0s
+2026-07-17T16:46:27.8861492Z 
+2026-07-17T16:46:27.8861842Z #2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-07-17T16:46:28.1314140Z #2 ...
+2026-07-17T16:46:28.1314685Z 
+2026-07-17T16:46:28.1315507Z #3 [auth] library/node:pull token for registry-1.docker.io
+2026-07-17T16:46:28.1316470Z #3 DONE 0.0s
+2026-07-17T16:46:28.2806812Z 
+2026-07-17T16:46:28.2807873Z #2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-07-17T16:46:28.6355170Z #2 DONE 0.9s
+2026-07-17T16:46:28.7760321Z 
+2026-07-17T16:46:28.7786911Z #4 [internal] load .dockerignore
+2026-07-17T16:46:28.7788608Z #4 transferring context: 2B done
+2026-07-17T16:46:28.7789847Z #4 DONE 0.0s
+2026-07-17T16:46:28.7790431Z 
+2026-07-17T16:46:28.7790793Z #5 [internal] load build context
+2026-07-17T16:46:28.7791480Z #5 transferring context: 620.38kB 0.0s done
+2026-07-17T16:46:28.7792198Z #5 DONE 0.0s
+2026-07-17T16:46:28.7792493Z 
+2026-07-17T16:46:28.7793296Z #6 [builder  1/11] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+2026-07-17T16:46:28.7795535Z #6 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 done
+2026-07-17T16:46:28.7797173Z #6 sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 7.67kB / 7.67kB done
+2026-07-17T16:46:28.7798698Z #6 sha256:afdf98210b07b586eb71fa22ba2e432e058e4cd1304d31ed60888755b8c865fb 1.72kB / 1.72kB done
+2026-07-17T16:46:28.7800136Z #6 sha256:11cedc39e663e7c5d5cb9cc77a461a0d2adc25537b94e6831a6108f09cb2001b 6.52kB / 6.52kB done
+2026-07-17T16:46:28.7801521Z #6 sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb 2.10MB / 3.86MB 0.1s
+2026-07-17T16:46:28.7802970Z #6 sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 0B / 43.23MB 0.1s
+2026-07-17T16:46:28.7804303Z #6 sha256:b2cbbfe903b0821005780971ddc5892edcc4ce74c5a48d82e1d2b382edac3122 0B / 1.26MB 0.1s
+2026-07-17T16:46:28.8816562Z #6 sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb 3.86MB / 3.86MB 0.1s done
+2026-07-17T16:46:28.8817546Z #6 sha256:b2cbbfe903b0821005780971ddc5892edcc4ce74c5a48d82e1d2b382edac3122 1.26MB / 1.26MB 0.2s done
+2026-07-17T16:46:28.8818354Z #6 extracting sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb 0.1s done
+2026-07-17T16:46:28.8819163Z #6 sha256:fff4e2c1b189bf87d63ad8bd07f7f4eb288d6f2b6a07a8bb44c60e8c075d2096 0B / 445B 0.2s
+2026-07-17T16:46:29.0830273Z #6 sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 43.12MB / 43.23MB 0.4s
+2026-07-17T16:46:29.0831744Z #6 sha256:fff4e2c1b189bf87d63ad8bd07f7f4eb288d6f2b6a07a8bb44c60e8c075d2096 445B / 445B 0.2s done
+2026-07-17T16:46:29.2227785Z #6 sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 43.23MB / 43.23MB 0.4s done
+2026-07-17T16:46:29.2229144Z #6 extracting sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 0.1s
+2026-07-17T16:46:30.3870749Z #6 extracting sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 1.1s done
+2026-07-17T16:46:31.2770255Z #6 extracting sha256:b2cbbfe903b0821005780971ddc5892edcc4ce74c5a48d82e1d2b382edac3122
+2026-07-17T16:46:31.3911975Z #6 extracting sha256:b2cbbfe903b0821005780971ddc5892edcc4ce74c5a48d82e1d2b382edac3122 0.0s done
+2026-07-17T16:46:31.3913373Z #6 extracting sha256:fff4e2c1b189bf87d63ad8bd07f7f4eb288d6f2b6a07a8bb44c60e8c075d2096 done
+2026-07-17T16:46:31.3914707Z #6 DONE 2.7s
+2026-07-17T16:46:31.3915176Z 
+2026-07-17T16:46:31.3915298Z #7 [builder  2/11] WORKDIR /app
+2026-07-17T16:46:31.3915813Z #7 DONE 0.0s
+2026-07-17T16:46:31.3915944Z 
+2026-07-17T16:46:31.3916119Z #8 [builder  3/11] COPY package.json package-lock.json ./
+2026-07-17T16:46:31.3916778Z #8 DONE 0.0s
+2026-07-17T16:46:31.5755822Z 
+2026-07-17T16:46:31.5757017Z #9 [builder  4/11] COPY packages/shared-types/package.json ./packages/shared-types/
+2026-07-17T16:46:31.5758366Z #9 DONE 0.0s
+2026-07-17T16:46:31.5759047Z 
+2026-07-17T16:46:31.5759645Z #10 [builder  5/11] COPY apps/api/package.json ./apps/api/
+2026-07-17T16:46:31.5760313Z #10 DONE 0.0s
+2026-07-17T16:46:31.5760487Z 
+2026-07-17T16:46:31.5760712Z #11 [builder  6/11] COPY apps/web/package.json ./apps/web/
+2026-07-17T16:46:31.5761160Z #11 DONE 0.0s
+2026-07-17T16:46:31.5761315Z 
+2026-07-17T16:46:31.5761818Z #12 [runner 7/9] RUN npm ci --omit=dev --workspace=packages/shared-types --workspace=apps/api
+2026-07-17T16:46:34.2447945Z #12 2.819 npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+2026-07-17T16:46:34.3461918Z #12 2.921 npm warn deprecated npmlog@5.0.1: This package is no longer supported.
+2026-07-17T16:46:34.4686502Z #12 2.963 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-07-17T16:46:34.4690054Z #12 3.043 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-07-17T16:46:34.5862643Z #12 3.161 npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-07-17T16:46:34.7304268Z #12 3.250 npm warn deprecated are-we-there-yet@2.0.0: This package is no longer supported.
+2026-07-17T16:46:34.7305705Z #12 3.305 npm warn deprecated gauge@3.0.2: This package is no longer supported.
+2026-07-17T16:46:34.9254316Z #12 3.500 npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-07-17T16:46:36.6346213Z #12 5.210 
+2026-07-17T16:46:36.6347277Z #12 5.210 added 229 packages, and audited 232 packages in 5s
+2026-07-17T16:46:36.8062752Z #12 5.210 
+2026-07-17T16:46:36.8063899Z #12 5.210 45 packages are looking for funding
+2026-07-17T16:46:36.8065433Z #12 5.210   run `npm fund` for details
+2026-07-17T16:46:36.8066829Z #12 5.217 
+2026-07-17T16:46:36.8067377Z #12 5.217 3 high severity vulnerabilities
+2026-07-17T16:46:36.8068051Z #12 5.217 
+2026-07-17T16:46:36.8068757Z #12 5.217 To address all issues (including breaking changes), run:
+2026-07-17T16:46:36.8069732Z #12 5.217   npm audit fix --force
+2026-07-17T16:46:36.8070383Z #12 5.217 
+2026-07-17T16:46:36.8070930Z #12 5.217 Run `npm audit` for details.
+2026-07-17T16:46:36.8071958Z #12 5.219 npm notice
+2026-07-17T16:46:36.8072884Z #12 5.219 npm notice New major version of npm available! 10.8.2 -> 12.0.1
+2026-07-17T16:46:36.8074082Z #12 5.219 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
+2026-07-17T16:46:36.8075467Z #12 5.219 npm notice To update run: npm install -g npm@12.0.1
+2026-07-17T16:46:36.8076301Z #12 5.219 npm notice
+2026-07-17T16:46:36.9030373Z #12 DONE 5.5s
+2026-07-17T16:46:36.9036016Z 
+2026-07-17T16:46:36.9036821Z #13 [builder  7/11] RUN npm ci --workspace=packages/shared-types --workspace=apps/api
+2026-07-17T16:46:36.9038411Z #13 3.852 npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+2026-07-17T16:46:36.9042008Z #13 3.981 npm warn deprecated supertest@6.3.4: Please upgrade to supertest v7.1.3+, see release notes at https://github.com/forwardemail/supertest/releases/tag/v7.1.3 - maintenance is supported by Forward Email @ https://forwardemail.net
+2026-07-17T16:46:36.9044859Z #13 4.340 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-07-17T16:46:36.9056142Z #13 4.529 npm warn deprecated npmlog@5.0.1: This package is no longer supported.
+2026-07-17T16:46:36.9058598Z #13 5.101 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-07-17T16:46:36.9061898Z #13 5.231 npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-07-17T16:46:37.0401066Z #13 5.615 npm warn deprecated gauge@3.0.2: This package is no longer supported.
+2026-07-17T16:46:37.3313488Z #13 5.906 npm warn deprecated are-we-there-yet@2.0.0: This package is no longer supported.
+2026-07-17T16:46:37.4423086Z #13 6.017 npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-07-17T16:46:37.7041928Z #13 6.279 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+2026-07-17T16:46:37.9499040Z #13 6.356 npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+2026-07-17T16:46:37.9501223Z #13 6.374 npm warn deprecated superagent@8.1.2: Please upgrade to superagent v10.2.2+, see release notes at https://github.com/forwardemail/superagent/releases/tag/v10.2.2 - maintenance is supported by Forward Email @ https://forwardemail.net
+2026-07-17T16:46:39.6556720Z #13 8.230 npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+2026-07-17T16:47:38.4889031Z #13 67.06 
+2026-07-17T16:47:38.4890296Z #13 67.06 added 674 packages, and audited 677 packages in 1m
+2026-07-17T16:47:38.6394558Z #13 67.06 
+2026-07-17T16:47:38.6395342Z #13 67.06 117 packages are looking for funding
+2026-07-17T16:47:38.6396041Z #13 67.06   run `npm fund` for details
+2026-07-17T16:47:38.7040551Z #13 67.28 
+2026-07-17T16:47:38.7041372Z #13 67.28 9 high severity vulnerabilities
+2026-07-17T16:47:38.7042226Z #13 67.28 
+2026-07-17T16:47:38.7042703Z #13 67.28 To address issues that do not require attention, run:
+2026-07-17T16:47:38.7043312Z #13 67.28   npm audit fix
+2026-07-17T16:47:38.7043699Z #13 67.28 
+2026-07-17T16:47:38.7044185Z #13 67.28 To address all issues (including breaking changes), run:
+2026-07-17T16:47:38.7044828Z #13 67.28   npm audit fix --force
+2026-07-17T16:47:38.7045581Z #13 67.28 
+2026-07-17T16:47:38.7045945Z #13 67.28 Run `npm audit` for details.
+2026-07-17T16:47:38.8045521Z #13 67.28 npm notice
+2026-07-17T16:47:38.8046227Z #13 67.28 npm notice New major version of npm available! 10.8.2 -> 12.0.1
+2026-07-17T16:47:38.8047104Z #13 67.28 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
+2026-07-17T16:47:38.8047699Z #13 67.28 npm notice To update run: npm install -g npm@12.0.1
+2026-07-17T16:47:38.8048100Z #13 67.28 npm notice
+2026-07-17T16:47:38.8048349Z #13 DONE 67.4s
+2026-07-17T16:47:38.8048490Z 
+2026-07-17T16:47:38.8048847Z #14 [builder  8/11] COPY packages/shared-types ./packages/shared-types
+2026-07-17T16:47:38.9904371Z #14 DONE 0.0s
+2026-07-17T16:47:38.9904706Z 
+2026-07-17T16:47:38.9905336Z #15 [builder  9/11] COPY apps/api ./apps/api
+2026-07-17T16:47:38.9906029Z #15 DONE 0.0s
+2026-07-17T16:47:38.9906295Z 
+2026-07-17T16:47:38.9906727Z #16 [builder 10/11] RUN npm run build --workspace=packages/shared-types
+2026-07-17T16:47:39.1506173Z #16 0.311 
+2026-07-17T16:47:39.1506666Z #16 0.311 > @rankengine/shared-types@1.0.0 build
+2026-07-17T16:47:39.1507157Z #16 0.311 > tsc
+2026-07-17T16:47:39.1507450Z #16 0.311 
+2026-07-17T16:47:40.7711653Z #16 DONE 1.9s
+2026-07-17T16:47:40.9245945Z 
+2026-07-17T16:47:40.9247036Z #17 [builder 11/11] RUN npm run build --workspace=apps/api
+2026-07-17T16:47:41.1221520Z #17 0.350 
+2026-07-17T16:47:41.1222080Z #17 0.350 > @rankengine/api@1.0.0 build
+2026-07-17T16:47:41.1222737Z #17 0.350 > tsc
+2026-07-17T16:47:41.1223192Z #17 0.350 
+2026-07-17T16:47:45.9931812Z #17 DONE 5.2s
+2026-07-17T16:47:46.1919652Z 
+2026-07-17T16:47:46.1923508Z #18 [runner 8/9] COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
+2026-07-17T16:47:46.1924375Z #18 DONE 0.0s
+2026-07-17T16:47:46.1924579Z 
+2026-07-17T16:47:46.1925205Z #19 [runner 9/9] COPY --from=builder /app/apps/api/dist ./apps/api/dist
+2026-07-17T16:47:46.1925848Z #19 DONE 0.0s
+2026-07-17T16:47:46.1926038Z 
+2026-07-17T16:47:46.1926183Z #20 exporting to image
+2026-07-17T16:47:46.1926575Z #20 exporting layers
+2026-07-17T16:47:47.3389229Z #20 exporting layers 1.3s done
+2026-07-17T16:47:47.3641463Z #20 writing image sha256:7fe0de47ae6bd51b86d9c15b4566d773f1d3a04a1fa153234166aadea92d9ab5 done
+2026-07-17T16:47:47.3642599Z #20 naming to docker.io/library/rankengine-api:test done
+2026-07-17T16:47:47.3643169Z #20 DONE 1.3s
+2026-07-17T16:47:47.3741533Z ##[group]Run docker build -f apps/web/Dockerfile -t rankengine-web:test .
+2026-07-17T16:47:47.3742100Z [36;1mdocker build -f apps/web/Dockerfile -t rankengine-web:test .[0m
+2026-07-17T16:47:47.3803236Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:47:47.3803530Z ##[endgroup]
+2026-07-17T16:47:47.6771653Z #0 building with "default" instance using docker driver
+2026-07-17T16:47:47.6772104Z 
+2026-07-17T16:47:47.6772296Z #1 [internal] load build definition from Dockerfile
+2026-07-17T16:47:47.6772756Z #1 transferring dockerfile: 963B done
+2026-07-17T16:47:47.6773122Z #1 DONE 0.0s
+2026-07-17T16:47:47.6773282Z 
+2026-07-17T16:47:47.6773526Z #2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-07-17T16:47:47.9542688Z #2 DONE 0.3s
+2026-07-17T16:47:47.9542947Z 
+2026-07-17T16:47:47.9543203Z #3 [auth] library/nginx:pull token for registry-1.docker.io
+2026-07-17T16:47:47.9543754Z #3 DONE 0.0s
+2026-07-17T16:47:47.9543929Z 
+2026-07-17T16:47:47.9544259Z #4 [internal] load metadata for docker.io/library/nginx:alpine
+2026-07-17T16:47:48.3250652Z #4 DONE 0.8s
+2026-07-17T16:47:48.4488566Z 
+2026-07-17T16:47:48.4489204Z #5 [internal] load .dockerignore
+2026-07-17T16:47:48.4489750Z #5 transferring context: 2B done
+2026-07-17T16:47:48.4490141Z #5 DONE 0.0s
+2026-07-17T16:47:48.4490307Z 
+2026-07-17T16:47:48.4490940Z #6 [builder  1/11] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+2026-07-17T16:47:48.4491913Z #6 DONE 0.0s
+2026-07-17T16:47:48.4492112Z 
+2026-07-17T16:47:48.4492287Z #7 [internal] load build context
+2026-07-17T16:47:48.4492766Z #7 transferring context: 166.67kB 0.0s done
+2026-07-17T16:47:48.4493237Z #7 DONE 0.0s
+2026-07-17T16:47:48.4493421Z 
+2026-07-17T16:47:48.4493573Z #8 [builder  2/11] WORKDIR /app
+2026-07-17T16:47:48.4493940Z #8 CACHED
+2026-07-17T16:47:48.4494107Z 
+2026-07-17T16:47:48.4494373Z #9 [builder  3/11] COPY package.json package-lock.json ./
+2026-07-17T16:47:48.4498767Z #9 CACHED
+2026-07-17T16:47:48.4498992Z 
+2026-07-17T16:47:48.4499656Z #10 [builder  4/11] COPY packages/shared-types/package.json ./packages/shared-types/
+2026-07-17T16:47:48.4500450Z #10 CACHED
+2026-07-17T16:47:48.4500645Z 
+2026-07-17T16:47:48.4500909Z #11 [builder  5/11] COPY apps/web/package.json ./apps/web/
+2026-07-17T16:47:48.4501505Z #11 DONE 0.0s
+2026-07-17T16:47:48.4501699Z 
+2026-07-17T16:47:48.4501951Z #12 [builder  6/11] COPY apps/api/package.json ./apps/api/
+2026-07-17T16:47:48.4502507Z #12 DONE 0.0s
+2026-07-17T16:47:48.4502702Z 
+2026-07-17T16:47:48.4503379Z #13 [stage-1 1/3] FROM docker.io/library/nginx:alpine@sha256:7068961d45b07b2af510ac002e9daa63a1d3eba2111202d6768798690800fffd
+2026-07-17T16:47:48.4506636Z #13 resolve docker.io/library/nginx:alpine@sha256:7068961d45b07b2af510ac002e9daa63a1d3eba2111202d6768798690800fffd done
+2026-07-17T16:47:48.4508040Z #13 sha256:f0ba77f796e57c6fa89ae7f4fdad1665d6fcbd8e3f211535120542b337f9959e 12.32kB / 12.32kB done
+2026-07-17T16:47:48.4509741Z #13 sha256:3cd534fe98c64d68a1f4f1c83abb8d5cba7ecfd7be88e592389929d12e6253da 0B / 1.89MB 0.1s
+2026-07-17T16:47:48.4510948Z #13 sha256:7068961d45b07b2af510ac002e9daa63a1d3eba2111202d6768798690800fffd 10.33kB / 10.33kB done
+2026-07-17T16:47:48.4512203Z #13 sha256:1d40e3eb3bf4f138de1d67193f2aa5309fcaf343eb5ffadbf5e9439de1eb1ebb 2.50kB / 2.50kB done
+2026-07-17T16:47:48.4513626Z #13 sha256:1223f016b4e4a2c21f7c49d4837fbfd47a9da6436b511690ca1e582fc2810d59 0B / 627B 0.1s
+2026-07-17T16:47:48.4514764Z #13 sha256:62bec68d7c31c4c8a19d812d84da5f7748e54690c037979945b6c5b6c924b142 0B / 957B 0.1s
+2026-07-17T16:47:48.5701659Z #13 sha256:3cd534fe98c64d68a1f4f1c83abb8d5cba7ecfd7be88e592389929d12e6253da 1.89MB / 1.89MB 0.1s done
+2026-07-17T16:47:48.5703270Z #13 sha256:1223f016b4e4a2c21f7c49d4837fbfd47a9da6436b511690ca1e582fc2810d59 627B / 627B 0.2s done
+2026-07-17T16:47:48.5704496Z #13 extracting sha256:3cd534fe98c64d68a1f4f1c83abb8d5cba7ecfd7be88e592389929d12e6253da 0.1s done
+2026-07-17T16:47:48.5706704Z #13 sha256:d0008c891db48b5f526d914bce9e8d889fe1a9d1f08291ae03fe97f871726f38 0B / 1.21kB 0.2s
+2026-07-17T16:47:48.5707924Z #13 sha256:46f977ee452f4399c208714afa034868d6056864f8a0cf3c643ab143dd802c80 0B / 404B 0.2s
+2026-07-17T16:47:48.7484825Z #13 sha256:62bec68d7c31c4c8a19d812d84da5f7748e54690c037979945b6c5b6c924b142 957B / 957B 0.2s done
+2026-07-17T16:47:48.7486653Z #13 sha256:46f977ee452f4399c208714afa034868d6056864f8a0cf3c643ab143dd802c80 404B / 404B 0.2s done
+2026-07-17T16:47:48.7488065Z #13 sha256:390dc935348d8070e695fbaae2a4bb114fb9e69c59f628e7576036ee9d5244c9 1.40kB / 1.40kB 0.3s done
+2026-07-17T16:47:48.7489604Z #13 sha256:46519e7231d2eb5604df229beb44d59719a489eaa7aca52982535a010b07a9ed 20.31MB / 20.31MB 0.4s done
+2026-07-17T16:47:48.8488435Z #13 extracting sha256:1223f016b4e4a2c21f7c49d4837fbfd47a9da6436b511690ca1e582fc2810d59 done
+2026-07-17T16:47:48.8490218Z #13 extracting sha256:62bec68d7c31c4c8a19d812d84da5f7748e54690c037979945b6c5b6c924b142 done
+2026-07-17T16:47:48.8491900Z #13 extracting sha256:46f977ee452f4399c208714afa034868d6056864f8a0cf3c643ab143dd802c80 done
+2026-07-17T16:47:49.0415294Z #13 sha256:d0008c891db48b5f526d914bce9e8d889fe1a9d1f08291ae03fe97f871726f38 1.21kB / 1.21kB 0.5s done
+2026-07-17T16:47:49.0418181Z #13 extracting sha256:d0008c891db48b5f526d914bce9e8d889fe1a9d1f08291ae03fe97f871726f38 done
+2026-07-17T16:47:49.0419632Z #13 extracting sha256:390dc935348d8070e695fbaae2a4bb114fb9e69c59f628e7576036ee9d5244c9 done
+2026-07-17T16:47:49.0422611Z #13 extracting sha256:46519e7231d2eb5604df229beb44d59719a489eaa7aca52982535a010b07a9ed 0.1s
+2026-07-17T16:47:49.3869941Z #13 extracting sha256:46519e7231d2eb5604df229beb44d59719a489eaa7aca52982535a010b07a9ed 0.4s done
+2026-07-17T16:47:49.5490330Z #13 DONE 1.2s
+2026-07-17T16:47:49.5490784Z 
+2026-07-17T16:47:49.5491220Z #14 [builder  7/11] RUN npm ci --workspace=packages/shared-types --workspace=apps/web
+2026-07-17T16:47:49.7160991Z #14 ...
+2026-07-17T16:47:49.7161269Z 
+2026-07-17T16:47:49.7162633Z #15 [stage-1 2/3] COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+2026-07-17T16:47:49.7163375Z #15 DONE 0.0s
+2026-07-17T16:47:49.8663495Z 
+2026-07-17T16:47:49.8664350Z #14 [builder  7/11] RUN npm ci --workspace=packages/shared-types --workspace=apps/web
+2026-07-17T16:47:54.1158182Z #14 5.731 
+2026-07-17T16:47:54.1158745Z #14 5.731 added 269 packages, and audited 272 packages in 5s
+2026-07-17T16:47:54.1159321Z #14 5.731 
+2026-07-17T16:47:54.2689937Z #14 5.731 139 packages are looking for funding
+2026-07-17T16:47:54.2690789Z #14 5.731   run `npm fund` for details
+2026-07-17T16:47:54.2691436Z #14 5.733 
+2026-07-17T16:47:54.2692111Z #14 5.733 found 0 vulnerabilities
+2026-07-17T16:47:54.2692815Z #14 5.734 npm notice
+2026-07-17T16:47:54.2693736Z #14 5.734 npm notice New major version of npm available! 10.8.2 -> 12.0.1
+2026-07-17T16:47:54.2695604Z #14 5.734 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
+2026-07-17T16:47:54.2697128Z #14 5.734 npm notice To update run: npm install -g npm@12.0.1
+2026-07-17T16:47:54.2698855Z #14 5.734 npm notice
+2026-07-17T16:47:54.7835369Z #14 DONE 6.4s
+2026-07-17T16:47:54.9627515Z 
+2026-07-17T16:47:54.9628294Z #16 [builder  8/11] COPY packages/shared-types ./packages/shared-types
+2026-07-17T16:47:54.9629206Z #16 DONE 0.0s
+2026-07-17T16:47:54.9629388Z 
+2026-07-17T16:47:54.9629568Z #17 [builder  9/11] COPY apps/web ./apps/web
+2026-07-17T16:47:54.9630040Z #17 DONE 0.0s
+2026-07-17T16:47:54.9630222Z 
+2026-07-17T16:47:54.9630529Z #18 [builder 10/11] RUN npm run build --workspace=packages/shared-types
+2026-07-17T16:47:55.1227581Z #18 0.311 
+2026-07-17T16:47:55.1228194Z #18 0.311 > @rankengine/shared-types@1.0.0 build
+2026-07-17T16:47:55.1228766Z #18 0.311 > tsc
+2026-07-17T16:47:55.1229155Z #18 0.311 
+2026-07-17T16:47:56.6661748Z #18 DONE 1.9s
+2026-07-17T16:47:56.8176631Z 
+2026-07-17T16:47:56.8177284Z #19 [builder 11/11] RUN npm run build --workspace=apps/web
+2026-07-17T16:47:56.9856808Z #19 0.318 
+2026-07-17T16:47:56.9857345Z #19 0.318 > @rankengine/web@0.0.0 build
+2026-07-17T16:47:56.9858038Z #19 0.318 > tsc -b && vite build
+2026-07-17T16:47:56.9858566Z #19 0.318 
+2026-07-17T16:48:01.7453787Z #19 5.078 vite v8.1.5 building client environment for production...
+2026-07-17T16:48:01.9145550Z #19 5.096 [2K
+2026-07-17T16:48:02.1596820Z transforming...✓ 1386 modules transformed.
+2026-07-17T16:48:02.2824773Z #19 5.615 rendering chunks...
+2026-07-17T16:48:02.5917022Z #19 5.924 computing gzip size...
+2026-07-17T16:48:02.7068117Z #19 5.950 dist/index.html                     0.45 kB │ gzip:   0.28 kB
+2026-07-17T16:48:02.7069077Z #19 5.950 dist/assets/index-DEcrEtPa.css     86.52 kB │ gzip:  13.84 kB
+2026-07-17T16:48:02.7069967Z #19 5.950 dist/assets/index-D0WEXaib.js   1,740.34 kB │ gzip: 565.10 kB
+2026-07-17T16:48:02.7070564Z #19 5.950 
+2026-07-17T16:48:02.7070981Z #19 5.951 ✓ built in 866ms
+2026-07-17T16:48:02.7071443Z #19 5.952 [plugin builtin:vite-reporter] 
+2026-07-17T16:48:02.7072117Z #19 5.952 (!) Some chunks are larger than 500 kB after minification. Consider:
+2026-07-17T16:48:02.7072940Z #19 5.952 - Using dynamic import() to code-split the application
+2026-07-17T16:48:02.7074220Z #19 5.952 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+2026-07-17T16:48:02.7075797Z #19 5.952 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2026-07-17T16:48:02.7076465Z #19 DONE 6.0s
+2026-07-17T16:48:02.7076661Z 
+2026-07-17T16:48:02.7077012Z #20 [stage-1 3/3] COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+2026-07-17T16:48:02.7077404Z #20 DONE 0.0s
+2026-07-17T16:48:02.8594335Z 
+2026-07-17T16:48:02.8594802Z #21 exporting to image
+2026-07-17T16:48:02.8595382Z #21 exporting layers
+2026-07-17T16:48:03.0073974Z #21 exporting layers 0.3s done
+2026-07-17T16:48:03.0274039Z #21 writing image sha256:db84a84932debcf1fb1b71605469073b8da0e0de478caf14b104a91fb708e763 done
+2026-07-17T16:48:03.0275659Z #21 naming to docker.io/library/rankengine-web:test done
+2026-07-17T16:48:03.0276224Z #21 DONE 0.3s
+2026-07-17T16:48:03.0363147Z ##[group]Run docker build -f apps/worker/Dockerfile -t rankengine-worker:test .
+2026-07-17T16:48:03.0363773Z [36;1mdocker build -f apps/worker/Dockerfile -t rankengine-worker:test .[0m
+2026-07-17T16:48:03.0426415Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:48:03.0426711Z ##[endgroup]
+2026-07-17T16:48:03.3250220Z #0 building with "default" instance using docker driver
+2026-07-17T16:48:03.3250963Z 
+2026-07-17T16:48:03.3251251Z #1 [internal] load build definition from Dockerfile
+2026-07-17T16:48:03.3251854Z #1 transferring dockerfile: 778B done
+2026-07-17T16:48:03.3252334Z #1 DONE 0.0s
+2026-07-17T16:48:03.3252544Z 
+2026-07-17T16:48:03.3253013Z #2 [internal] load metadata for mcr.microsoft.com/playwright/python:v1.42.0-jammy
+2026-07-17T16:48:03.4188622Z #2 DONE 0.2s
+2026-07-17T16:48:03.5314330Z 
+2026-07-17T16:48:03.5315312Z #3 [internal] load .dockerignore
+2026-07-17T16:48:03.5316303Z #3 transferring context: 2B done
+2026-07-17T16:48:03.5316966Z #3 DONE 0.0s
+2026-07-17T16:48:03.5317616Z 
+2026-07-17T16:48:03.5317770Z #4 [internal] load build context
+2026-07-17T16:48:03.5318139Z #4 transferring context: 90.09kB done
+2026-07-17T16:48:03.5318405Z #4 DONE 0.0s
+2026-07-17T16:48:03.5318519Z 
+2026-07-17T16:48:03.5319003Z #5 [1/7] FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy@sha256:f70c0a857208369b0df3741c170edad334b7bd17d5a4aa4c1c0a20da4fc2eea0
+2026-07-17T16:48:03.5319985Z #5 resolve mcr.microsoft.com/playwright/python:v1.42.0-jammy@sha256:f70c0a857208369b0df3741c170edad334b7bd17d5a4aa4c1c0a20da4fc2eea0 done
+2026-07-17T16:48:03.5321250Z #5 sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 0B / 30.45MB 0.1s
+2026-07-17T16:48:03.5322334Z #5 sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 2.10MB / 43.07MB 0.1s
+2026-07-17T16:48:03.5323607Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 10.49MB / 73.84MB 0.1s
+2026-07-17T16:48:03.5324582Z #5 sha256:f70c0a857208369b0df3741c170edad334b7bd17d5a4aa4c1c0a20da4fc2eea0 743B / 743B done
+2026-07-17T16:48:03.5325739Z #5 sha256:f62eff9946fa2df4e34479c795e29776222ccf77cd4c8c2120645279c3d39466 1.17kB / 1.17kB done
+2026-07-17T16:48:03.5326870Z #5 sha256:24d54adc844caa6316f37ed45e391bc44a1c7968b613125bfb719458a26fa33a 4.20kB / 4.20kB done
+2026-07-17T16:48:03.6966517Z #5 sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 30.45MB / 30.45MB 0.2s
+2026-07-17T16:48:03.6968984Z #5 sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 35.65MB / 43.07MB 0.2s
+2026-07-17T16:48:03.6976704Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 33.55MB / 73.84MB 0.2s
+2026-07-17T16:48:03.6978622Z #5 extracting sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c
+2026-07-17T16:48:03.7972341Z #5 sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 30.45MB / 30.45MB 0.2s done
+2026-07-17T16:48:03.7973946Z #5 sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 43.07MB / 43.07MB 0.2s done
+2026-07-17T16:48:03.7974802Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 63.96MB / 73.84MB 0.3s
+2026-07-17T16:48:03.7978732Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 4.19MB / 601.62MB 0.3s
+2026-07-17T16:48:03.9308274Z #5 sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 73.84MB / 73.84MB 0.3s done
+2026-07-17T16:48:03.9309989Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 67.11MB / 601.62MB 0.5s
+2026-07-17T16:48:04.3942679Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 100.66MB / 601.62MB 0.9s
+2026-07-17T16:48:04.8492537Z #5 extracting sha256:23828d760c7b04df02891af556c40ca44c2dd79d6837ea6f18fac24f4108448c 1.1s done
+2026-07-17T16:48:04.8494235Z #5 extracting sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571
+2026-07-17T16:48:05.0537989Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 134.22MB / 601.62MB 1.6s
+2026-07-17T16:48:05.5305928Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 209.72MB / 601.62MB 2.1s
+2026-07-17T16:48:05.6307424Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 242.22MB / 601.62MB 2.2s
+2026-07-17T16:48:05.7528175Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 274.73MB / 601.62MB 2.3s
+2026-07-17T16:48:05.8926042Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 312.48MB / 601.62MB 2.4s
+2026-07-17T16:48:05.9994540Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 342.88MB / 601.62MB 2.5s
+2026-07-17T16:48:06.1312673Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 414.19MB / 601.62MB 2.7s
+2026-07-17T16:48:06.2426312Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 446.69MB / 601.62MB 2.8s
+2026-07-17T16:48:06.6305842Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 484.44MB / 601.62MB 3.2s
+2026-07-17T16:48:06.7308870Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 515.90MB / 601.62MB 3.3s
+2026-07-17T16:48:06.8309570Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 547.36MB / 601.62MB 3.4s
+2026-07-17T16:48:06.9309873Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 581.96MB / 601.62MB 3.5s
+2026-07-17T16:48:07.1307832Z #5 extracting sha256:aeb2213e529f3d6f0b37899d5d3583facdaba2362dbc1d1360d062e384b9b571 2.1s done
+2026-07-17T16:48:08.3320201Z #5 sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 601.62MB / 601.62MB 4.8s done
+2026-07-17T16:48:08.8268308Z #5 extracting sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9
+2026-07-17T16:48:09.2043258Z #5 extracting sha256:5b73d09f39a48bbec05bfebecfd6bf22d949b31e83713d8052818171f7ca07a9 0.3s done
+2026-07-17T16:48:09.2046314Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce
+2026-07-17T16:48:14.2669591Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 5.1s
+2026-07-17T16:48:19.6256372Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 10.4s
+2026-07-17T16:48:21.1017703Z #5 extracting sha256:c9cf4eefe627c14e3a73b68d1f52f202d35307b2ddd28a9e93ec3b4c7360d5ce 11.7s done
+2026-07-17T16:48:24.2517884Z #5 DONE 20.8s
+2026-07-17T16:48:24.4378354Z 
+2026-07-17T16:48:24.4378992Z #6 [2/7] WORKDIR /app
+2026-07-17T16:48:24.4379518Z #6 DONE 0.0s
+2026-07-17T16:48:24.4379704Z 
+2026-07-17T16:48:24.4379895Z #7 [3/7] RUN pip install --no-cache-dir poetry
+2026-07-17T16:48:24.8729862Z #7 0.585 Collecting poetry
+2026-07-17T16:48:24.9823951Z #7 0.625   Downloading poetry-2.4.1-py3-none-any.whl.metadata (7.5 kB)
+2026-07-17T16:48:24.9825435Z #7 0.671 Collecting build<2.0.0,>=1.2.1 (from poetry)
+2026-07-17T16:48:24.9826267Z #7 0.674   Downloading build-1.5.0-py3-none-any.whl.metadata (5.7 kB)
+2026-07-17T16:48:24.9827508Z #7 0.695 Collecting cachecontrol<0.15.0,>=0.14.0 (from cachecontrol[filecache]<0.15.0,>=0.14.0->poetry)
+2026-07-17T16:48:25.1664097Z #7 0.700   Downloading cachecontrol-0.14.4-py3-none-any.whl.metadata (3.1 kB)
+2026-07-17T16:48:25.1665340Z #7 0.725 Collecting cleo<3.0.0,>=2.1.0 (from poetry)
+2026-07-17T16:48:25.1666527Z #7 0.729   Downloading cleo-2.1.0-py3-none-any.whl.metadata (12 kB)
+2026-07-17T16:48:25.2202876Z #7 0.933 Collecting dulwich<2,>=0.25.0 (from poetry)
+2026-07-17T16:48:25.3344497Z #7 0.937   Downloading dulwich-1.2.11-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (6.0 kB)
+2026-07-17T16:48:25.3346155Z #7 0.953 Collecting fastjsonschema<3.0.0,>=2.18.0 (from poetry)
+2026-07-17T16:48:25.3347385Z #7 0.957   Downloading fastjsonschema-2.21.2-py3-none-any.whl.metadata (2.3 kB)
+2026-07-17T16:48:25.3348553Z #7 0.974 Collecting findpython<0.9.0,>=0.6.2 (from poetry)
+2026-07-17T16:48:25.3349652Z #7 0.978   Downloading findpython-0.8.0-py3-none-any.whl.metadata (5.4 kB)
+2026-07-17T16:48:25.3351178Z #7 0.995 Collecting installer<2.0.0,>=0.7.0 (from poetry)
+2026-07-17T16:48:25.3352164Z #7 0.999   Downloading installer-1.0.1-py3-none-any.whl.metadata (1.2 kB)
+2026-07-17T16:48:25.3353159Z #7 1.047 Collecting keyring<26.0.0,>=25.1.0 (from poetry)
+2026-07-17T16:48:25.4356553Z #7 1.051   Downloading keyring-25.7.0-py3-none-any.whl.metadata (21 kB)
+2026-07-17T16:48:25.4357388Z #7 1.077 Collecting packaging>=24.2 (from poetry)
+2026-07-17T16:48:25.4358146Z #7 1.083   Downloading packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+2026-07-17T16:48:25.4359234Z #7 1.117 Collecting pbs-installer>=2025.6.10 (from pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:25.4360442Z #7 1.121   Downloading pbs_installer-2026.6.10-py3-none-any.whl.metadata (1.0 kB)
+2026-07-17T16:48:25.4361308Z #7 1.142 Collecting pkginfo<2.0,>=1.12 (from poetry)
+2026-07-17T16:48:25.4362109Z #7 1.147   Downloading pkginfo-1.12.1.2-py3-none-any.whl.metadata (13 kB)
+2026-07-17T16:48:25.4363411Z #7 1.148 Requirement already satisfied: platformdirs<5,>=3.0.0 in /usr/local/lib/python3.10/dist-packages (from poetry) (4.2.0)
+2026-07-17T16:48:25.5451264Z #7 1.182 Collecting poetry-core==2.4.0 (from poetry)
+2026-07-17T16:48:25.5452960Z #7 1.186   Downloading poetry_core-2.4.0-py3-none-any.whl.metadata (3.8 kB)
+2026-07-17T16:48:25.5454531Z #7 1.199 Collecting pyproject-hooks<2.0.0,>=1.0.0 (from poetry)
+2026-07-17T16:48:25.5456337Z #7 1.202   Downloading pyproject_hooks-1.2.0-py3-none-any.whl.metadata (1.3 kB)
+2026-07-17T16:48:25.5457777Z #7 1.239 Collecting requests<3.0,>=2.26 (from poetry)
+2026-07-17T16:48:25.5458993Z #7 1.243   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+2026-07-17T16:48:25.5460092Z #7 1.258 Collecting requests-toolbelt<2.0.0,>=1.0.0 (from poetry)
+2026-07-17T16:48:25.6698958Z #7 1.262   Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+2026-07-17T16:48:25.6700426Z #7 1.283 Collecting shellingham<2.0,>=1.5 (from poetry)
+2026-07-17T16:48:25.6701915Z #7 1.286   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+2026-07-17T16:48:25.6703308Z #7 1.345 Collecting tomli<3.0.0,>=2.0.1 (from poetry)
+2026-07-17T16:48:25.6704313Z #7 1.349   Downloading tomli-2.4.1-py3-none-any.whl.metadata (10 kB)
+2026-07-17T16:48:25.6705472Z #7 1.382 Collecting tomlkit<1.0.0,>=0.11.4 (from poetry)
+2026-07-17T16:48:25.8053290Z #7 1.386   Downloading tomlkit-0.15.1-py3-none-any.whl.metadata (3.3 kB)
+2026-07-17T16:48:25.8054258Z #7 1.422 Collecting trove-classifiers>=2022.5.19 (from poetry)
+2026-07-17T16:48:25.8055648Z #7 1.426   Downloading trove_classifiers-2026.6.1.19-py3-none-any.whl.metadata (2.3 kB)
+2026-07-17T16:48:25.8056459Z #7 1.518 Collecting virtualenv>=20.26.6 (from poetry)
+2026-07-17T16:48:25.9356011Z #7 1.522   Downloading virtualenv-21.6.1-py3-none-any.whl.metadata (3.4 kB)
+2026-07-17T16:48:25.9358118Z #7 1.648 Collecting msgpack<2.0.0,>=0.5.2 (from cachecontrol<0.15.0,>=0.14.0->cachecontrol[filecache]<0.15.0,>=0.14.0->poetry)
+2026-07-17T16:48:26.1130052Z #7 1.652   Downloading msgpack-1.2.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.3 kB)
+2026-07-17T16:48:26.1132021Z #7 1.657 Requirement already satisfied: filelock>=3.8.0 in /usr/local/lib/python3.10/dist-packages (from cachecontrol[filecache]<0.15.0,>=0.14.0->poetry) (3.13.1)
+2026-07-17T16:48:26.1133495Z #7 1.671 Collecting crashtest<0.5.0,>=0.4.1 (from cleo<3.0.0,>=2.1.0->poetry)
+2026-07-17T16:48:26.1134422Z #7 1.675   Downloading crashtest-0.4.1-py3-none-any.whl.metadata (1.1 kB)
+2026-07-17T16:48:26.6048427Z #7 2.317 Collecting rapidfuzz<4.0.0,>=3.0.0 (from cleo<3.0.0,>=2.1.0->poetry)
+2026-07-17T16:48:26.7446111Z #7 2.321   Downloading rapidfuzz-3.14.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (12 kB)
+2026-07-17T16:48:26.7447452Z #7 2.379 Collecting urllib3>=2.2.2 (from dulwich<2,>=0.25.0->poetry)
+2026-07-17T16:48:26.7448385Z #7 2.383   Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+2026-07-17T16:48:26.7449382Z #7 2.457 Collecting typing_extensions>=4.6.0 (from dulwich<2,>=0.25.0->poetry)
+2026-07-17T16:48:26.8510876Z #7 2.461   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-07-17T16:48:26.8512446Z #7 2.503 Collecting platformdirs<5,>=3.0.0 (from poetry)
+2026-07-17T16:48:26.8513927Z #7 2.507   Downloading platformdirs-4.10.0-py3-none-any.whl.metadata (5.5 kB)
+2026-07-17T16:48:26.8515730Z #7 2.545 Collecting SecretStorage>=3.2 (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.8516666Z #7 2.549   Downloading secretstorage-3.5.0-py3-none-any.whl.metadata (4.0 kB)
+2026-07-17T16:48:26.8517551Z #7 2.564 Collecting jeepney>=0.4.2 (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.9578412Z #7 2.568   Downloading jeepney-0.9.0-py3-none-any.whl.metadata (1.2 kB)
+2026-07-17T16:48:26.9579415Z #7 2.624 Collecting importlib_metadata>=4.11.4 (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.9580468Z #7 2.628   Downloading importlib_metadata-9.0.0-py3-none-any.whl.metadata (4.5 kB)
+2026-07-17T16:48:26.9581449Z #7 2.645 Collecting jaraco.classes (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:26.9582778Z #7 2.648   Downloading jaraco.classes-3.4.0-py3-none-any.whl.metadata (2.6 kB)
+2026-07-17T16:48:26.9583735Z #7 2.670 Collecting jaraco.functools (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:27.0734128Z #7 2.674   Downloading jaraco_functools-4.6.0-py3-none-any.whl.metadata (2.9 kB)
+2026-07-17T16:48:27.0735682Z #7 2.692 Collecting jaraco.context (from keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:27.0736727Z #7 2.696   Downloading jaraco_context-6.1.2-py3-none-any.whl.metadata (4.2 kB)
+2026-07-17T16:48:27.0737968Z #7 2.786 Collecting backports.zstd>=1.0.0 (from pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.2629104Z #7 2.790   Downloading backports_zstd-1.6.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (6.8 kB)
+2026-07-17T16:48:27.2630867Z #7 2.821 Collecting httpx<1,>=0.27.0 (from pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.2631991Z #7 2.825   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-07-17T16:48:27.2664747Z #7 2.979 Collecting charset_normalizer<4,>=2 (from requests<3.0,>=2.26->poetry)
+2026-07-17T16:48:27.3806344Z #7 2.983   Downloading charset_normalizer-3.4.9-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (41 kB)
+2026-07-17T16:48:27.3808650Z #7 2.986      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.7/41.7 kB 205.3 MB/s eta 0:00:00
+2026-07-17T16:48:27.3809896Z #7 3.009 Collecting idna<4,>=2.5 (from requests<3.0,>=2.26->poetry)
+2026-07-17T16:48:27.3811250Z #7 3.013   Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+2026-07-17T16:48:27.3812477Z #7 3.047 Collecting certifi>=2023.5.7 (from requests<3.0,>=2.26->poetry)
+2026-07-17T16:48:27.3813729Z #7 3.051   Downloading certifi-2026.6.17-py3-none-any.whl.metadata (2.5 kB)
+2026-07-17T16:48:27.3816274Z #7 3.093 Requirement already satisfied: distlib<1,>=0.3.7 in /usr/local/lib/python3.10/dist-packages (from virtualenv>=20.26.6->poetry) (0.3.8)
+2026-07-17T16:48:27.5246702Z #7 3.133 Collecting filelock>=3.8.0 (from cachecontrol[filecache]<0.15.0,>=0.14.0->poetry)
+2026-07-17T16:48:27.5248094Z #7 3.137   Downloading filelock-3.30.3-py3-none-any.whl.metadata (2.0 kB)
+2026-07-17T16:48:27.5249309Z #7 3.160 Collecting python-discovery>=1.4.2 (from virtualenv>=20.26.6->poetry)
+2026-07-17T16:48:27.5250594Z #7 3.164   Downloading python_discovery-1.4.4-py3-none-any.whl.metadata (5.6 kB)
+2026-07-17T16:48:27.5251883Z #7 3.237 Collecting anyio (from httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.6416040Z #7 3.242   Downloading anyio-4.14.2-py3-none-any.whl.metadata (4.6 kB)
+2026-07-17T16:48:27.6417273Z #7 3.269 Collecting httpcore==1.* (from httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.6418257Z #7 3.273   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-07-17T16:48:27.6419716Z #7 3.297 Collecting h11>=0.16 (from httpcore==1.*->httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:27.6420691Z #7 3.300   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-07-17T16:48:27.6421543Z #7 3.354 Collecting zipp>=3.20 (from importlib_metadata>=4.11.4->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:27.7964144Z #7 3.358   Downloading zipp-4.1.0-py3-none-any.whl.metadata (3.6 kB)
+2026-07-17T16:48:28.0393938Z #7 3.752 Collecting cryptography>=2.0 (from SecretStorage>=3.2->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.1413597Z #7 3.756   Downloading cryptography-49.0.0-cp39-abi3-manylinux_2_34_x86_64.whl.metadata (4.3 kB)
+2026-07-17T16:48:28.1415601Z #7 3.813 Collecting more-itertools (from jaraco.classes->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.1417093Z #7 3.817   Downloading more_itertools-11.1.0-py3-none-any.whl.metadata (41 kB)
+2026-07-17T16:48:28.1418432Z #7 3.819      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.4/41.4 kB 182.1 MB/s eta 0:00:00
+2026-07-17T16:48:28.1419343Z #7 3.850 Collecting backports.tarfile (from jaraco.context->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.1420636Z #7 3.854   Downloading backports.tarfile-1.2.0-py3-none-any.whl.metadata (2.0 kB)
+2026-07-17T16:48:28.2975027Z #7 4.010 Collecting cffi>=2.0.0 (from cryptography>=2.0->SecretStorage>=3.2->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.4056481Z #7 4.014   Downloading cffi-2.1.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+2026-07-17T16:48:28.4058155Z #7 4.063 Collecting exceptiongroup>=1.0.2 (from anyio->httpx<1,>=0.27.0->pbs-installer[download,install]>=2025.6.10->poetry)
+2026-07-17T16:48:28.4059542Z #7 4.067   Downloading exceptiongroup-1.3.1-py3-none-any.whl.metadata (6.7 kB)
+2026-07-17T16:48:28.4060883Z #7 4.118 Collecting pycparser (from cffi>=2.0.0->cryptography>=2.0->SecretStorage>=3.2->keyring<26.0.0,>=25.1.0->poetry)
+2026-07-17T16:48:28.5164160Z #7 4.122   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-07-17T16:48:28.5165528Z #7 4.160 Downloading poetry-2.4.1-py3-none-any.whl (292 kB)
+2026-07-17T16:48:28.5167069Z #7 4.169    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 292.3/292.3 kB 47.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.5168165Z #7 4.172 Downloading poetry_core-2.4.0-py3-none-any.whl (374 kB)
+2026-07-17T16:48:28.5169363Z #7 4.178    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 374.8/374.8 kB 130.9 MB/s eta 0:00:00
+2026-07-17T16:48:28.5170452Z #7 4.181 Downloading build-1.5.0-py3-none-any.whl (26 kB)
+2026-07-17T16:48:28.5171389Z #7 4.185 Downloading cachecontrol-0.14.4-py3-none-any.whl (22 kB)
+2026-07-17T16:48:28.5172347Z #7 4.188 Downloading cleo-2.1.0-py3-none-any.whl (78 kB)
+2026-07-17T16:48:28.5173544Z #7 4.191    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.7/78.7 kB 276.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.5174459Z #7 4.199 Downloading dulwich-1.2.11-cp310-cp310-manylinux_2_28_x86_64.whl (1.5 MB)
+2026-07-17T16:48:28.6173861Z #7 4.229    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 52.4 MB/s eta 0:00:00
+2026-07-17T16:48:28.6175546Z #7 4.233 Downloading fastjsonschema-2.21.2-py3-none-any.whl (24 kB)
+2026-07-17T16:48:28.6176777Z #7 4.236 Downloading findpython-0.8.0-py3-none-any.whl (21 kB)
+2026-07-17T16:48:28.6178012Z #7 4.240 Downloading installer-1.0.1-py3-none-any.whl (464 kB)
+2026-07-17T16:48:28.6179148Z #7 4.244    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 464.5/464.5 kB 284.4 MB/s eta 0:00:00
+2026-07-17T16:48:28.6179894Z #7 4.248 Downloading keyring-25.7.0-py3-none-any.whl (39 kB)
+2026-07-17T16:48:28.6180551Z #7 4.251 Downloading packaging-26.2-py3-none-any.whl (100 kB)
+2026-07-17T16:48:28.6181348Z #7 4.254    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.2/100.2 kB 277.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.6182071Z #7 4.258 Downloading pbs_installer-2026.6.10-py3-none-any.whl (75 kB)
+2026-07-17T16:48:28.6182916Z #7 4.260    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 75.7/75.7 kB 271.9 MB/s eta 0:00:00
+2026-07-17T16:48:28.6183603Z #7 4.264 Downloading pkginfo-1.12.1.2-py3-none-any.whl (32 kB)
+2026-07-17T16:48:28.6184559Z #7 4.268 Downloading platformdirs-4.10.0-py3-none-any.whl (22 kB)
+2026-07-17T16:48:28.6185588Z #7 4.271 Downloading pyproject_hooks-1.2.0-py3-none-any.whl (10 kB)
+2026-07-17T16:48:28.6186053Z #7 4.274 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+2026-07-17T16:48:28.6186624Z #7 4.277    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.1/73.1 kB 274.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.6187124Z #7 4.280 Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+2026-07-17T16:48:28.6187726Z #7 4.282    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.5/54.5 kB 265.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.6188213Z #7 4.286 Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+2026-07-17T16:48:28.6188662Z #7 4.289 Downloading tomli-2.4.1-py3-none-any.whl (14 kB)
+2026-07-17T16:48:28.6189085Z #7 4.293 Downloading tomlkit-0.15.1-py3-none-any.whl (49 kB)
+2026-07-17T16:48:28.6189604Z #7 4.295    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 49.4/49.4 kB 251.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.6190135Z #7 4.298 Downloading trove_classifiers-2026.6.1.19-py3-none-any.whl (14 kB)
+2026-07-17T16:48:28.6190840Z #7 4.302 Downloading virtualenv-21.6.1-py3-none-any.whl (5.5 MB)
+2026-07-17T16:48:28.6191376Z #7 4.326    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.5/5.5 MB 255.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.6192084Z #7 4.330 Downloading backports_zstd-1.6.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (492 kB)
+2026-07-17T16:48:28.7206855Z #7 4.334    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 492.5/492.5 kB 292.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.7207819Z #7 4.338 Downloading certifi-2026.6.17-py3-none-any.whl (133 kB)
+2026-07-17T16:48:28.7209038Z #7 4.340    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.3/133.3 kB 286.6 MB/s eta 0:00:00
+2026-07-17T16:48:28.7210438Z #7 4.345 Downloading charset_normalizer-3.4.9-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (223 kB)
+2026-07-17T16:48:28.7211913Z #7 4.347    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 223.8/223.8 kB 292.3 MB/s eta 0:00:00
+2026-07-17T16:48:28.7212824Z #7 4.351 Downloading crashtest-0.4.1-py3-none-any.whl (7.6 kB)
+2026-07-17T16:48:28.7213559Z #7 4.354 Downloading filelock-3.30.3-py3-none-any.whl (94 kB)
+2026-07-17T16:48:28.7214546Z #7 4.356    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 94.5/94.5 kB 281.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.7215538Z #7 4.360 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-07-17T16:48:28.7216099Z #7 4.363    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 232.1 MB/s eta 0:00:00
+2026-07-17T16:48:28.7216553Z #7 4.366 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-07-17T16:48:28.7217077Z #7 4.368    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 283.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.7217504Z #7 4.373 Downloading idna-3.18-py3-none-any.whl (65 kB)
+2026-07-17T16:48:28.7218001Z #7 4.375    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 65.5/65.5 kB 246.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.7218469Z #7 4.379 Downloading importlib_metadata-9.0.0-py3-none-any.whl (27 kB)
+2026-07-17T16:48:28.7219180Z #7 4.382 Downloading jeepney-0.9.0-py3-none-any.whl (49 kB)
+2026-07-17T16:48:28.7219697Z #7 4.384    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 49.0/49.0 kB 220.3 MB/s eta 0:00:00
+2026-07-17T16:48:28.7220331Z #7 4.388 Downloading msgpack-1.2.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (407 kB)
+2026-07-17T16:48:28.7221051Z #7 4.391    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 407.6/407.6 kB 311.2 MB/s eta 0:00:00
+2026-07-17T16:48:28.7221509Z #7 4.395 Downloading python_discovery-1.4.4-py3-none-any.whl (34 kB)
+2026-07-17T16:48:28.7222090Z #7 4.398 Downloading rapidfuzz-3.14.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (3.2 MB)
+2026-07-17T16:48:28.7222734Z #7 4.413    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 259.3 MB/s eta 0:00:00
+2026-07-17T16:48:28.7223176Z #7 4.417 Downloading secretstorage-3.5.0-py3-none-any.whl (15 kB)
+2026-07-17T16:48:28.7223643Z #7 4.420 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-07-17T16:48:28.7224336Z #7 4.422    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 248.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.7224754Z #7 4.426 Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
+2026-07-17T16:48:28.7225536Z #7 4.428    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 131.1/131.1 kB 274.2 MB/s eta 0:00:00
+2026-07-17T16:48:28.7225986Z #7 4.433 Downloading jaraco.classes-3.4.0-py3-none-any.whl (6.8 kB)
+2026-07-17T16:48:28.9448497Z #7 4.437 Downloading jaraco_context-6.1.2-py3-none-any.whl (7.9 kB)
+2026-07-17T16:48:28.9449865Z #7 4.441 Downloading jaraco_functools-4.6.0-py3-none-any.whl (11 kB)
+2026-07-17T16:48:28.9450807Z #7 4.445 Downloading cryptography-49.0.0-cp39-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+2026-07-17T16:48:28.9452287Z #7 4.466    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 250.8 MB/s eta 0:00:00
+2026-07-17T16:48:28.9453068Z #7 4.470 Downloading zipp-4.1.0-py3-none-any.whl (10 kB)
+2026-07-17T16:48:28.9453777Z #7 4.474 Downloading anyio-4.14.2-py3-none-any.whl (125 kB)
+2026-07-17T16:48:28.9454781Z #7 4.476    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.8/125.8 kB 280.4 MB/s eta 0:00:00
+2026-07-17T16:48:28.9455920Z #7 4.481 Downloading backports.tarfile-1.2.0-py3-none-any.whl (30 kB)
+2026-07-17T16:48:28.9456788Z #7 4.485 Downloading more_itertools-11.1.0-py3-none-any.whl (72 kB)
+2026-07-17T16:48:28.9457815Z #7 4.487    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 72.2/72.2 kB 259.7 MB/s eta 0:00:00
+2026-07-17T16:48:28.9458854Z #7 4.491 Downloading cffi-2.1.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (218 kB)
+2026-07-17T16:48:28.9460072Z #7 4.493    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 218.8/218.8 kB 301.0 MB/s eta 0:00:00
+2026-07-17T16:48:28.9460919Z #7 4.497 Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)
+2026-07-17T16:48:28.9461695Z #7 4.501 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2026-07-17T16:48:28.9462405Z #7 4.504 Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+2026-07-17T16:48:28.9463795Z #7 4.507    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 48.2/48.2 kB 266.7 MB/s eta 0:00:00
+2026-07-17T16:48:29.2046778Z #7 4.917 Installing collected packages: trove-classifiers, fastjsonschema, zipp, urllib3, typing_extensions, tomlkit, tomli, shellingham, rapidfuzz, pyproject-hooks, pycparser, poetry-core, platformdirs, pkginfo, pbs-installer, packaging, msgpack, more-itertools, jeepney, installer, idna, h11, filelock, crashtest, charset_normalizer, certifi, backports.zstd, backports.tarfile, requests, python-discovery, jaraco.functools, jaraco.context, jaraco.classes, importlib_metadata, httpcore, findpython, exceptiongroup, dulwich, cleo, cffi, build, virtualenv, requests-toolbelt, cryptography, cachecontrol, anyio, SecretStorage, httpx, keyring, poetry
+2026-07-17T16:48:29.7318101Z #7 5.444   Attempting uninstall: platformdirs
+2026-07-17T16:48:29.8879926Z #7 5.445     Found existing installation: platformdirs 4.2.0
+2026-07-17T16:48:29.8880646Z #7 5.448     Uninstalling platformdirs-4.2.0:
+2026-07-17T16:48:29.8881360Z #7 5.450       Successfully uninstalled platformdirs-4.2.0
+2026-07-17T16:48:30.0204607Z #7 5.733   Attempting uninstall: filelock
+2026-07-17T16:48:30.1765328Z #7 5.734     Found existing installation: filelock 3.13.1
+2026-07-17T16:48:30.1766099Z #7 5.736     Uninstalling filelock-3.13.1:
+2026-07-17T16:48:30.1766716Z #7 5.738       Successfully uninstalled filelock-3.13.1
+2026-07-17T16:48:30.8468846Z #7 6.560   Attempting uninstall: virtualenv
+2026-07-17T16:48:31.0200621Z #7 6.560     Found existing installation: virtualenv 20.25.1
+2026-07-17T16:48:31.0201204Z #7 6.577     Uninstalling virtualenv-20.25.1:
+2026-07-17T16:48:31.0201711Z #7 6.582       Successfully uninstalled virtualenv-20.25.1
+2026-07-17T16:48:31.6185264Z #7 7.330 Successfully installed SecretStorage-3.5.0 anyio-4.14.2 backports.tarfile-1.2.0 backports.zstd-1.6.0 build-1.5.0 cachecontrol-0.14.4 certifi-2026.6.17 cffi-2.1.0 charset_normalizer-3.4.9 cleo-2.1.0 crashtest-0.4.1 cryptography-49.0.0 dulwich-1.2.11 exceptiongroup-1.3.1 fastjsonschema-2.21.2 filelock-3.30.3 findpython-0.8.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.18 importlib_metadata-9.0.0 installer-1.0.1 jaraco.classes-3.4.0 jaraco.context-6.1.2 jaraco.functools-4.6.0 jeepney-0.9.0 keyring-25.7.0 more-itertools-11.1.0 msgpack-1.2.1 packaging-26.2 pbs-installer-2026.6.10 pkginfo-1.12.1.2 platformdirs-4.10.0 poetry-2.4.1 poetry-core-2.4.0 pycparser-3.0 pyproject-hooks-1.2.0 python-discovery-1.4.4 rapidfuzz-3.14.5 requests-2.34.2 requests-toolbelt-1.0.0 shellingham-1.5.4 tomli-2.4.1 tomlkit-0.15.1 trove-classifiers-2026.6.1.19 typing_extensions-4.16.0 urllib3-2.7.0 virtualenv-21.6.1 zipp-4.1.0
+2026-07-17T16:48:31.7688221Z #7 7.331 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+2026-07-17T16:48:31.7744350Z #7 7.487 
+2026-07-17T16:48:31.7745531Z #7 7.487 [notice] A new release of pip is available: 24.0 -> 26.1.2
+2026-07-17T16:48:31.7746704Z #7 7.487 [notice] To update, run: python -m pip install --upgrade pip
+2026-07-17T16:48:32.5027009Z #7 DONE 8.2s
+2026-07-17T16:48:32.6538345Z 
+2026-07-17T16:48:32.6538860Z #8 [4/7] RUN poetry config virtualenvs.create false
+2026-07-17T16:48:33.0576260Z #8 DONE 0.6s
+2026-07-17T16:48:33.2303211Z 
+2026-07-17T16:48:33.2303727Z #9 [5/7] COPY apps/worker/pyproject.toml ./
+2026-07-17T16:48:33.2304560Z #9 DONE 0.0s
+2026-07-17T16:48:33.2304855Z 
+2026-07-17T16:48:33.2305625Z #10 [6/7] RUN poetry lock && poetry install --no-root --no-interaction --no-ansi
+2026-07-17T16:48:33.6593304Z #10 0.580 Skipping virtualenv creation, as specified in config file.
+2026-07-17T16:48:33.7776181Z #10 0.698 Updating dependencies
+2026-07-17T16:48:33.9282083Z #10 0.698 Resolving dependencies...
+2026-07-17T16:48:37.2731799Z #10 4.193 
+2026-07-17T16:48:37.2732187Z #10 4.193 Writing lock file
+2026-07-17T16:48:38.0597055Z #10 4.980 Skipping virtualenv creation, as specified in config file.
+2026-07-17T16:48:38.1782142Z #10 5.098 Installing dependencies from lock file
+2026-07-17T16:48:38.3680180Z #10 5.288 
+2026-07-17T16:48:38.3681028Z #10 5.288 Package operations: 32 installs, 0 updates, 0 removals
+2026-07-17T16:48:38.3681589Z #10 5.288 
+2026-07-17T16:48:38.5311886Z #10 5.289   - Installing annotated-types (0.7.0)
+2026-07-17T16:48:38.5313415Z #10 5.290   - Installing async-timeout (5.0.1)
+2026-07-17T16:48:38.5314370Z #10 5.290   - Installing backports-asyncio-runner (1.2.0)
+2026-07-17T16:48:38.5316095Z #10 5.290   - Installing beautifulsoup4 (4.15.0)
+2026-07-17T16:48:38.5316677Z #10 5.292   - Installing bullmq (2.25.3)
+2026-07-17T16:48:38.5317191Z #10 5.296   - Installing click (8.4.2)
+2026-07-17T16:48:38.5317687Z #10 5.299   - Installing distro (1.9.0)
+2026-07-17T16:48:38.5318176Z #10 5.301   - Installing dnspython (2.8.0)
+2026-07-17T16:48:38.5704538Z #10 5.491   - Installing fastapi (0.110.3)
+2026-07-17T16:48:38.6778713Z #10 5.492   - Installing greenlet (3.5.3)
+2026-07-17T16:48:38.6779291Z #10 5.523   - Installing groq (1.5.0)
+2026-07-17T16:48:38.6779789Z #10 5.541   - Installing hiredis (3.4.0)
+2026-07-17T16:48:38.6780591Z #10 5.598   - Installing iniconfig (2.3.0)
+2026-07-17T16:48:38.8224315Z #10 5.653   - Installing motor (3.7.1)
+2026-07-17T16:48:38.8225598Z #10 5.683   - Installing playwright (1.61.0)
+2026-07-17T16:48:38.8226270Z #10 5.743   - Installing pluggy (1.6.0)
+2026-07-17T16:48:38.9302379Z #10 5.746   - Installing pydantic (2.13.4)
+2026-07-17T16:48:38.9303534Z #10 5.795   - Installing pydantic-core (2.46.4)
+2026-07-17T16:48:38.9304418Z #10 5.850   - Installing pydantic-settings (2.14.2)
+2026-07-17T16:48:39.0807611Z #10 5.933   - Installing pyee (13.0.1)
+2026-07-17T16:48:39.0808272Z #10 6.001   - Installing pygments (2.20.0)
+2026-07-17T16:48:39.2003934Z #10 6.025   - Installing pymongo (4.17.0)
+2026-07-17T16:48:39.2004732Z #10 6.069   - Installing pytest (9.1.1)
+2026-07-17T16:48:39.2005585Z #10 6.121   - Installing pytest-asyncio (1.4.0)
+2026-07-17T16:48:39.3547490Z #10 6.197   - Installing python-dotenv (1.2.2)
+2026-07-17T16:48:39.3548012Z #10 6.275   - Installing redis (6.4.0)
+2026-07-17T16:48:39.4886900Z #10 6.300   - Installing semver (3.0.4)
+2026-07-17T16:48:39.4887366Z #10 6.352   - Installing sniffio (1.3.1)
+2026-07-17T16:48:39.4887697Z #10 6.409   - Installing soupsieve (2.8.4)
+2026-07-17T16:48:39.7335998Z #10 6.441   - Installing starlette (0.37.2)
+2026-07-17T16:48:39.7336953Z #10 6.496   - Installing typing-inspection (0.4.2)
+2026-07-17T16:48:39.7337623Z #10 6.503   - Installing uvicorn (0.28.1)
+2026-07-17T16:48:41.6818279Z #10 DONE 8.6s
+2026-07-17T16:48:41.8478354Z 
+2026-07-17T16:48:41.8479225Z #11 [7/7] COPY apps/worker/ ./
+2026-07-17T16:48:41.8479967Z #11 DONE 0.0s
+2026-07-17T16:48:41.8480370Z 
+2026-07-17T16:48:41.8480700Z #12 exporting to image
+2026-07-17T16:48:41.8481269Z #12 exporting layers
+2026-07-17T16:48:45.3085662Z #12 exporting layers 3.6s done
+2026-07-17T16:48:45.3277019Z #12 writing image sha256:3811846aa3a6a98227b76af7b59a8f34927da394b4f31dce577b782a0ce753f1 done
+2026-07-17T16:48:45.3278194Z #12 naming to docker.io/library/rankengine-worker:test done
+2026-07-17T16:48:45.3278784Z #12 DONE 3.6s
+2026-07-17T16:48:45.3459065Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-17T16:48:45.3460673Z Post job cleanup.
+2026-07-17T16:48:45.4341677Z [command]/usr/bin/git version
+2026-07-17T16:48:45.4385857Z git version 2.54.0
+2026-07-17T16:48:45.4430944Z Temporarily overriding HOME='/home/runner/work/_temp/4cca7ba6-8f1b-4660-a35b-c2277eb90b0c' before making global git config changes
+2026-07-17T16:48:45.4432477Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-17T16:48:45.4438065Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RankEngine-AI/RankEngine-AI
+2026-07-17T16:48:45.4486235Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-17T16:48:45.4530168Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-17T16:48:45.4793189Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-17T16:48:45.4815313Z http.https://github.com/.extraheader
+2026-07-17T16:48:45.4828792Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-17T16:48:45.4879522Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-17T16:48:45.5160560Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-17T16:48:45.5236073Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-17T16:48:45.5664805Z Cleaning up orphan processes
+2026-07-17T16:48:45.5990267Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

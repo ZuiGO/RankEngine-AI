@@ -1,0 +1,39 @@
+﻿2026-07-17T16:46:59.0478301Z ##[group]Run npm run build
+2026-07-17T16:46:59.0479077Z [36;1mnpm run build[0m
+2026-07-17T16:46:59.0538407Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:46:59.0538686Z ##[endgroup]
+2026-07-17T16:46:59.1687142Z 
+2026-07-17T16:46:59.1687837Z > rankengine-ai-monorepo@1.0.0 build
+2026-07-17T16:46:59.1688772Z > npm run build --workspace=packages/shared-types && npm run build --workspaces --if-present
+2026-07-17T16:46:59.1689279Z 
+2026-07-17T16:46:59.3160099Z 
+2026-07-17T16:46:59.3160892Z > @rankengine/shared-types@1.0.0 build
+2026-07-17T16:46:59.3161451Z > tsc
+2026-07-17T16:46:59.3161594Z 
+2026-07-17T16:47:00.7893691Z 
+2026-07-17T16:47:00.7894342Z > @rankengine/api@1.0.0 build
+2026-07-17T16:47:00.7895129Z > tsc
+2026-07-17T16:47:00.7895350Z 
+2026-07-17T16:47:04.5828110Z 
+2026-07-17T16:47:04.5828919Z > @rankengine/web@0.0.0 build
+2026-07-17T16:47:04.5829474Z > tsc -b && vite build
+2026-07-17T16:47:04.5829666Z 
+2026-07-17T16:47:08.1414329Z [36mvite v8.1.5 [32mbuilding client environment for production...[36m[39m
+2026-07-17T16:47:08.1556272Z [2K
+2026-07-17T16:47:08.4591762Z transforming...✓ 1386 modules transformed.
+2026-07-17T16:47:08.5483864Z rendering chunks...
+2026-07-17T16:47:08.8163208Z computing gzip size...
+2026-07-17T16:47:08.8430259Z dist/index.html                     0.45 kB │ gzip:   0.28 kB
+2026-07-17T16:47:08.8431247Z dist/assets/index-DEcrEtPa.css     86.52 kB │ gzip:  13.84 kB
+2026-07-17T16:47:08.8432489Z dist/assets/index-D0WEXaib.js   1,740.34 kB │ gzip: 565.10 kB
+2026-07-17T16:47:08.8432919Z 
+2026-07-17T16:47:08.8437765Z [32m✓ built in 697ms[39m
+2026-07-17T16:47:08.8446233Z [33m[plugin builtin:vite-reporter] 
+2026-07-17T16:47:08.8447197Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2026-07-17T16:47:08.8452517Z - Using dynamic import() to code-split the application
+2026-07-17T16:47:08.8453765Z - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+2026-07-17T16:47:08.8454809Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+2026-07-17T16:47:08.8630388Z 
+2026-07-17T16:47:08.8630739Z > @rankengine/shared-types@1.0.0 build
+2026-07-17T16:47:08.8631134Z > tsc
+2026-07-17T16:47:08.8631283Z 

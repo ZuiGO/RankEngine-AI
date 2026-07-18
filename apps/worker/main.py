@@ -35,13 +35,19 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for local cross-origin queries if needed
+# The worker is normally internal-only. An explicit allowlist is available for
+# deployments that expose its health endpoint through a browser-facing proxy.
+worker_cors_origins = [
+    origin.strip()
+    for origin in settings.WORKER_CORS_ORIGINS.split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=worker_cors_origins,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET"],
+    allow_headers=[],
 )
 
 start_time = time.time()

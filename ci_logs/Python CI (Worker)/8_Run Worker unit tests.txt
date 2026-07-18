@@ -1,0 +1,30 @@
+﻿2026-07-17T16:47:16.2455670Z ##[group]Run poetry run pytest
+2026-07-17T16:47:16.2455996Z [36;1mpoetry run pytest[0m
+2026-07-17T16:47:16.2521368Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:47:16.2521623Z env:
+2026-07-17T16:47:16.2521890Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:47:16.2522320Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+2026-07-17T16:47:16.2522744Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:47:16.2523576Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:47:16.2523955Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-07-17T16:47:16.2524352Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+2026-07-17T16:47:16.2524677Z   PYTHONPATH: .
+2026-07-17T16:47:16.2524967Z   MONGODB_URI: mongodb://127.0.0.1:27017/rankengine_test
+2026-07-17T16:47:16.2525305Z   REDIS_URL: redis://127.0.0.1:6379
+2026-07-17T16:47:16.2525570Z   LLM_API_KEY: mock-llm-key
+2026-07-17T16:47:16.2525808Z   PLAYWRIGHT_HEADLESS: true
+2026-07-17T16:47:16.2526090Z ##[endgroup]
+2026-07-17T16:47:18.9887407Z ============================= test session starts ==============================
+2026-07-17T16:47:18.9889180Z platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+2026-07-17T16:47:18.9890175Z rootdir: /home/runner/work/RankEngine-AI/RankEngine-AI/apps/worker
+2026-07-17T16:47:18.9891055Z configfile: pyproject.toml
+2026-07-17T16:47:18.9891532Z plugins: asyncio-1.4.0, anyio-4.14.2
+2026-07-17T16:47:18.9892399Z asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+2026-07-17T16:47:18.9893438Z collected 10 items
+2026-07-17T16:47:18.9893639Z 
+2026-07-17T16:47:19.0411347Z tests/test_crawler.py ...                                                [ 30%]
+2026-07-17T16:47:19.0588373Z tests/test_llm.py ...                                                    [ 60%]
+2026-07-17T16:47:26.5730183Z tests/test_migration.py .                                                [ 70%]
+2026-07-17T16:47:26.6301678Z tests/test_schema.py ...                                                 [100%]
+2026-07-17T16:47:26.6302243Z 
+2026-07-17T16:47:26.6302480Z ============================== 10 passed in 8.96s ==============================

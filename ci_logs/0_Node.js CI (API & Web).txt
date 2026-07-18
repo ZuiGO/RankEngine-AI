@@ -1,0 +1,651 @@
+﻿2026-07-17T16:46:21.5093359Z Current runner version: '2.335.1'
+2026-07-17T16:46:21.5117933Z ##[group]Runner Image Provisioner
+2026-07-17T16:46:21.5119071Z Hosted Compute Agent
+2026-07-17T16:46:21.5119776Z Version: 20260707.563
+2026-07-17T16:46:21.5120403Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-07-17T16:46:21.5121185Z Build Date: 2026-07-07T19:33:50Z
+2026-07-17T16:46:21.5122159Z Worker ID: {68f25db1-846e-4c43-bfce-e17c73a8756a}
+2026-07-17T16:46:21.5122926Z Azure Region: westus3
+2026-07-17T16:46:21.5123560Z ##[endgroup]
+2026-07-17T16:46:21.5125032Z ##[group]Operating System
+2026-07-17T16:46:21.5125773Z Ubuntu
+2026-07-17T16:46:21.5126299Z 24.04.4
+2026-07-17T16:46:21.5126771Z LTS
+2026-07-17T16:46:21.5127736Z ##[endgroup]
+2026-07-17T16:46:21.5128288Z ##[group]Runner Image
+2026-07-17T16:46:21.5128899Z Image: ubuntu-24.04
+2026-07-17T16:46:21.5129468Z Version: 20260714.240.1
+2026-07-17T16:46:21.5130655Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-17T16:46:21.5132511Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+2026-07-17T16:46:21.5133455Z ##[endgroup]
+2026-07-17T16:46:21.5134710Z ##[group]GITHUB_TOKEN Permissions
+2026-07-17T16:46:21.5136792Z Contents: read
+2026-07-17T16:46:21.5137534Z Metadata: read
+2026-07-17T16:46:21.5138090Z Packages: read
+2026-07-17T16:46:21.5138668Z ##[endgroup]
+2026-07-17T16:46:21.5140696Z Secret source: Actions
+2026-07-17T16:46:21.5141555Z Prepare workflow directory
+2026-07-17T16:46:21.5645551Z Prepare all required actions
+2026-07-17T16:46:21.5683071Z Getting action download info
+2026-07-17T16:46:21.8706959Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-07-17T16:46:22.3279600Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-07-17T16:46:22.5601082Z Complete job name: Node.js CI (API & Web)
+2026-07-17T16:46:22.6143491Z ##[group]Checking docker version
+2026-07-17T16:46:22.6156572Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-07-17T16:46:23.3314440Z '1.48'
+2026-07-17T16:46:23.3329685Z Docker daemon API version: '1.48'
+2026-07-17T16:46:23.3331028Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-07-17T16:46:23.3498163Z '1.48'
+2026-07-17T16:46:23.3512741Z Docker client API version: '1.48'
+2026-07-17T16:46:23.3518807Z ##[endgroup]
+2026-07-17T16:46:23.3522280Z ##[group]Clean up resources from previous jobs
+2026-07-17T16:46:23.3528327Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=ddad74"
+2026-07-17T16:46:23.3806241Z ##[command]/usr/bin/docker network prune --force --filter "label=ddad74"
+2026-07-17T16:46:23.3943130Z ##[endgroup]
+2026-07-17T16:46:23.3944348Z ##[group]Create local container network
+2026-07-17T16:46:23.3956470Z ##[command]/usr/bin/docker network create --label ddad74 github_network_23f8bf121ff44f71ac0d2e5e5aa90da3
+2026-07-17T16:46:23.4520460Z 1bea7ca16af2e29fcd5222c023c6c449f0e66a2004899761363357412143e49d
+2026-07-17T16:46:23.4538578Z ##[endgroup]
+2026-07-17T16:46:23.4564907Z ##[group]Starting mongodb service container
+2026-07-17T16:46:23.4587782Z ##[command]/usr/bin/docker pull mongo:latest
+2026-07-17T16:46:24.3166594Z latest: Pulling from library/mongo
+2026-07-17T16:46:24.5510928Z ca2678b20700: Pulling fs layer
+2026-07-17T16:46:24.5525015Z e2a132d8e302: Pulling fs layer
+2026-07-17T16:46:24.5525549Z d60daeb7b51e: Pulling fs layer
+2026-07-17T16:46:24.5526003Z 3647363b6a04: Pulling fs layer
+2026-07-17T16:46:24.5526420Z 690606b575e4: Pulling fs layer
+2026-07-17T16:46:24.5526802Z 664e5a5a5402: Pulling fs layer
+2026-07-17T16:46:24.5527213Z 31e270117e3b: Pulling fs layer
+2026-07-17T16:46:24.5527479Z a81e773c224c: Pulling fs layer
+2026-07-17T16:46:24.5527735Z 3647363b6a04: Waiting
+2026-07-17T16:46:24.5527962Z 690606b575e4: Waiting
+2026-07-17T16:46:24.5528156Z 31e270117e3b: Waiting
+2026-07-17T16:46:24.5528383Z a81e773c224c: Waiting
+2026-07-17T16:46:24.5528582Z 664e5a5a5402: Waiting
+2026-07-17T16:46:24.7188604Z e2a132d8e302: Verifying Checksum
+2026-07-17T16:46:24.7189192Z e2a132d8e302: Download complete
+2026-07-17T16:46:24.7457690Z d60daeb7b51e: Verifying Checksum
+2026-07-17T16:46:24.7458824Z d60daeb7b51e: Download complete
+2026-07-17T16:46:24.8251098Z ca2678b20700: Verifying Checksum
+2026-07-17T16:46:24.8251600Z ca2678b20700: Download complete
+2026-07-17T16:46:24.8978187Z 3647363b6a04: Verifying Checksum
+2026-07-17T16:46:24.8979252Z 3647363b6a04: Download complete
+2026-07-17T16:46:24.9247945Z 690606b575e4: Verifying Checksum
+2026-07-17T16:46:24.9248494Z 690606b575e4: Download complete
+2026-07-17T16:46:25.0001717Z 664e5a5a5402: Verifying Checksum
+2026-07-17T16:46:25.0002800Z 664e5a5a5402: Download complete
+2026-07-17T16:46:25.1114803Z a81e773c224c: Verifying Checksum
+2026-07-17T16:46:25.1115419Z a81e773c224c: Download complete
+2026-07-17T16:46:26.0549339Z 31e270117e3b: Verifying Checksum
+2026-07-17T16:46:26.0550070Z 31e270117e3b: Download complete
+2026-07-17T16:46:26.1775308Z ca2678b20700: Pull complete
+2026-07-17T16:46:28.2311599Z e2a132d8e302: Pull complete
+2026-07-17T16:46:28.4097359Z d60daeb7b51e: Pull complete
+2026-07-17T16:46:28.4894105Z 3647363b6a04: Pull complete
+2026-07-17T16:46:28.5003630Z 690606b575e4: Pull complete
+2026-07-17T16:46:28.5109307Z 664e5a5a5402: Pull complete
+2026-07-17T16:46:34.1779713Z 31e270117e3b: Pull complete
+2026-07-17T16:46:34.1926594Z a81e773c224c: Pull complete
+2026-07-17T16:46:34.1967858Z Digest: sha256:951c2ff9fc6bdb6cb89b1dfea4a0e8ae3ee4fb287c0bf579b2bba54c7803f75d
+2026-07-17T16:46:34.1981275Z Status: Downloaded newer image for mongo:latest
+2026-07-17T16:46:34.1988864Z docker.io/library/mongo:latest
+2026-07-17T16:46:34.2023795Z ##[command]/usr/bin/docker create --name c5ecdacb1e26460cae41fff5f1d9fdb2_mongolatest_89e028 --label ddad74 --network github_network_23f8bf121ff44f71ac0d2e5e5aa90da3 --network-alias mongodb -p 27017:27017  -e GITHUB_ACTIONS=true -e CI=true mongo:latest
+2026-07-17T16:46:34.2309429Z 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:46:34.2332579Z ##[command]/usr/bin/docker start 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:46:34.7665591Z 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:46:34.7686458Z ##[command]/usr/bin/docker ps --all --filter id=770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-07-17T16:46:34.7835059Z 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072 Up Less than a second
+2026-07-17T16:46:34.7853580Z ##[command]/usr/bin/docker port 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:46:34.7973059Z 27017/tcp -> 0.0.0.0:27017
+2026-07-17T16:46:34.7973723Z 27017/tcp -> [::]:27017
+2026-07-17T16:46:34.8020532Z ##[endgroup]
+2026-07-17T16:46:34.8021477Z ##[group]Starting redis service container
+2026-07-17T16:46:34.8022930Z ##[command]/usr/bin/docker pull redis:alpine
+2026-07-17T16:46:35.5715057Z alpine: Pulling from library/redis
+2026-07-17T16:46:35.8124430Z e6f31ffc071e: Pulling fs layer
+2026-07-17T16:46:35.8125421Z 181cd4ffd5c9: Pulling fs layer
+2026-07-17T16:46:35.8126196Z eeab38c295a8: Pulling fs layer
+2026-07-17T16:46:35.8141289Z 5da8100e7e68: Pulling fs layer
+2026-07-17T16:46:35.8142907Z dc3229b74aab: Pulling fs layer
+2026-07-17T16:46:35.8143374Z 4f4fb700ef54: Pulling fs layer
+2026-07-17T16:46:35.8143916Z 05922fb64b47: Pulling fs layer
+2026-07-17T16:46:35.8144382Z dc3229b74aab: Waiting
+2026-07-17T16:46:35.8144735Z 4f4fb700ef54: Waiting
+2026-07-17T16:46:35.8145045Z 05922fb64b47: Waiting
+2026-07-17T16:46:35.8145348Z 5da8100e7e68: Waiting
+2026-07-17T16:46:35.9908492Z 181cd4ffd5c9: Verifying Checksum
+2026-07-17T16:46:35.9910967Z 181cd4ffd5c9: Download complete
+2026-07-17T16:46:35.9937734Z eeab38c295a8: Verifying Checksum
+2026-07-17T16:46:35.9944340Z eeab38c295a8: Download complete
+2026-07-17T16:46:36.0175623Z e6f31ffc071e: Verifying Checksum
+2026-07-17T16:46:36.0176278Z e6f31ffc071e: Download complete
+2026-07-17T16:46:36.1289932Z e6f31ffc071e: Pull complete
+2026-07-17T16:46:36.1489646Z 181cd4ffd5c9: Pull complete
+2026-07-17T16:46:36.1605494Z dc3229b74aab: Verifying Checksum
+2026-07-17T16:46:36.1605985Z dc3229b74aab: Download complete
+2026-07-17T16:46:36.1906003Z 4f4fb700ef54: Verifying Checksum
+2026-07-17T16:46:36.1907053Z 4f4fb700ef54: Download complete
+2026-07-17T16:46:36.2891558Z 5da8100e7e68: Download complete
+2026-07-17T16:46:36.3293559Z eeab38c295a8: Pull complete
+2026-07-17T16:46:36.3503755Z 05922fb64b47: Download complete
+2026-07-17T16:46:36.8484241Z 5da8100e7e68: Pull complete
+2026-07-17T16:46:36.8600092Z dc3229b74aab: Pull complete
+2026-07-17T16:46:36.8704238Z 4f4fb700ef54: Pull complete
+2026-07-17T16:46:36.8836346Z 05922fb64b47: Pull complete
+2026-07-17T16:46:36.8877156Z Digest: sha256:9d317178eceac8454a2284a9e6df2466b93c745529947f0cd42a0fa9609d7005
+2026-07-17T16:46:36.8888241Z Status: Downloaded newer image for redis:alpine
+2026-07-17T16:46:36.8895119Z docker.io/library/redis:alpine
+2026-07-17T16:46:36.8910020Z ##[command]/usr/bin/docker create --name a367f6715eef41ac8b75fda69edd95c0_redisalpine_341a41 --label ddad74 --network github_network_23f8bf121ff44f71ac0d2e5e5aa90da3 --network-alias redis -p 6379:6379  -e GITHUB_ACTIONS=true -e CI=true redis:alpine
+2026-07-17T16:46:36.9140337Z 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:46:36.9154403Z ##[command]/usr/bin/docker start 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:46:37.0627237Z 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:46:37.0645308Z ##[command]/usr/bin/docker ps --all --filter id=5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-07-17T16:46:37.0830836Z 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de Up Less than a second
+2026-07-17T16:46:37.0906435Z ##[command]/usr/bin/docker port 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:46:37.1055165Z 6379/tcp -> 0.0.0.0:6379
+2026-07-17T16:46:37.1070982Z 6379/tcp -> [::]:6379
+2026-07-17T16:46:37.1073674Z ##[endgroup]
+2026-07-17T16:46:37.1087235Z ##[group]Waiting for all services to be ready
+2026-07-17T16:46:37.1104459Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:46:37.1263270Z mongodb service is healthy.
+2026-07-17T16:46:37.1264407Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:46:37.1393524Z redis service is healthy.
+2026-07-17T16:46:37.1393918Z ##[endgroup]
+2026-07-17T16:46:37.1737768Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-17T16:46:37.1745430Z ##[group]Run actions/checkout@v4
+2026-07-17T16:46:37.1745872Z with:
+2026-07-17T16:46:37.1746097Z   repository: jayesh5103/RankEngine-AI
+2026-07-17T16:46:37.1749108Z   token: ***
+2026-07-17T16:46:37.1749312Z   ssh-strict: true
+2026-07-17T16:46:37.1749513Z   ssh-user: git
+2026-07-17T16:46:37.1749728Z   persist-credentials: true
+2026-07-17T16:46:37.1749957Z   clean: true
+2026-07-17T16:46:37.1750164Z   sparse-checkout-cone-mode: true
+2026-07-17T16:46:37.1750415Z   fetch-depth: 1
+2026-07-17T16:46:37.1750602Z   fetch-tags: false
+2026-07-17T16:46:37.1750802Z   show-progress: true
+2026-07-17T16:46:37.1751011Z   lfs: false
+2026-07-17T16:46:37.1751229Z   submodules: false
+2026-07-17T16:46:37.1751436Z   set-safe-directory: true
+2026-07-17T16:46:37.1752190Z ##[endgroup]
+2026-07-17T16:46:37.2767762Z Syncing repository: jayesh5103/RankEngine-AI
+2026-07-17T16:46:37.2769164Z ##[group]Getting Git version info
+2026-07-17T16:46:37.2770008Z Working directory is '/home/runner/work/RankEngine-AI/RankEngine-AI'
+2026-07-17T16:46:37.2770642Z [command]/usr/bin/git version
+2026-07-17T16:46:37.3584273Z git version 2.54.0
+2026-07-17T16:46:37.3640790Z ##[endgroup]
+2026-07-17T16:46:37.3657020Z Temporarily overriding HOME='/home/runner/work/_temp/2323dc96-b2c8-4c99-b136-8eb426c1b983' before making global git config changes
+2026-07-17T16:46:37.3658275Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-17T16:46:37.3663178Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RankEngine-AI/RankEngine-AI
+2026-07-17T16:46:37.3812675Z Deleting the contents of '/home/runner/work/RankEngine-AI/RankEngine-AI'
+2026-07-17T16:46:37.3817229Z ##[group]Initializing the repository
+2026-07-17T16:46:37.3822573Z [command]/usr/bin/git init /home/runner/work/RankEngine-AI/RankEngine-AI
+2026-07-17T16:46:37.4210298Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-17T16:46:37.4211250Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-17T16:46:37.4212327Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-17T16:46:37.4212978Z hint: call:
+2026-07-17T16:46:37.4213285Z hint:
+2026-07-17T16:46:37.4213742Z hint: 	git config --global init.defaultBranch <name>
+2026-07-17T16:46:37.4214134Z hint:
+2026-07-17T16:46:37.4214461Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-17T16:46:37.4215010Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-17T16:46:37.4215421Z hint:
+2026-07-17T16:46:37.4215634Z hint: 	git branch -m <name>
+2026-07-17T16:46:37.4215879Z hint:
+2026-07-17T16:46:37.4216245Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-17T16:46:37.4222499Z Initialized empty Git repository in /home/runner/work/RankEngine-AI/RankEngine-AI/.git/
+2026-07-17T16:46:37.4235075Z [command]/usr/bin/git remote add origin https://github.com/jayesh5103/RankEngine-AI
+2026-07-17T16:46:37.4401743Z ##[endgroup]
+2026-07-17T16:46:37.4402767Z ##[group]Disabling automatic garbage collection
+2026-07-17T16:46:37.4407711Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-17T16:46:37.4441744Z ##[endgroup]
+2026-07-17T16:46:37.4442495Z ##[group]Setting up auth
+2026-07-17T16:46:37.4449700Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-17T16:46:37.4486669Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-17T16:46:37.5986562Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-17T16:46:37.6028298Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-17T16:46:37.6288106Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-17T16:46:37.6331054Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-17T16:46:37.6588675Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-17T16:46:37.6636413Z ##[endgroup]
+2026-07-17T16:46:37.6637009Z ##[group]Fetching the repository
+2026-07-17T16:46:37.6649856Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b2fe3399769f5f6b70624baa756fad2a4ad5f0a8:refs/remotes/origin/main
+2026-07-17T16:46:38.3198671Z From https://github.com/jayesh5103/RankEngine-AI
+2026-07-17T16:46:38.3199824Z  * [new ref]         b2fe3399769f5f6b70624baa756fad2a4ad5f0a8 -> origin/main
+2026-07-17T16:46:38.3320898Z ##[endgroup]
+2026-07-17T16:46:38.3321650Z ##[group]Determining the checkout info
+2026-07-17T16:46:38.3323259Z ##[endgroup]
+2026-07-17T16:46:38.3329655Z [command]/usr/bin/git sparse-checkout disable
+2026-07-17T16:46:38.3411450Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-17T16:46:38.3440599Z ##[group]Checking out the ref
+2026-07-17T16:46:38.3445758Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-17T16:46:38.3594572Z Switched to a new branch 'main'
+2026-07-17T16:46:38.3597928Z branch 'main' set up to track 'origin/main'.
+2026-07-17T16:46:38.3603728Z ##[endgroup]
+2026-07-17T16:46:38.3649595Z [command]/usr/bin/git log -1 --format=%H
+2026-07-17T16:46:38.3677683Z b2fe3399769f5f6b70624baa756fad2a4ad5f0a8
+2026-07-17T16:46:38.3912747Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-17T16:46:38.3914342Z ##[group]Run actions/setup-node@v4
+2026-07-17T16:46:38.3914590Z with:
+2026-07-17T16:46:38.3914775Z   node-version: 20
+2026-07-17T16:46:38.3914971Z   cache: npm
+2026-07-17T16:46:38.3915160Z   always-auth: false
+2026-07-17T16:46:38.3915366Z   check-latest: false
+2026-07-17T16:46:38.3917821Z   token: ***
+2026-07-17T16:46:38.3918015Z ##[endgroup]
+2026-07-17T16:46:38.5483119Z Attempting to download 20...
+2026-07-17T16:46:38.5589001Z (node:2837) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-17T16:46:38.5590259Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-17T16:46:39.4573735Z Acquiring 20.20.2 - x64 from https://github.com/actions/node-versions/releases/download/20.20.2-23521894959/node-20.20.2-linux-x64.tar.gz
+2026-07-17T16:46:40.0150810Z Extracting ...
+2026-07-17T16:46:40.0272037Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/324bbb19-3d37-4c2c-80bc-18310bafedb4 -f /home/runner/work/_temp/7a36ecf9-5025-4293-b9bb-1f682a86edc7
+2026-07-17T16:46:41.0788061Z Adding to the cache ...
+2026-07-17T16:46:42.9351492Z ##[group]Environment details
+2026-07-17T16:46:43.2349902Z node: v20.20.2
+2026-07-17T16:46:43.2350289Z npm: 10.8.2
+2026-07-17T16:46:43.2350602Z yarn: 1.22.22
+2026-07-17T16:46:43.2351182Z ##[endgroup]
+2026-07-17T16:46:43.2373166Z [command]/opt/hostedtoolcache/node/20.20.2/x64/bin/npm config get cache
+2026-07-17T16:46:43.3386579Z /home/runner/.npm
+2026-07-17T16:46:43.5835538Z Cache hit for: node-cache-Linux-x64-npm-e4ddb1b87234f5d99992a36b05bb7cd08fa8b511db3961d69ee84073c411be72
+2026-07-17T16:46:43.5941050Z (node:2837) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-07-17T16:46:44.8952253Z Received 29360128 of 97178381 (30.2%), 28.0 MBs/sec
+2026-07-17T16:46:45.4749593Z Received 97178381 of 97178381 (100.0%), 58.7 MBs/sec
+2026-07-17T16:46:45.4751334Z Cache Size: ~93 MB (97178381 B)
+2026-07-17T16:46:45.4865543Z [command]/usr/bin/tar -xf /home/runner/work/_temp/e04c49d5-9566-42d3-8ed0-0687e9103544/cache.tzst -P -C /home/runner/work/RankEngine-AI/RankEngine-AI --use-compress-program unzstd
+2026-07-17T16:46:45.8146868Z Cache restored successfully
+2026-07-17T16:46:45.8220978Z Cache restored from key: node-cache-Linux-x64-npm-e4ddb1b87234f5d99992a36b05bb7cd08fa8b511db3961d69ee84073c411be72
+2026-07-17T16:46:45.8411305Z ##[group]Run npm ci
+2026-07-17T16:46:45.8411718Z [36;1mnpm ci[0m
+2026-07-17T16:46:45.8524147Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:46:45.8524445Z ##[endgroup]
+2026-07-17T16:46:49.2367689Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-07-17T16:46:49.2846687Z npm warn deprecated npmlog@5.0.1: This package is no longer supported.
+2026-07-17T16:46:49.3800688Z npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+2026-07-17T16:46:49.3831308Z npm warn deprecated supertest@6.3.4: Please upgrade to supertest v7.1.3+, see release notes at https://github.com/forwardemail/supertest/releases/tag/v7.1.3 - maintenance is supported by Forward Email @ https://forwardemail.net
+2026-07-17T16:46:49.4157764Z npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+2026-07-17T16:46:49.4241063Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-07-17T16:46:49.4898676Z npm warn deprecated are-we-there-yet@2.0.0: This package is no longer supported.
+2026-07-17T16:46:49.5144372Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-07-17T16:46:49.5279496Z npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+2026-07-17T16:46:49.7510743Z npm warn deprecated gauge@3.0.2: This package is no longer supported.
+2026-07-17T16:46:50.0352007Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-07-17T16:46:50.1550964Z npm warn deprecated superagent@8.1.2: Please upgrade to superagent v10.2.2+, see release notes at https://github.com/forwardemail/superagent/releases/tag/v10.2.2 - maintenance is supported by Forward Email @ https://forwardemail.net
+2026-07-17T16:46:52.2719773Z npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+2026-07-17T16:46:55.9606429Z 
+2026-07-17T16:46:55.9607259Z added 896 packages, and audited 900 packages in 10s
+2026-07-17T16:46:55.9607786Z 
+2026-07-17T16:46:55.9608121Z 247 packages are looking for funding
+2026-07-17T16:46:55.9608699Z   run `npm fund` for details
+2026-07-17T16:46:56.1382392Z 
+2026-07-17T16:46:56.1383168Z 9 high severity vulnerabilities
+2026-07-17T16:46:56.1383440Z 
+2026-07-17T16:46:56.1383702Z To address issues that do not require attention, run:
+2026-07-17T16:46:56.1384133Z   npm audit fix
+2026-07-17T16:46:56.1384293Z 
+2026-07-17T16:46:56.1384561Z To address all issues (including breaking changes), run:
+2026-07-17T16:46:56.1384972Z   npm audit fix --force
+2026-07-17T16:46:56.1385142Z 
+2026-07-17T16:46:56.1385287Z Run `npm audit` for details.
+2026-07-17T16:46:56.1871060Z ##[group]Run npm run lint
+2026-07-17T16:46:56.1871367Z [36;1mnpm run lint[0m
+2026-07-17T16:46:56.1930397Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:46:56.1930689Z ##[endgroup]
+2026-07-17T16:46:56.3086119Z 
+2026-07-17T16:46:56.3086887Z > rankengine-ai-monorepo@1.0.0 lint
+2026-07-17T16:46:56.3087431Z > npm run lint --workspaces --if-present
+2026-07-17T16:46:56.3087699Z 
+2026-07-17T16:46:56.4401205Z 
+2026-07-17T16:46:56.4402156Z > @rankengine/api@1.0.0 lint
+2026-07-17T16:46:56.4403041Z > eslint . --ext .ts
+2026-07-17T16:46:56.4403542Z 
+2026-07-17T16:46:58.9685835Z 
+2026-07-17T16:46:58.9686485Z > @rankengine/web@0.0.0 lint
+2026-07-17T16:46:58.9687085Z > oxlint
+2026-07-17T16:46:58.9687219Z 
+2026-07-17T16:46:59.0227452Z ##[warning]Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+2026-07-17T16:46:59.0240060Z ##[warning]Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+2026-07-17T16:46:59.0243177Z ##[warning]React Hook useEffect has a missing dependency: 'fetchProjects'
+2026-07-17T16:46:59.0245521Z ##[warning]React Hook useEffect has a missing dependency: 'fetchGraderResults'
+2026-07-17T16:46:59.0248087Z ##[warning]React Hook useEffect has a missing dependency: 'fetchKeywords'
+2026-07-17T16:46:59.0250259Z ##[warning]React Hook useEffect has a missing dependency: 'fetchHistory'
+2026-07-17T16:46:59.0251393Z 
+2026-07-17T16:46:59.0251693Z Found 6 warnings and 0 errors.
+2026-07-17T16:46:59.0252626Z Finished in 11ms on 14 files with 103 rules using 4 threads.
+2026-07-17T16:46:59.0478349Z ##[group]Run npm run build
+2026-07-17T16:46:59.0479082Z [36;1mnpm run build[0m
+2026-07-17T16:46:59.0538415Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:46:59.0538688Z ##[endgroup]
+2026-07-17T16:46:59.1687191Z 
+2026-07-17T16:46:59.1687842Z > rankengine-ai-monorepo@1.0.0 build
+2026-07-17T16:46:59.1688777Z > npm run build --workspace=packages/shared-types && npm run build --workspaces --if-present
+2026-07-17T16:46:59.1689282Z 
+2026-07-17T16:46:59.3160149Z 
+2026-07-17T16:46:59.3160902Z > @rankengine/shared-types@1.0.0 build
+2026-07-17T16:46:59.3161456Z > tsc
+2026-07-17T16:46:59.3161597Z 
+2026-07-17T16:47:00.7893745Z 
+2026-07-17T16:47:00.7894347Z > @rankengine/api@1.0.0 build
+2026-07-17T16:47:00.7895136Z > tsc
+2026-07-17T16:47:00.7895354Z 
+2026-07-17T16:47:04.5828157Z 
+2026-07-17T16:47:04.5828929Z > @rankengine/web@0.0.0 build
+2026-07-17T16:47:04.5829478Z > tsc -b && vite build
+2026-07-17T16:47:04.5829669Z 
+2026-07-17T16:47:08.1414434Z [36mvite v8.1.5 [32mbuilding client environment for production...[36m[39m
+2026-07-17T16:47:08.1556316Z [2K
+2026-07-17T16:47:08.4592023Z transforming...✓ 1386 modules transformed.
+2026-07-17T16:47:08.5483909Z rendering chunks...
+2026-07-17T16:47:08.8163256Z computing gzip size...
+2026-07-17T16:47:08.8430294Z dist/index.html                     0.45 kB │ gzip:   0.28 kB
+2026-07-17T16:47:08.8431254Z dist/assets/index-DEcrEtPa.css     86.52 kB │ gzip:  13.84 kB
+2026-07-17T16:47:08.8432499Z dist/assets/index-D0WEXaib.js   1,740.34 kB │ gzip: 565.10 kB
+2026-07-17T16:47:08.8432927Z 
+2026-07-17T16:47:08.8437781Z [32m✓ built in 697ms[39m
+2026-07-17T16:47:08.8446251Z [33m[plugin builtin:vite-reporter] 
+2026-07-17T16:47:08.8447208Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2026-07-17T16:47:08.8452530Z - Using dynamic import() to code-split the application
+2026-07-17T16:47:08.8453770Z - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+2026-07-17T16:47:08.8454832Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+2026-07-17T16:47:08.8630417Z 
+2026-07-17T16:47:08.8630743Z > @rankengine/shared-types@1.0.0 build
+2026-07-17T16:47:08.8631137Z > tsc
+2026-07-17T16:47:08.8631285Z 
+2026-07-17T16:47:10.2080112Z ##[group]Run npm test --workspace=apps/api
+2026-07-17T16:47:10.2080492Z [36;1mnpm test --workspace=apps/api[0m
+2026-07-17T16:47:10.2138683Z shell: /usr/bin/bash -e {0}
+2026-07-17T16:47:10.2138935Z env:
+2026-07-17T16:47:10.2139119Z   NODE_ENV: test
+2026-07-17T16:47:10.2139414Z   MONGODB_URI: mongodb://127.0.0.1:27017/rankengine_test
+2026-07-17T16:47:10.2139788Z   REDIS_URL: redis://127.0.0.1:6379
+2026-07-17T16:47:10.2140093Z   JWT_SECRET: test_secret_key_long_enough_for_jwt
+2026-07-17T16:47:10.2140385Z   JWT_EXPIRY: 1h
+2026-07-17T16:47:10.2140711Z   ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+2026-07-17T16:47:10.2141117Z   LLM_API_KEY: mock-llm-key
+2026-07-17T16:47:10.2141364Z   SERP_API_KEY: mock-serp-key
+2026-07-17T16:47:10.2141607Z   SERP_API_PROVIDER: mock
+2026-07-17T16:47:10.2142047Z ##[endgroup]
+2026-07-17T16:47:10.3532180Z 
+2026-07-17T16:47:10.3532857Z > @rankengine/api@1.0.0 test
+2026-07-17T16:47:10.3533607Z > jest --runInBand --detectOpenHandles
+2026-07-17T16:47:10.3533952Z 
+2026-07-17T16:47:19.0175226Z PASS __tests__/projects.test.ts (8.149 s)
+2026-07-17T16:47:20.5216343Z PASS __tests__/competitorAlerts.test.ts
+2026-07-17T16:47:24.1712060Z FAIL __tests__/auth.test.ts
+2026-07-17T16:47:24.1713186Z   ● Authentication Flow › Middleware requireAuth & GET /api/auth/me › should fail if token is expired
+2026-07-17T16:47:24.1714005Z 
+2026-07-17T16:47:24.1714242Z     expect(received).toBe(expected) // Object.is equality
+2026-07-17T16:47:24.1714537Z 
+2026-07-17T16:47:24.1714710Z     Expected: "Unauthorized: Token expired"
+2026-07-17T16:47:24.1715420Z     Received: "Unauthorized: Invalid token"
+2026-07-17T16:47:24.1715921Z 
+2026-07-17T16:47:24.1717628Z     [0m [90m 221 |[39m         [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`***
+2026-07-17T16:47:24.1718901Z      [90m 222 |[39m         [33m.[39mexpect([35m401[39m)[33m;[39m
+2026-07-17T16:47:24.1720917Z     [31m[1m>[22m[39m[90m 223 |[39m       expect(res[33m.[39mbody[33m.[39merror)[33m.[39mtoBe([32m'Unauthorized: Token expired'[39m)[33m;[39m
+2026-07-17T16:47:24.1722506Z      [90m     |[39m                              [31m[1m^[22m[39m
+2026-07-17T16:47:24.1723206Z      [90m 224 |[39m     })[33m;[39m
+2026-07-17T16:47:24.1723809Z      [90m 225 |[39m   })[33m;[39m
+2026-07-17T16:47:24.1724212Z      [90m 226 |[39m })[33m;[39m[0m
+2026-07-17T16:47:24.1724416Z 
+2026-07-17T16:47:24.1724660Z       at Object.<anonymous> (__tests__/auth.test.ts:223:30)
+2026-07-17T16:47:24.1724907Z 
+2026-07-17T16:47:25.5679282Z PASS __tests__/crawlJobs.test.ts
+2026-07-17T16:47:26.8552562Z PASS __tests__/migration.test.ts
+2026-07-17T16:47:27.8755917Z PASS __tests__/serp.test.ts
+2026-07-17T16:47:27.8841448Z   ● Console
+2026-07-17T16:47:27.8841680Z 
+2026-07-17T16:47:27.8842043Z     console.log
+2026-07-17T16:47:27.8842778Z       [SerpAnalysis]: Cache miss for keyword: "seo audit". Running analysis.
+2026-07-17T16:47:27.8843344Z 
+2026-07-17T16:47:27.8843607Z       at src/routes/content.ts:48:13
+2026-07-17T16:47:27.8843938Z 
+2026-07-17T16:47:27.8844097Z     console.log
+2026-07-17T16:47:27.8844746Z       [SerpAnalysis]: Cache miss for keyword: "seo audit". Running analysis.
+2026-07-17T16:47:27.8845282Z 
+2026-07-17T16:47:27.8845495Z       at src/routes/content.ts:48:13
+2026-07-17T16:47:27.8845835Z 
+2026-07-17T16:47:27.8845992Z     console.log
+2026-07-17T16:47:27.8846412Z       [SerpAnalysis]: Cache hit for keyword: "seo audit"
+2026-07-17T16:47:27.8846685Z 
+2026-07-17T16:47:27.8846847Z       at src/routes/content.ts:34:15
+2026-07-17T16:47:27.8847065Z 
+2026-07-17T16:47:29.0310759Z PASS __tests__/checklist.test.ts
+2026-07-17T16:47:30.0717159Z PASS __tests__/grade.test.ts
+2026-07-17T16:47:30.8961545Z PASS __tests__/schemaChecklist.test.ts
+2026-07-17T16:47:32.3766911Z PASS __tests__/rankTracker.test.ts
+2026-07-17T16:47:32.3798714Z   ● Console
+2026-07-17T16:47:32.3798916Z 
+2026-07-17T16:47:32.3799110Z     console.log
+2026-07-17T16:47:32.3799949Z       [RankTracker]: Starting snapshots collection for 2 keywords.
+2026-07-17T16:47:32.3800275Z 
+2026-07-17T16:47:32.3800569Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:138:11)
+2026-07-17T16:47:32.3800898Z 
+2026-07-17T16:47:32.3800994Z     console.log
+2026-07-17T16:47:32.3801375Z       [MockSerpProvider]: Fetching top 10 results for keyword: "seo tool"
+2026-07-17T16:47:32.3801699Z 
+2026-07-17T16:47:32.3802286Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3802715Z 
+2026-07-17T16:47:32.3802815Z     console.log
+2026-07-17T16:47:32.3803211Z       [MockSerpProvider]: Fetching top 10 results for keyword: "schema checker"
+2026-07-17T16:47:32.3803536Z 
+2026-07-17T16:47:32.3803779Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3804081Z 
+2026-07-17T16:47:32.3804172Z     console.log
+2026-07-17T16:47:32.3804466Z       [RankTracker]: Completed snapshots collection.
+2026-07-17T16:47:32.3804708Z 
+2026-07-17T16:47:32.3804988Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:148:11)
+2026-07-17T16:47:32.3805311Z 
+2026-07-17T16:47:32.3805398Z     console.log
+2026-07-17T16:47:32.3805740Z       [RankTracker]: Starting snapshots collection for 1 keywords.
+2026-07-17T16:47:32.3806008Z 
+2026-07-17T16:47:32.3806272Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:138:11)
+2026-07-17T16:47:32.3806786Z 
+2026-07-17T16:47:32.3806871Z     console.log
+2026-07-17T16:47:32.3807225Z       [MockSerpProvider]: Fetching top 10 results for keyword: "seo tool"
+2026-07-17T16:47:32.3807521Z 
+2026-07-17T16:47:32.3807765Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3808061Z 
+2026-07-17T16:47:32.3808151Z     console.log
+2026-07-17T16:47:32.3808429Z       [RankTracker]: Completed snapshots collection.
+2026-07-17T16:47:32.3808656Z 
+2026-07-17T16:47:32.3808916Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:148:11)
+2026-07-17T16:47:32.3809224Z 
+2026-07-17T16:47:32.3809317Z     console.log
+2026-07-17T16:47:32.3809644Z       [RankTracker]: Starting snapshots collection for 1 keywords.
+2026-07-17T16:47:32.3809915Z 
+2026-07-17T16:47:32.3810173Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:138:11)
+2026-07-17T16:47:32.3810486Z 
+2026-07-17T16:47:32.3810575Z     console.log
+2026-07-17T16:47:32.3811099Z       [MockSerpProvider]: Fetching top 10 results for keyword: "seo tool"
+2026-07-17T16:47:32.3811550Z 
+2026-07-17T16:47:32.3812138Z       at MockSerpProvider.fetchTop10 (src/services/serpService.ts:16:13)
+2026-07-17T16:47:32.3812601Z 
+2026-07-17T16:47:32.3812689Z     console.log
+2026-07-17T16:47:32.3812964Z       [RankTracker]: Completed snapshots collection.
+2026-07-17T16:47:32.3813189Z 
+2026-07-17T16:47:32.3813435Z       at collectAllRankSnapshots (src/services/rankTrackerService.ts:148:11)
+2026-07-17T16:47:32.3813728Z 
+2026-07-17T16:47:32.3813740Z 
+2026-07-17T16:47:32.3819725Z Test Suites: 1 failed, 9 passed, 10 total
+2026-07-17T16:47:32.3820452Z Tests:       1 failed, 51 passed, 52 total
+2026-07-17T16:47:32.3820793Z Snapshots:   0 total
+2026-07-17T16:47:32.3821035Z Time:        21.718 s
+2026-07-17T16:47:32.3821272Z Ran all test suites.
+2026-07-17T16:47:32.7419738Z npm error Lifecycle script `test` failed with error:
+2026-07-17T16:47:32.7425120Z npm error code 1
+2026-07-17T16:47:32.7426308Z npm error path /home/runner/work/RankEngine-AI/RankEngine-AI/apps/api
+2026-07-17T16:47:32.7427198Z npm error workspace @rankengine/api@1.0.0
+2026-07-17T16:47:32.7428123Z npm error location /home/runner/work/RankEngine-AI/RankEngine-AI/apps/api
+2026-07-17T16:47:32.7428923Z npm error command failed
+2026-07-17T16:47:32.7429677Z npm error command sh -c jest --runInBand --detectOpenHandles
+2026-07-17T16:47:32.7477162Z ##[error]Process completed with exit code 1.
+2026-07-17T16:47:32.7575446Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-17T16:47:32.7576729Z Post job cleanup.
+2026-07-17T16:47:32.8580303Z [command]/usr/bin/git version
+2026-07-17T16:47:32.8625981Z git version 2.54.0
+2026-07-17T16:47:32.8670364Z Temporarily overriding HOME='/home/runner/work/_temp/d8e41bbd-18eb-4878-8dc7-38264f8cee03' before making global git config changes
+2026-07-17T16:47:32.8672189Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-17T16:47:32.8676008Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RankEngine-AI/RankEngine-AI
+2026-07-17T16:47:32.8716697Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-17T16:47:32.8753278Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-17T16:47:32.8998833Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-17T16:47:32.9030115Z http.https://github.com/.extraheader
+2026-07-17T16:47:32.9042975Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-17T16:47:32.9077503Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-17T16:47:32.9336134Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-17T16:47:32.9374929Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-17T16:47:32.9801537Z Print service container logs: c5ecdacb1e26460cae41fff5f1d9fdb2_mongolatest_89e028
+2026-07-17T16:47:32.9806493Z ##[command]/usr/bin/docker logs --details 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:47:32.9930781Z  {"t":{"$date":"2026-07-17T16:46:35.352+00:00"},"s":"I",  "c":"-",        "id":8991200, "ctx":"main","msg":"Shuffling initializers","attr":{"seed":3463754661}}
+2026-07-17T16:47:32.9933747Z  {"t":{"$date":"2026-07-17T16:46:35.369+00:00"},"s":"I",  "c":"CONTROL",  "id":97374,   "ctx":"main","msg":"Automatically disabling TLS 1.0 and TLS 1.1, to force-enable TLS 1.1 specify --sslDisabledProtocols 'TLS1_0'; to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
+2026-07-17T16:47:32.9937201Z  {"t":{"$date":"2026-07-17T16:46:35.378+00:00"},"s":"I",  "c":"NETWORK",  "id":4915701, "ctx":"main","msg":"Initialized wire specification","attr":{"spec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":27},"incomingInternalClient":{"minWireVersion":0,"maxWireVersion":27},"outgoing":{"minWireVersion":6,"maxWireVersion":27},"isInternalClient":true}}}
+2026-07-17T16:47:32.9939775Z  {"t":{"$date":"2026-07-17T16:46:35.378+00:00"},"s":"I",  "c":"CONTROL",  "id":5945603, "ctx":"main","msg":"Multi threading initialized"}
+2026-07-17T16:47:32.9940833Z  {"t":{"$date":"2026-07-17T16:46:35.378+00:00"},"s":"I",  "c":"CONTROL",  "id":4615611, "ctx":"initandlisten","msg":"MongoDB starting","attr":{"pid":1,"port":27017,"dbPath":"/data/db","architecture":"64-bit","host":"770acaad4e7e"}}
+2026-07-17T16:47:32.9943548Z  {"t":{"$date":"2026-07-17T16:46:35.378+00:00"},"s":"I",  "c":"CONTROL",  "id":23403,   "ctx":"initandlisten","msg":"Build Info","attr":{"buildInfo":{"version":"8.2.11","gitVersion":"ee01d36638a00a07a6aa42ee80a125890f11aeed","openSSLVersion":"OpenSSL 3.0.13 30 Jan 2024","modules":[],"allocator":"tcmalloc-google","environment":{"distmod":"ubuntu2404","distarch":"x86_64","target_arch":"x86_64"}}}}
+2026-07-17T16:47:32.9945893Z  {"t":{"$date":"2026-07-17T16:46:35.378+00:00"},"s":"I",  "c":"CONTROL",  "id":51765,   "ctx":"initandlisten","msg":"Operating System","attr":{"os":{"name":"Ubuntu","version":"24.04"}}}
+2026-07-17T16:47:32.9946912Z  {"t":{"$date":"2026-07-17T16:46:35.378+00:00"},"s":"I",  "c":"CONTROL",  "id":21951,   "ctx":"initandlisten","msg":"Options set by command line","attr":{"options":{"net":{"bindIp":"*"}}}}
+2026-07-17T16:47:32.9948443Z  {"t":{"$date":"2026-07-17T16:46:35.379+00:00"},"s":"I",  "c":"NETWORK",  "id":4648601, "ctx":"initandlisten","msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set at least one of the related parameters","attr":{"relatedParameters":["tcpFastOpenServer","tcpFastOpenClient","tcpFastOpenQueueSize"]}}
+2026-07-17T16:47:32.9950286Z  {"t":{"$date":"2026-07-17T16:46:35.380+00:00"},"s":"I",  "c":"STORAGE",  "id":22297,   "ctx":"initandlisten","msg":"Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem","tags":["startupWarnings"]}
+2026-07-17T16:47:32.9953935Z  {"t":{"$date":"2026-07-17T16:46:35.380+00:00"},"s":"I",  "c":"STORAGE",  "id":22315,   "ctx":"initandlisten","msg":"Opening WiredTiger","attr":{"config":"create,cache_size=7482M,session_max=33000,eviction=(threads_min=4,threads_max=4),config_base=false,statistics=(fast),log=(enabled=true,remove=true,path=journal,compressor=snappy),builtin_extension_config=(zstd=(compression_level=6)),file_manager=(close_idle_time=600,close_scan_interval=10,close_handle_minimum=2000),statistics_log=(wait=0),json_output=(error,message),verbose=[recovery_progress:1,checkpoint_progress:1,compact_progress:1,live_restore_progress:1,backup:0,checkpoint:0,compact:0,eviction:0,fileops:0,history_store:0,live_restore:0,recovery:0,rts:0,salvage:0,tiered:0,timestamp:0,transaction:0,verify:0,log:0],prefetch=(available=true,default=false),"}}
+2026-07-17T16:47:32.9958094Z  {"t":{"$date":"2026-07-17T16:46:35.392+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":392353,"thread":"1:0x7fc2cec1e400","session_name":"wiredtiger_open","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"opening the WiredTiger library"}}}
+2026-07-17T16:47:32.9960493Z  {"t":{"$date":"2026-07-17T16:46:35.398+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":398604,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"connection configuration string parsing completed"}}}
+2026-07-17T16:47:32.9964010Z  {"t":{"$date":"2026-07-17T16:46:35.401+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":401313,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"starting WiredTiger utility threads"}}}
+2026-07-17T16:47:32.9967923Z  {"t":{"$date":"2026-07-17T16:46:35.402+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":402875,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"starting WiredTiger recovery"}}}
+2026-07-17T16:47:32.9972119Z  {"t":{"$date":"2026-07-17T16:46:35.403+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":403120,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"scanning metadata to find the largest file ID"}}}
+2026-07-17T16:47:32.9976335Z  {"t":{"$date":"2026-07-17T16:46:35.403+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":403214,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"largest file ID found in the metadata 0"}}}
+2026-07-17T16:47:32.9979138Z  {"t":{"$date":"2026-07-17T16:46:35.403+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":403265,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"recovery log replay has successfully finished and ran for 0 milliseconds"}}}
+2026-07-17T16:47:32.9981644Z  {"t":{"$date":"2026-07-17T16:46:35.403+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":403310,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY_PROGRESS","log_id":1000000,"category_id":33,"verbose_level":"DEBUG_1","verbose_level_id":1,"msg":"Set global recovery timestamp: (0, 0)"}}}
+2026-07-17T16:47:32.9984540Z  {"t":{"$date":"2026-07-17T16:46:35.403+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":403373,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY_PROGRESS","log_id":1000000,"category_id":33,"verbose_level":"DEBUG_1","verbose_level_id":1,"msg":"Set global oldest timestamp: (0, 0)"}}}
+2026-07-17T16:47:32.9987514Z  {"t":{"$date":"2026-07-17T16:46:35.403+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":403422,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1493201,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"recovery was completed successfully and took 0ms, including 0ms for the log replay, 0ms for the rollback to stable, and 0ms for the checkpoint."}}}
+2026-07-17T16:47:32.9990499Z  {"t":{"$date":"2026-07-17T16:46:35.403+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":403490,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY_PROGRESS","log_id":1493201,"category_id":33,"verbose_level":"INFO","verbose_level_id":0,"msg":"recovery was completed successfully and took 0ms, including 0ms for the log replay, 0ms for the rollback to stable, and 0ms for the checkpoint."}}}
+2026-07-17T16:47:32.9993384Z  {"t":{"$date":"2026-07-17T16:46:35.406+00:00"},"s":"I",  "c":"WTEVICT",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":406053,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_EVICTION","log_id":1000000,"category_id":15,"verbose_level":"INFO","verbose_level_id":0,"msg":"starting eviction threads"}}}
+2026-07-17T16:47:32.9995711Z  {"t":{"$date":"2026-07-17T16:46:35.407+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":407899,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"WiredTiger utility threads started successfully"}}}
+2026-07-17T16:47:32.9998078Z  {"t":{"$date":"2026-07-17T16:46:35.407+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":407935,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"the WiredTiger library has successfully opened"}}}
+2026-07-17T16:47:32.9999718Z  {"t":{"$date":"2026-07-17T16:46:35.407+00:00"},"s":"I",  "c":"STORAGE",  "id":4795906, "ctx":"initandlisten","msg":"WiredTiger opened","attr":{"durationMillis":27}}
+2026-07-17T16:47:33.0000921Z  {"t":{"$date":"2026-07-17T16:46:35.407+00:00"},"s":"I",  "c":"RECOVERY", "id":23987,   "ctx":"initandlisten","msg":"WiredTiger recoveryTimestamp","attr":{"recoveryTimestamp":{"$timestamp":{"t":0,"i":0}}}}
+2026-07-17T16:47:33.0003059Z  {"t":{"$date":"2026-07-17T16:46:35.407+00:00"},"s":"I",  "c":"STORAGE",  "id":9086700, "ctx":"initandlisten","msg":"WiredTiger session cache max value has been set","attr":{"sessionCacheMax":16500}}
+2026-07-17T16:47:33.0008235Z  {"t":{"$date":"2026-07-17T16:46:35.410+00:00"},"s":"I",  "c":"STORAGE",  "id":10158000,"ctx":"initandlisten","msg":"Opening spill WiredTiger","attr":{"config":"create,cache_size=399M,session_max=1024,eviction=(threads_min=1,threads_max=1),eviction_dirty_target=19MB,eviction_dirty_trigger=319MB,eviction_updates_trigger=319MB,config_base=false,statistics=(fast),log=(enabled=false),builtin_extension_config=(zstd=(compression_level=-7)),file_manager=(close_idle_time=600,close_scan_interval=10,close_handle_minimum=2000),statistics_log=(wait=0),json_output=(error,message),verbose=[recovery_progress:1,checkpoint_progress:1,compact_progress:1,live_restore_progress:1,backup:0,checkpoint:0,compact:0,eviction:0,fileops:0,history_store:0,live_restore:0,recovery:0,rts:0,salvage:0,tiered:0,timestamp:0,transaction:0,verify:0,log:0],"}}
+2026-07-17T16:47:33.0015539Z  {"t":{"$date":"2026-07-17T16:46:35.412+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":412288,"thread":"1:0x7fc2cec1e400","session_name":"wiredtiger_open","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"opening the WiredTiger library"}}}
+2026-07-17T16:47:33.0019531Z  {"t":{"$date":"2026-07-17T16:46:35.413+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":413899,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"connection configuration string parsing completed"}}}
+2026-07-17T16:47:33.0023656Z  {"t":{"$date":"2026-07-17T16:46:35.418+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":418649,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"starting WiredTiger utility threads"}}}
+2026-07-17T16:47:33.0027513Z  {"t":{"$date":"2026-07-17T16:46:35.418+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":418902,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"starting WiredTiger recovery"}}}
+2026-07-17T16:47:33.0031727Z  {"t":{"$date":"2026-07-17T16:46:35.419+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":419015,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"scanning metadata to find the largest file ID"}}}
+2026-07-17T16:47:33.0035061Z  {"t":{"$date":"2026-07-17T16:46:35.419+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":419065,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"largest file ID found in the metadata 0"}}}
+2026-07-17T16:47:33.0037482Z  {"t":{"$date":"2026-07-17T16:46:35.419+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":419146,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"recovery log replay has successfully finished and ran for 0 milliseconds"}}}
+2026-07-17T16:47:33.0040067Z  {"t":{"$date":"2026-07-17T16:46:35.419+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":419215,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY_PROGRESS","log_id":1000000,"category_id":33,"verbose_level":"DEBUG_1","verbose_level_id":1,"msg":"Set global recovery timestamp: (0, 0)"}}}
+2026-07-17T16:47:33.0042822Z  {"t":{"$date":"2026-07-17T16:46:35.419+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":419251,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY_PROGRESS","log_id":1000000,"category_id":33,"verbose_level":"DEBUG_1","verbose_level_id":1,"msg":"Set global oldest timestamp: (0, 0)"}}}
+2026-07-17T16:47:33.0045825Z  {"t":{"$date":"2026-07-17T16:46:35.419+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":419299,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY","log_id":1493201,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"recovery was completed successfully and took 0ms, including 0ms for the log replay, 0ms for the rollback to stable, and 0ms for the checkpoint."}}}
+2026-07-17T16:47:33.0048835Z  {"t":{"$date":"2026-07-17T16:46:35.419+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":419341,"thread":"1:0x7fc2cec1e400","session_name":"txn-recover","category":"WT_VERB_RECOVERY_PROGRESS","log_id":1493201,"category_id":33,"verbose_level":"INFO","verbose_level_id":0,"msg":"recovery was completed successfully and took 0ms, including 0ms for the log replay, 0ms for the rollback to stable, and 0ms for the checkpoint."}}}
+2026-07-17T16:47:33.0051507Z  {"t":{"$date":"2026-07-17T16:46:35.423+00:00"},"s":"I",  "c":"WTEVICT",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":423639,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_EVICTION","log_id":1000000,"category_id":15,"verbose_level":"INFO","verbose_level_id":0,"msg":"starting eviction threads"}}}
+2026-07-17T16:47:33.0054042Z  {"t":{"$date":"2026-07-17T16:46:35.424+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":424119,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"WiredTiger utility threads started successfully"}}}
+2026-07-17T16:47:33.0056392Z  {"t":{"$date":"2026-07-17T16:46:35.424+00:00"},"s":"I",  "c":"WTRECOV",  "id":22430,   "ctx":"initandlisten","msg":"WiredTiger message","attr":{"message":{"ts_sec":1784306795,"ts_usec":424159,"thread":"1:0x7fc2cec1e400","session_name":"connection","category":"WT_VERB_RECOVERY","log_id":1000000,"category_id":32,"verbose_level":"INFO","verbose_level_id":0,"msg":"the WiredTiger library has successfully opened"}}}
+2026-07-17T16:47:33.0058037Z  {"t":{"$date":"2026-07-17T16:46:35.424+00:00"},"s":"I",  "c":"STORAGE",  "id":10158001,"ctx":"initandlisten","msg":"Spill WiredTiger opened","attr":{"durationMillis":14}}
+2026-07-17T16:47:33.0058976Z  {"t":{"$date":"2026-07-17T16:46:35.426+00:00"},"s":"I",  "c":"STORAGE",  "id":9529901, "ctx":"initandlisten","msg":"Initializing durable catalog","attr":{"numRecords":0}}
+2026-07-17T16:47:33.0059874Z  {"t":{"$date":"2026-07-17T16:46:35.426+00:00"},"s":"I",  "c":"STORAGE",  "id":9529902, "ctx":"initandlisten","msg":"Retrieving all idents from storage engine"}
+2026-07-17T16:47:33.0060861Z  {"t":{"$date":"2026-07-17T16:46:35.426+00:00"},"s":"I",  "c":"STORAGE",  "id":9529903, "ctx":"initandlisten","msg":"Initializing all collections in durable catalog","attr":{"numEntries":0}}
+2026-07-17T16:47:33.0062355Z  {"t":{"$date":"2026-07-17T16:46:35.428+00:00"},"s":"W",  "c":"CONTROL",  "id":22120,   "ctx":"initandlisten","msg":"Access control is not enabled for the database. Read and write access to data and configuration is unrestricted","tags":["startupWarnings"]}
+2026-07-17T16:47:33.0064359Z  {"t":{"$date":"2026-07-17T16:46:35.428+00:00"},"s":"W",  "c":"CONTROL",  "id":9068900, "ctx":"initandlisten","msg":"For customers running the current memory allocator, we suggest changing the contents of the following sysfsFile","attr":{"allocator":"tcmalloc-google","sysfsFile":"/sys/kernel/mm/transparent_hugepage/defrag","currentValue":"madvise","desiredValue":"defer+madvise"},"tags":["startupWarnings"]}
+2026-07-17T16:47:33.0066478Z  {"t":{"$date":"2026-07-17T16:46:35.428+00:00"},"s":"W",  "c":"CONTROL",  "id":8640302, "ctx":"initandlisten","msg":"We suggest setting the contents of sysfsFile to 0.","attr":{"sysfsFile":"/sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none","currentValue":511},"tags":["startupWarnings"]}
+2026-07-17T16:47:33.0068342Z  {"t":{"$date":"2026-07-17T16:46:35.428+00:00"},"s":"W",  "c":"CONTROL",  "id":8386700, "ctx":"initandlisten","msg":"We suggest setting swappiness to 0 or 1, as swapping can cause performance problems.","attr":{"sysfsFile":"/proc/sys/vm/swappiness","currentValue":60},"tags":["startupWarnings"]}
+2026-07-17T16:47:33.0070307Z  {"t":{"$date":"2026-07-17T16:46:35.428+00:00"},"s":"I",  "c":"STORAGE",  "id":20320,   "ctx":"initandlisten","msg":"createCollection","attr":{"namespace":"admin.system.version","uuidDisposition":"provided","uuid":{"uuid":{"$uuid":"58468128-19b3-4ae2-a728-f803a518586e"}},"options":{"uuid":{"$uuid":"58468128-19b3-4ae2-a728-f803a518586e"}}}}
+2026-07-17T16:47:33.0072815Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"INDEX",    "id":20345,   "ctx":"initandlisten","msg":"Index build: done building","attr":{"buildUUID":null,"collectionUUID":{"uuid":{"$uuid":"58468128-19b3-4ae2-a728-f803a518586e"}},"namespace":"admin.system.version","index":"_id_","ident":"index-02da163b-c8b5-44f4-bf0d-91daac4ab2b9","collectionIdent":"collection-9c1b5101-28cb-45c8-b9e1-0c2590badbdd","commitTimestamp":null}}
+2026-07-17T16:47:33.0074672Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"REPL",     "id":20459,   "ctx":"initandlisten","msg":"Setting featureCompatibilityVersion","attr":{"newVersion":"8.2"}}
+2026-07-17T16:47:33.0075820Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"REPL",     "id":5853300, "ctx":"initandlisten","msg":"current featureCompatibilityVersion value","attr":{"featureCompatibilityVersion":"8.2","context":"setFCV"}}
+2026-07-17T16:47:33.0078304Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"NETWORK",  "id":4915702, "ctx":"initandlisten","msg":"Updated wire specification","attr":{"oldSpec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":27},"incomingInternalClient":{"minWireVersion":0,"maxWireVersion":27},"outgoing":{"minWireVersion":6,"maxWireVersion":27},"isInternalClient":true},"newSpec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":27},"incomingInternalClient":{"minWireVersion":27,"maxWireVersion":27},"outgoing":{"minWireVersion":27,"maxWireVersion":27},"isInternalClient":true}}}
+2026-07-17T16:47:33.0082207Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"NETWORK",  "id":4915702, "ctx":"initandlisten","msg":"Updated wire specification","attr":{"oldSpec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":27},"incomingInternalClient":{"minWireVersion":27,"maxWireVersion":27},"outgoing":{"minWireVersion":27,"maxWireVersion":27},"isInternalClient":true},"newSpec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":27},"incomingInternalClient":{"minWireVersion":27,"maxWireVersion":27},"outgoing":{"minWireVersion":27,"maxWireVersion":27},"isInternalClient":true}}}
+2026-07-17T16:47:33.0084693Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"REPL",     "id":5853300, "ctx":"initandlisten","msg":"current featureCompatibilityVersion value","attr":{"featureCompatibilityVersion":"8.2","context":"startup"}}
+2026-07-17T16:47:33.0085762Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"STORAGE",  "id":5071100, "ctx":"initandlisten","msg":"Clearing temp directory"}
+2026-07-17T16:47:33.0086597Z  {"t":{"$date":"2026-07-17T16:46:35.433+00:00"},"s":"I",  "c":"STORAGE",  "id":10682200,"ctx":"initandlisten","msg":"Dropping spill idents","attr":{"numIdents":0}}
+2026-07-17T16:47:33.0087500Z  {"t":{"$date":"2026-07-17T16:46:35.434+00:00"},"s":"I",  "c":"CONTROL",  "id":6608200, "ctx":"initandlisten","msg":"Initializing cluster server parameters from disk"}
+2026-07-17T16:47:33.0088398Z  {"t":{"$date":"2026-07-17T16:46:35.434+00:00"},"s":"I",  "c":"CONTROL",  "id":20536,   "ctx":"initandlisten","msg":"Flow Control is enabled on this deployment"}
+2026-07-17T16:47:33.0089444Z  {"t":{"$date":"2026-07-17T16:46:35.434+00:00"},"s":"I",  "c":"FTDC",     "id":20625,   "ctx":"initandlisten","msg":"Initializing full-time diagnostic data capture","attr":{"dataDirectory":"/data/db/diagnostic.data"}}
+2026-07-17T16:47:33.0091207Z  {"t":{"$date":"2026-07-17T16:46:35.435+00:00"},"s":"I",  "c":"STORAGE",  "id":20320,   "ctx":"initandlisten","msg":"createCollection","attr":{"namespace":"local.startup_log","uuidDisposition":"generated","uuid":{"uuid":{"$uuid":"6097b984-1e53-4806-aaa9-6a0da4a172d0"}},"options":{"capped":true,"size":10485760}}}
+2026-07-17T16:47:33.0093644Z  {"t":{"$date":"2026-07-17T16:46:35.439+00:00"},"s":"I",  "c":"INDEX",    "id":20345,   "ctx":"initandlisten","msg":"Index build: done building","attr":{"buildUUID":null,"collectionUUID":{"uuid":{"$uuid":"6097b984-1e53-4806-aaa9-6a0da4a172d0"}},"namespace":"local.startup_log","index":"_id_","ident":"index-ff79d450-de91-4ac8-bc1c-f3f193d73d6c","collectionIdent":"collection-2a1b454f-dcc5-4c21-8475-114cbb003dbd","commitTimestamp":null}}
+2026-07-17T16:47:33.0095622Z  {"t":{"$date":"2026-07-17T16:46:35.439+00:00"},"s":"I",  "c":"REPL",     "id":6015317, "ctx":"initandlisten","msg":"Setting new configuration state","attr":{"newState":"ConfigReplicationDisabled","oldState":"ConfigPreStart"}}
+2026-07-17T16:47:33.0096673Z  {"t":{"$date":"2026-07-17T16:46:35.440+00:00"},"s":"I",  "c":"STORAGE",  "id":22262,   "ctx":"initandlisten","msg":"Timestamp monitor starting"}
+2026-07-17T16:47:33.0097474Z  {"t":{"$date":"2026-07-17T16:46:35.440+00:00"},"s":"I",  "c":"STORAGE",  "id":7333401, "ctx":"initandlisten","msg":"Starting the DiskSpaceMonitor"}
+2026-07-17T16:47:33.0098372Z  {"t":{"$date":"2026-07-17T16:46:35.440+00:00"},"s":"I",  "c":"NETWORK",  "id":23015,   "ctx":"listener","msg":"Listening on","attr":{"address":"/tmp/mongodb-27017.sock"}}
+2026-07-17T16:47:33.0099238Z  {"t":{"$date":"2026-07-17T16:46:35.440+00:00"},"s":"I",  "c":"NETWORK",  "id":23015,   "ctx":"listener","msg":"Listening on","attr":{"address":"0.0.0.0:27017"}}
+2026-07-17T16:47:33.0100116Z  {"t":{"$date":"2026-07-17T16:46:35.440+00:00"},"s":"I",  "c":"NETWORK",  "id":23016,   "ctx":"listener","msg":"Waiting for connections","attr":{"port":27017,"ssl":"off"}}
+2026-07-17T16:47:33.0103420Z  {"t":{"$date":"2026-07-17T16:46:35.440+00:00"},"s":"I",  "c":"CONTROL",  "id":8423403, "ctx":"initandlisten","msg":"mongod startup complete","attr":{"Summary of time elapsed":{"Startup from clean shutdown?":true,"Statistics":{"setUpPeriodicRunnerMillis":0,"setUpOCSPMillis":0,"setUpTransportLayerMillis":1,"initSyncCrashRecoveryMillis":0,"createLockFileMillis":0,"getStorageEngineMetadataMillis":0,"createStorageEngineMillis":46,"writePIDMillis":0,"writeNewMetadataMillis":2,"initializeFCVForIndexMillis":0,"dropAbandonedIdentsMillis":0,"standaloneClusterParamsMillis":1,"userAndRolesGraphMillis":0,"waitForMajorityServiceMillis":0,"startUpReplCoordMillis":0,"recoverChangeStreamMillis":0,"logStartupOptionsMillis":0,"startUpTransportLayerMillis":0,"initAndListenTotalMillis":62}}}}
+2026-07-17T16:47:33.0106847Z  {"t":{"$date":"2026-07-17T16:46:35.441+00:00"},"s":"I",  "c":"CONTROL",  "id":20712,   "ctx":"LogicalSessionCacheReap","msg":"Sessions collection is not set up; waiting until next sessions reap interval","attr":{"error":"NamespaceNotFound: config.system.sessions does not exist"}}
+2026-07-17T16:47:33.0108556Z  {"t":{"$date":"2026-07-17T16:46:35.441+00:00"},"s":"I",  "c":"STORAGE",  "id":20320,   "ctx":"LogicalSessionCacheRefresh","msg":"createCollection","attr":{"namespace":"config.system.sessions","uuidDisposition":"generated","uuid":{"uuid":{"$uuid":"7b28edae-6cfa-4733-93a1-e15abd9efa5d"}},"options":{}}}
+2026-07-17T16:47:33.0110851Z  {"t":{"$date":"2026-07-17T16:46:35.449+00:00"},"s":"I",  "c":"INDEX",    "id":20345,   "ctx":"LogicalSessionCacheRefresh","msg":"Index build: done building","attr":{"buildUUID":null,"collectionUUID":{"uuid":{"$uuid":"7b28edae-6cfa-4733-93a1-e15abd9efa5d"}},"namespace":"config.system.sessions","index":"_id_","ident":"index-96c9c0eb-4822-40eb-953b-589b8001bde8","collectionIdent":"collection-aa9df87b-0217-435b-aa3a-21d0909e0a8b","commitTimestamp":null}}
+2026-07-17T16:47:33.0114229Z  {"t":{"$date":"2026-07-17T16:46:35.449+00:00"},"s":"I",  "c":"INDEX",    "id":20345,   "ctx":"LogicalSessionCacheRefresh","msg":"Index build: done building","attr":{"buildUUID":null,"collectionUUID":{"uuid":{"$uuid":"7b28edae-6cfa-4733-93a1-e15abd9efa5d"}},"namespace":"config.system.sessions","index":"lsidTTLIndex","ident":"index-36ebe2e3-5607-4cc4-a8a0-4bce21b0a0f8","collectionIdent":"collection-aa9df87b-0217-435b-aa3a-21d0909e0a8b","commitTimestamp":null}}
+2026-07-17T16:47:33.0121242Z Stop and remove container: c5ecdacb1e26460cae41fff5f1d9fdb2_mongolatest_89e028
+2026-07-17T16:47:33.0126580Z ##[command]/usr/bin/docker rm --force 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:47:33.1562018Z 770acaad4e7ef2e7ba117bf34e817be360c231f80024bc8bde22f3862d84a072
+2026-07-17T16:47:33.1583797Z Print service container logs: a367f6715eef41ac8b75fda69edd95c0_redisalpine_341a41
+2026-07-17T16:47:33.1585071Z ##[command]/usr/bin/docker logs --details 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:47:33.1708117Z  Starting Redis Server
+2026-07-17T16:47:33.1710634Z  1:C 17 Jul 2026 16:46:37.076 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2026-07-17T16:47:33.1713337Z  1:C 17 Jul 2026 16:46:37.076 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2026-07-17T16:47:33.1714035Z  1:C 17 Jul 2026 16:46:37.076 * Redis version=8.8.0, bits=64, commit=00000000, modified=1, pid=1, just started
+2026-07-17T16:47:33.1714520Z  1:C 17 Jul 2026 16:46:37.076 * Configuration loaded
+2026-07-17T16:47:33.1714895Z  1:M 17 Jul 2026 16:46:37.077 * monotonic clock: POSIX clock_gettime
+2026-07-17T16:47:33.1715351Z  1:M 17 Jul 2026 16:46:37.077 * Running mode=standalone, port=6379.
+2026-07-17T16:47:33.1715777Z  1:M 17 Jul 2026 16:46:37.078 * <bf> RedisBloom version 8.8.0 (Git=unknown)
+2026-07-17T16:47:33.1716208Z  1:M 17 Jul 2026 16:46:37.078 * <bf> Registering configuration options: [
+2026-07-17T16:47:33.1716623Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ bf-error-rate       :      0.01 }
+2026-07-17T16:47:33.1717031Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ bf-initial-size     :       100 }
+2026-07-17T16:47:33.1717694Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ bf-expansion-factor :         2 }
+2026-07-17T16:47:33.1718346Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ cf-bucket-size      :         2 }
+2026-07-17T16:47:33.1718947Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ cf-initial-size     :      1024 }
+2026-07-17T16:47:33.1719578Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ cf-max-iterations   :        20 }
+2026-07-17T16:47:33.1720304Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ cf-expansion-factor :         1 }
+2026-07-17T16:47:33.1721039Z  1:M 17 Jul 2026 16:46:37.078 * <bf> 	{ cf-max-expansions   :        32 }
+2026-07-17T16:47:33.1721668Z  1:M 17 Jul 2026 16:46:37.078 * <bf> ]
+2026-07-17T16:47:33.1722608Z  1:M 17 Jul 2026 16:46:37.078 * Module 'bf' loaded from /usr/local/lib/redis/modules//redisbloom.so
+2026-07-17T16:47:33.1723714Z  1:M 17 Jul 2026 16:46:37.082 * <search> search-workers default: 4 (min of MAX_WORKER_THREADS=16 and CPU cores)
+2026-07-17T16:47:33.1724730Z  1:M 17 Jul 2026 16:46:37.082 * <search> Redis version found by RedisSearch : 8.8.0 - oss
+2026-07-17T16:47:33.1725570Z  1:M 17 Jul 2026 16:46:37.082 * <search> RediSearch version 8.8.0 (Git=d2ae026)
+2026-07-17T16:47:33.1726456Z  1:M 17 Jul 2026 16:46:37.082 * <search> Low level api version 1 initialized successfully
+2026-07-17T16:47:33.1728712Z  1:M 17 Jul 2026 16:46:37.082 * <search> gc: ON, prefix min length: 2, min word length to stem: 4, prefix max expansions: 200, query timeout (ms): 500, timeout policy: return, oom policy: return, cursor read size: 1000, cursor max idle (ms): 300000, max doctable size: 1000000, max number of search results:  1000000, default scorer: BM25STD, 
+2026-07-17T16:47:33.1730764Z  1:M 17 Jul 2026 16:46:37.082 * <search> Initialized thread pools!
+2026-07-17T16:47:33.1731221Z  1:M 17 Jul 2026 16:46:37.082 * <search> Enabled workers threadpool of size 4
+2026-07-17T16:47:33.1731837Z  1:M 17 Jul 2026 16:46:37.083 * <search> Subscribe to config changes
+2026-07-17T16:47:33.1732602Z  1:M 17 Jul 2026 16:46:37.083 * <search> Subscribe to cluster slot migration events
+2026-07-17T16:47:33.1742596Z  1:M 17 Jul 2026 16:46:37.083 * <search> Enabled role change notification
+2026-07-17T16:47:33.1743527Z  1:M 17 Jul 2026 16:46:37.083 * <search> Cluster configuration: AUTO partitions, type: 0, coordinator timeout: 0ms
+2026-07-17T16:47:33.1744589Z  1:M 17 Jul 2026 16:46:37.084 * Module 'search' loaded from /usr/local/lib/redis/modules//redisearch.so
+2026-07-17T16:47:33.1745588Z  1:M 17 Jul 2026 16:46:37.084 * <timeseries> RedisTimeSeries version 80800, git_sha=42ca4f1078fca732b7f9256adbf25914d67e1cc9
+2026-07-17T16:47:33.1746323Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> Redis version found by RedisTimeSeries : 8.8.0 - oss
+2026-07-17T16:47:33.1755760Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> Registering configuration options: [
+2026-07-17T16:47:33.1756324Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-compaction-policy   :              }
+2026-07-17T16:47:33.1756851Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-num-threads         :            3 }
+2026-07-17T16:47:33.1757338Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-libmr-protocol      :     INTERNAL }
+2026-07-17T16:47:33.1757831Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-retention-policy    :            0 }
+2026-07-17T16:47:33.1758305Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-duplicate-policy    :        block }
+2026-07-17T16:47:33.1758913Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-chunk-size-bytes    :         4096 }
+2026-07-17T16:47:33.1759382Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-encoding            :   compressed }
+2026-07-17T16:47:33.1759852Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-ignore-max-time-diff:            0 }
+2026-07-17T16:47:33.1760317Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> 	{ ts-ignore-max-val-diff :     0.000000 }
+2026-07-17T16:47:33.1760708Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> ]
+2026-07-17T16:47:33.1761050Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> Detected redis oss
+2026-07-17T16:47:33.1761448Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> Subscribe to ASM events
+2026-07-17T16:47:33.1762197Z  1:M 17 Jul 2026 16:46:37.085 * <timeseries> Enabled diskless replication
+2026-07-17T16:47:33.1762806Z  1:M 17 Jul 2026 16:46:37.085 * Module 'timeseries' loaded from /usr/local/lib/redis/modules//redistimeseries.so
+2026-07-17T16:47:33.1763382Z  1:M 17 Jul 2026 16:46:37.086 * <ReJSON> Created new data type 'ReJSON-RL'
+2026-07-17T16:47:33.1763848Z  1:M 17 Jul 2026 16:46:37.086 * <ReJSON> version: 80800 git sha: unknown branch: unknown
+2026-07-17T16:47:33.1764314Z  1:M 17 Jul 2026 16:46:37.086 * <ReJSON> Exported RedisJSON_V1 API
+2026-07-17T16:47:33.1764696Z  1:M 17 Jul 2026 16:46:37.086 * <ReJSON> Exported RedisJSON_V2 API
+2026-07-17T16:47:33.1765067Z  1:M 17 Jul 2026 16:46:37.086 * <ReJSON> Exported RedisJSON_V3 API
+2026-07-17T16:47:33.1765433Z  1:M 17 Jul 2026 16:46:37.086 * <ReJSON> Exported RedisJSON_V4 API
+2026-07-17T16:47:33.1765809Z  1:M 17 Jul 2026 16:46:37.086 * <ReJSON> Exported RedisJSON_V5 API
+2026-07-17T16:47:33.1766179Z  1:M 17 Jul 2026 16:46:37.087 * <ReJSON> Exported RedisJSON_V6 API
+2026-07-17T16:47:33.1766547Z  1:M 17 Jul 2026 16:46:37.087 * <ReJSON> Exported RedisJSON_V7 API
+2026-07-17T16:47:33.1766969Z  1:M 17 Jul 2026 16:46:37.087 * <ReJSON> Enabled diskless replication
+2026-07-17T16:47:33.1767445Z  1:M 17 Jul 2026 16:46:37.087 * <ReJSON> Initialized shared string cache, thread safe: true.
+2026-07-17T16:47:33.1768001Z  1:M 17 Jul 2026 16:46:37.087 * Module 'ReJSON' loaded from /usr/local/lib/redis/modules//rejson.so
+2026-07-17T16:47:33.1768687Z  1:M 17 Jul 2026 16:46:37.087 * <search> Acquired RedisJSON_V7 API
+2026-07-17T16:47:33.1769039Z  1:M 17 Jul 2026 16:46:37.087 * Server initialized
+2026-07-17T16:47:33.1769519Z  1:M 17 Jul 2026 16:46:37.087 * Ready to accept connections tcp
+2026-07-17T16:47:33.1770886Z  1:M 17 Jul 2026 16:46:37.087 # WARNING: Redis does not require authentication and is not protected by network restrictions. Redis will accept connections from any IP address on any network interface.
+2026-07-17T16:47:33.1772735Z Stop and remove container: a367f6715eef41ac8b75fda69edd95c0_redisalpine_341a41
+2026-07-17T16:47:33.1773482Z ##[command]/usr/bin/docker rm --force 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:47:33.2919448Z 5853d3d7e9303e7a3426c4b829471962eedaf01793597d43f2731ce8c6a8b9de
+2026-07-17T16:47:33.2953071Z Remove container network: github_network_23f8bf121ff44f71ac0d2e5e5aa90da3
+2026-07-17T16:47:33.2958882Z ##[command]/usr/bin/docker network rm github_network_23f8bf121ff44f71ac0d2e5e5aa90da3
+2026-07-17T16:47:33.4007951Z github_network_23f8bf121ff44f71ac0d2e5e5aa90da3
+2026-07-17T16:47:33.4076661Z Cleaning up orphan processes
+2026-07-17T16:47:33.4397254Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -9,7 +9,7 @@ os.environ["PLAYWRIGHT_HEADLESS"] = "True"
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
-from crawler import crawl_page_with_retry
+from crawler import crawl_page_with_retry, identify_raw_seo_issues
 
 # Mark all test cases in this file as async
 pytestmark = pytest.mark.asyncio
@@ -122,3 +122,20 @@ async def test_exceed_max_retries():
         mock_sleep.assert_any_call(1)
         mock_sleep.assert_any_call(2)
         mock_sleep.assert_any_call(4)
+
+
+async def test_clean_page_emits_passed_seo_checks():
+    issues = identify_raw_seo_issues(
+        [
+            {
+                "url": "https://test-site.com/",
+                "statusCode": 200,
+                "metaTitle": "Test Site",
+                "metaDescription": "A concise description of the test site.",
+                "h1": ["Welcome"],
+            }
+        ],
+        "507f1f77bcf86cd799439011",
+    )
+
+    assert [issue["severity"] for issue in issues] == ["passed", "passed", "passed"]
