@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     # Comma-separated browser origins permitted to call the health endpoint.
     WORKER_ALLOWED_ORIGINS: str = ""
 
+    # ── AI Visibility checker credentials ────────────────────────────────────
+    # Each engine is independently toggleable — leave the key empty to skip it.
+    SERP_API_KEY: str = ""                # Used by google_aio check
+    OPENAI_API_KEY: str = ""              # Used by chatgpt check
+    GEMINI_API_KEY: str = ""              # Used by gemini check
+    PERPLEXITY_API_KEY: str = ""          # Used by perplexity check
+
 def load_settings() -> Settings:
     try:
         return Settings()

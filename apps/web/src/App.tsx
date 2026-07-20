@@ -34,6 +34,7 @@ import SettingsPage from './pages/SettingsPage';
 import OnboardingPage from './pages/OnboardingPage';
 import KeywordResearchPage from './pages/KeywordResearchPage';
 import BacklinksPage from './pages/BacklinksPage';
+import AiVisibilityPage from './pages/AiVisibilityPage';
 
 const API_BASE = 'http://localhost:3000/api';
 
@@ -147,6 +148,7 @@ export default function App() {
                 <Route path="/projects/:id/content-editor" element={<ContentEditor />} />
                 <Route path="/projects/:id/keywords" element={<KeywordTracker />} />
                 <Route path="/projects/:id/backlinks" element={<BacklinksPage />} />
+                <Route path="/projects/:id/ai-visibility" element={<AiVisibilityPage />} />
                 <Route path="/keyword-research" element={<KeywordResearchPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>

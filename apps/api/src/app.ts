@@ -16,6 +16,7 @@ import keywordsRouter from './routes/keywords';
 import notificationsRouter from './routes/notifications';
 import keywordResearchRouter from './routes/keywordResearch';
 import backlinksRouter from './routes/backlinks';
+import aiVisibilityRouter from './routes/aiVisibility';
 
 const app = express();
 
@@ -83,6 +84,7 @@ app.use('/api/content', contentRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api', keywordResearchRouter);
 app.use('/api/projects', backlinksRouter);
+app.use('/api/projects', aiVisibilityRouter);
 
 // Dynamically load queue listeners only when not running unit tests
 if (process.env.NODE_ENV !== 'test') {
