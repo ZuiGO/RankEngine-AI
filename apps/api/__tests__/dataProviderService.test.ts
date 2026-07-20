@@ -103,9 +103,9 @@ describe('Quota system', () => {
       dataProviderMonthlyLimit: 500,
     });
 
-    await expect(
-      checkAndIncrementQuota(testUser._id.toString(), 'keyword', false),
-    ).rejects.toThrow(DataProviderQuotaError);
+    await expect(checkAndIncrementQuota(testUser._id.toString(), 'keyword', false)).rejects.toThrow(
+      DataProviderQuotaError
+    );
   });
 
   it('auto-resets quota when reset date has passed', async () => {
@@ -133,7 +133,7 @@ describe('Caching', () => {
       keyword: 'seo audit',
       searchVolume: 5000,
       difficulty: 45,
-      cpc: 3.50,
+      cpc: 3.5,
       intent: 'commercial',
       relatedKeywords: ['seo audit tools', 'seo audit checklist'],
       cachedAt: new Date(),
@@ -201,7 +201,7 @@ describe('Caching', () => {
       keyword: 'stale keyword',
       searchVolume: 100,
       difficulty: 10,
-      cpc: 1.00,
+      cpc: 1.0,
       intent: 'informational',
       relatedKeywords: [],
       cachedAt: staleDate,
@@ -276,9 +276,9 @@ describe('Quota + cache integration', () => {
       dataProviderMonthlyLimit: 500,
     });
 
-    await expect(
-      getKeywordData(testUser._id.toString(), 'anything'),
-    ).rejects.toThrow(DataProviderQuotaError);
+    await expect(getKeywordData(testUser._id.toString(), 'anything')).rejects.toThrow(
+      DataProviderQuotaError
+    );
 
     // Because quota throws before any provider call, no mock is needed here.
   });
@@ -289,13 +289,13 @@ describe('Quota + cache integration', () => {
       dataProviderMonthlyLimit: 500,
     });
 
-    await expect(
-      getKeywordData(testUser._id.toString(), 'test'),
-    ).rejects.toThrow(DataProviderQuotaError);
+    await expect(getKeywordData(testUser._id.toString(), 'test')).rejects.toThrow(
+      DataProviderQuotaError
+    );
 
-    await expect(
-      getBacklinkOverview(testUser._id.toString(), 'example.com'),
-    ).rejects.toThrow(DataProviderQuotaError);
+    await expect(getBacklinkOverview(testUser._id.toString(), 'example.com')).rejects.toThrow(
+      DataProviderQuotaError
+    );
   });
 });
 

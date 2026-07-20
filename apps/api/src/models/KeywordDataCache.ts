@@ -61,5 +61,8 @@ const KeywordDataCacheSchema = new Schema<IKeywordDataCache>({
 KeywordDataCacheSchema.index({ cacheKey: 1, dateBucket: 1 }, { unique: true });
 KeywordDataCacheSchema.index({ cachedAt: 1 }, { expireAfterSeconds: 604800 });
 
-export const KeywordDataCache = model<IKeywordDataCache>('KeywordDataCache', KeywordDataCacheSchema);
+export const KeywordDataCache = model<IKeywordDataCache>(
+  'KeywordDataCache',
+  KeywordDataCacheSchema
+);
 export default KeywordDataCache;

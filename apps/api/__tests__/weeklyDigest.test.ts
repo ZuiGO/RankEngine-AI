@@ -1,10 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
-import {
-  buildDigestForUser,
-  sendWeeklyDigests,
-} from '../src/services/weeklyDigestService';
+import { buildDigestForUser, sendWeeklyDigests } from '../src/services/weeklyDigestService';
 import { User } from '../src/models/User';
 import { Project } from '../src/models/Project';
 import { CrawlJob } from '../src/models/CrawlJob';

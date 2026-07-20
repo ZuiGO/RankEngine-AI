@@ -33,6 +33,6 @@ KeywordResearchQuerySchema.index({ userId: 1, timestamp: -1 });
 
 export const KeywordResearchQuery = model<IKeywordResearchQuery>(
   'KeywordResearchQuery',
-  KeywordResearchQuerySchema,
+  KeywordResearchQuerySchema
 );
 export default KeywordResearchQuery;

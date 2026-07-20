@@ -12,11 +12,11 @@ export const resetAllQuotas = async (): Promise<void> => {
         dataProviderCallsThisMonth: 0,
         dataProviderQuotaResetAt: nextReset,
       },
-    },
+    }
   );
 
   console.log(
-    `[DataProviderQuotaReset]: Reset quotas for ${result.modifiedCount} users. Next reset: ${nextReset.toISOString().split('T')[0]}`,
+    `[DataProviderQuotaReset]: Reset quotas for ${result.modifiedCount} users. Next reset: ${nextReset.toISOString().split('T')[0]}`
   );
 };
 
@@ -30,5 +30,7 @@ export const initDataProviderQuotaReset = (): void => {
     }
   });
 
-  console.log('[DataProviderQuotaReset]: Monthly quota reset cron scheduled for 1st of each month at midnight');
+  console.log(
+    '[DataProviderQuotaReset]: Monthly quota reset cron scheduled for 1st of each month at midnight'
+  );
 };

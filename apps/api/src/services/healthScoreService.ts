@@ -16,10 +16,7 @@ import mongoose from 'mongoose';
  * understand why the number moves. A single critical issue (missing H1,
  * broken redirect) drops the score to 85, while 5 warnings drop it to 75.
  */
-export const computeHealthScore = (
-  criticalCount: number,
-  warningCount: number
-): number => {
+export const computeHealthScore = (criticalCount: number, warningCount: number): number => {
   const raw = 100 - criticalCount * 15 - warningCount * 5;
   return Math.max(0, Math.min(100, raw));
 };

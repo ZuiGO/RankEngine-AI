@@ -1,10 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import requireAuth from '../middleware/requireAuth';
-import {
-  getKeywordIdeas,
-  DataProviderQuotaError,
-} from '../services/dataProviderService';
+import { getKeywordIdeas, DataProviderQuotaError } from '../services/dataProviderService';
 import KeywordResearchQuery from '../models/KeywordResearchQuery';
 
 const router = Router();
@@ -54,8 +51,7 @@ router.get('/keyword-research/history', requireAuth, async (req: Request, res: R
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const queries = await KeywordResearchQuery
-      .find({ userId: req.user.userId })
+    const queries = await KeywordResearchQuery.find({ userId: req.user.userId })
       .sort({ timestamp: -1 })
       .limit(20)
       .select('seedKeyword locationCode timestamp')

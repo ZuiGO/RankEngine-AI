@@ -247,9 +247,7 @@ describe('Authentication Flow', () => {
     });
 
     it('should reject unauthenticated requests', async () => {
-      await request
-        .patch('/api/auth/onboarding-complete')
-        .expect(401);
+      await request.patch('/api/auth/onboarding-complete').expect(401);
     });
   });
 });

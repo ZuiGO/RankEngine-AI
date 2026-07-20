@@ -14,9 +14,11 @@ describe('parseCrawlCompletionResult', () => {
   });
 
   it('does not treat the old crawlResultId key as a result reference', () => {
-    expect(parseCrawlCompletionResult({ pageCount: 0, crawlResultId: 'legacy-result-id' })).toEqual({
-      pageCount: 0,
-    });
+    expect(parseCrawlCompletionResult({ pageCount: 0, crawlResultId: 'legacy-result-id' })).toEqual(
+      {
+        pageCount: 0,
+      }
+    );
   });
 
   it('leaves the result reference unset for malformed payloads', () => {

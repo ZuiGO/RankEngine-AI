@@ -74,7 +74,9 @@ export class MockDataProvider implements IDataProvider {
       searchVolume: Math.floor(Math.random() * 5000) + 100,
       difficulty: Math.floor(Math.random() * 100),
       cpc: parseFloat((Math.random() * 10).toFixed(2)),
-      intent: ['informational', 'commercial', 'transactional', 'navigational'][Math.floor(Math.random() * 4)],
+      intent: ['informational', 'commercial', 'transactional', 'navigational'][
+        Math.floor(Math.random() * 4)
+      ],
       relatedKeywords: [
         `${kw} guide`,
         `${kw} tools`,
@@ -88,19 +90,45 @@ export class MockDataProvider implements IDataProvider {
   async fetchKeywordIdeas(keyword: string, _locationCode?: string): Promise<KeywordData[]> {
     const ideas: KeywordData[] = [];
     const modifiers = [
-      'guide', 'tools', 'software', 'examples', 'best',
-      'top', 'review', 'pricing', 'vs', 'benefits',
-      'strategies', 'tips', 'trends', 'services', 'platforms',
-      'case study', 'checklist', 'analytics', 'automation', 'optimization',
-      'comparison', 'tutorial', 'course', 'certification', 'community',
-      'agency', 'consultant', 'jobs', 'interview questions', 'for beginners',
+      'guide',
+      'tools',
+      'software',
+      'examples',
+      'best',
+      'top',
+      'review',
+      'pricing',
+      'vs',
+      'benefits',
+      'strategies',
+      'tips',
+      'trends',
+      'services',
+      'platforms',
+      'case study',
+      'checklist',
+      'analytics',
+      'automation',
+      'optimization',
+      'comparison',
+      'tutorial',
+      'course',
+      'certification',
+      'community',
+      'agency',
+      'consultant',
+      'jobs',
+      'interview questions',
+      'for beginners',
     ];
     for (const mod of modifiers) {
       ideas.push({
         searchVolume: Math.floor(Math.random() * 5000) + 50,
         difficulty: Math.floor(Math.random() * 100),
         cpc: parseFloat((Math.random() * 10).toFixed(2)),
-        intent: ['informational', 'commercial', 'transactional', 'navigational'][Math.floor(Math.random() * 4)],
+        intent: ['informational', 'commercial', 'transactional', 'navigational'][
+          Math.floor(Math.random() * 4)
+        ],
         relatedKeywords: [],
       });
     }
@@ -162,7 +190,7 @@ export class DataForSEOProvider implements IDataProvider {
           'Content-Type': 'application/json',
         },
         timeout: 30000,
-      },
+      }
     );
     const task = response.data.tasks?.[0];
     if (!task || task.error) {
@@ -179,18 +207,25 @@ export class DataForSEOProvider implements IDataProvider {
       language_code: 'en',
     }));
     const response = await axios.post<{
-      tasks: { result: { items: { keyword: string; search_volume: number; competition: number; cpc: number; keyword_intent: string; keyword_properties: { intent?: string } }[] }[] }[];
-    }>(
-      `${DATAFORSEO_BASE}/v3/keywords_data/google_ads/search_volume/live`,
-      tasks,
-      {
-        headers: {
-          Authorization: this.authHeader,
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000,
+      tasks: {
+        result: {
+          items: {
+            keyword: string;
+            search_volume: number;
+            competition: number;
+            cpc: number;
+            keyword_intent: string;
+            keyword_properties: { intent?: string };
+          }[];
+        }[];
+      }[];
+    }>(`${DATAFORSEO_BASE}/v3/keywords_data/google_ads/search_volume/live`, tasks, {
+      headers: {
+        Authorization: this.authHeader,
+        'Content-Type': 'application/json',
       },
-    );
+      timeout: 30000,
+    });
     const result = response.data.tasks?.[0]?.result?.[0];
     if (!result) {
       throw new Error('DataForSEO keyword data returned no result');
@@ -206,30 +241,36 @@ export class DataForSEOProvider implements IDataProvider {
 
   async fetchKeywordIdeas(keyword: string, locationCode?: string): Promise<KeywordData[]> {
     const response = await axios.post<{
-      tasks: { result: { items: {
-        keyword: string;
-        search_volume: number;
-        competition: number;
-        cpc: number;
-        keyword_intent: string;
-        keyword_properties: { intent?: string };
-      }[] }[] }[];
+      tasks: {
+        result: {
+          items: {
+            keyword: string;
+            search_volume: number;
+            competition: number;
+            cpc: number;
+            keyword_intent: string;
+            keyword_properties: { intent?: string };
+          }[];
+        }[];
+      }[];
     }>(
       `${DATAFORSEO_BASE}/v3/dataforseo_labs/google/keyword_ideas/live`,
-      [{
-        keyword,
-        location_code: locationCode ? Number(locationCode) : 2840,
-        language_code: 'en',
-        include_serp_info: false,
-        limit: 30,
-      }],
+      [
+        {
+          keyword,
+          location_code: locationCode ? Number(locationCode) : 2840,
+          language_code: 'en',
+          include_serp_info: false,
+          limit: 30,
+        },
+      ],
       {
         headers: {
           Authorization: this.authHeader,
           'Content-Type': 'application/json',
         },
         timeout: 30000,
-      },
+      }
     );
     const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
     return items.map((item) => ({
@@ -246,9 +287,7 @@ export class DataForSEOProvider implements IDataProvider {
       total_backlinks: number;
       referring_domains: number;
       domain_rating: number;
-    }>('/v3/backlinks/summary/live', [
-      { target: domain, include_subdomains: false },
-    ]);
+    }>('/v3/backlinks/summary/live', [{ target: domain, include_subdomains: false }]);
     return {
       totalBacklinks: result.total_backlinks ?? 0,
       referringDomains: result.referring_domains ?? 0,
@@ -258,18 +297,24 @@ export class DataForSEOProvider implements IDataProvider {
 
   async fetchBacklinkList(domain: string, limit: number): Promise<BacklinkItem[]> {
     const response = await axios.post<{
-      tasks: { result: { items: { source_url: string; target_url: string; anchor_text: string; first_seen: string; spam_score: number }[] }[] }[];
-    }>(
-      `${DATAFORSEO_BASE}/v3/backlinks/backlinks/live`,
-      [{ target: domain, limit, offset: 0 }],
-      {
-        headers: {
-          Authorization: this.authHeader,
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000,
+      tasks: {
+        result: {
+          items: {
+            source_url: string;
+            target_url: string;
+            anchor_text: string;
+            first_seen: string;
+            spam_score: number;
+          }[];
+        }[];
+      }[];
+    }>(`${DATAFORSEO_BASE}/v3/backlinks/backlinks/live`, [{ target: domain, limit, offset: 0 }], {
+      headers: {
+        Authorization: this.authHeader,
+        'Content-Type': 'application/json',
       },
-    );
+      timeout: 30000,
+    });
     const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
     return items.map((item) => ({
       sourceUrl: item.source_url ?? '',
@@ -299,11 +344,7 @@ export class DataForSEOProvider implements IDataProvider {
 // ─── Factory ────────────────────────────────────────────────────────────────
 
 export const getDataProvider = (): IDataProvider => {
-  if (
-    !config.DATAFORSEO_LOGIN ||
-    !config.DATAFORSEO_PASSWORD ||
-    config.DATAFORSEO_LOGIN === ''
-  ) {
+  if (!config.DATAFORSEO_LOGIN || !config.DATAFORSEO_PASSWORD || config.DATAFORSEO_LOGIN === '') {
     return new MockDataProvider();
   }
   return new DataForSEOProvider();
@@ -322,7 +363,7 @@ const DATAFORSEO_TASK_PRICES: Record<string, number> = {
 export const checkAndIncrementQuota = async (
   userId: string,
   operation: string,
-  isCacheHit: boolean,
+  isCacheHit: boolean
 ): Promise<void> => {
   if (isCacheHit) return;
 
@@ -336,7 +377,7 @@ export const checkAndIncrementQuota = async (
   if (user.dataProviderQuotaResetAt <= now) {
     user.dataProviderCallsThisMonth = 0;
     user.dataProviderQuotaResetAt = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
     );
   }
 
@@ -344,7 +385,7 @@ export const checkAndIncrementQuota = async (
     const msUntilReset = user.dataProviderQuotaResetAt.getTime() - now.getTime();
     throw new DataProviderQuotaError(
       `Monthly data provider quota exceeded. Limit: ${user.dataProviderMonthlyLimit} calls. Resets ${user.dataProviderQuotaResetAt.toISOString().split('T')[0]}.`,
-      msUntilReset > 0 ? msUntilReset : 86400000,
+      msUntilReset > 0 ? msUntilReset : 86400000
     );
   }
 
@@ -367,7 +408,7 @@ const isCacheFresh = (cachedAt: Date, ttlMs: number): boolean => {
 export const getKeywordData = async (
   userId: string,
   keyword: string,
-  locationCode?: string,
+  locationCode?: string
 ): Promise<KeywordData> => {
   const now = new Date();
   const dateBucket = getDateBucket(now);
@@ -409,7 +450,7 @@ export const getKeywordData = async (
       relatedKeywords: data.relatedKeywords,
       cachedAt: now,
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
 
   return data;
@@ -418,7 +459,7 @@ export const getKeywordData = async (
 export const getKeywordIdeas = async (
   userId: string,
   keyword: string,
-  locationCode?: string,
+  locationCode?: string
 ): Promise<KeywordData[]> => {
   const now = new Date();
   const dateBucket = getDateBucket(now);
@@ -427,9 +468,7 @@ export const getKeywordIdeas = async (
 
   const cached = await KeywordDataCache.findOne({ cacheKey, dateBucket });
   if (cached && isCacheFresh(cached.cachedAt, CACHE_TTL.ideas)) {
-    return cached.relatedKeywords.length > 0
-      ? JSON.parse(cached.relatedKeywords[0])
-      : [];
+    return cached.relatedKeywords.length > 0 ? JSON.parse(cached.relatedKeywords[0]) : [];
   }
 
   await checkAndIncrementQuota(userId, 'ideas', false);
@@ -451,7 +490,7 @@ export const getKeywordIdeas = async (
       relatedKeywords: [JSON.stringify(data)],
       cachedAt: now,
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
 
   return data;
@@ -459,7 +498,7 @@ export const getKeywordIdeas = async (
 
 export const getBacklinkOverview = async (
   userId: string,
-  domain: string,
+  domain: string
 ): Promise<BacklinkOverview> => {
   const now = new Date();
   const dateBucket = getDateBucket(now);
@@ -490,7 +529,7 @@ export const getBacklinkOverview = async (
       domainRating: data.domainRating,
       cachedAt: now,
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
 
   return data;
@@ -499,7 +538,7 @@ export const getBacklinkOverview = async (
 export const getBacklinkList = async (
   userId: string,
   domain: string,
-  limit: number = 100,
+  limit: number = 100
 ): Promise<BacklinkItem[]> => {
   const now = new Date();
   const dateBucket = getDateBucket(now);
@@ -514,7 +553,7 @@ export const getBacklinkList = async (
 
 export const getDomainOverview = async (
   userId: string,
-  domain: string,
+  domain: string
 ): Promise<DomainOverview> => {
   const now = new Date();
   const dateBucket = getDateBucket(now);
@@ -545,7 +584,7 @@ export const getDomainOverview = async (
       topKeywords: data.topKeywords,
       cachedAt: now,
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
 
   return data;

@@ -20,7 +20,8 @@ jest.mock('bullmq', () => {
 });
 
 // Setup mock env variables
-process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_migrations_api';
+process.env.MONGODB_URI =
+  process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_migrations_api';
 process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
 process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';

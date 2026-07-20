@@ -336,8 +336,18 @@ describe('Projects Management REST API', () => {
       const project = await Project.findById(projectId);
       project!.suggestedKeywords = [
         { keyword: 'seo audit tool', dismissed: false, source: 'audit', createdAt: new Date() },
-        { keyword: 'site migration checklist', dismissed: false, source: 'audit', createdAt: new Date() },
-        { keyword: 'keyword research guide', dismissed: true, source: 'audit', createdAt: new Date() },
+        {
+          keyword: 'site migration checklist',
+          dismissed: false,
+          source: 'audit',
+          createdAt: new Date(),
+        },
+        {
+          keyword: 'keyword research guide',
+          dismissed: true,
+          source: 'audit',
+          createdAt: new Date(),
+        },
       ];
       await project!.save();
 

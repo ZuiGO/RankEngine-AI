@@ -46,5 +46,8 @@ const BacklinkDataCacheSchema = new Schema<IBacklinkDataCache>({
 BacklinkDataCacheSchema.index({ cacheKey: 1, dateBucket: 1 }, { unique: true });
 BacklinkDataCacheSchema.index({ cachedAt: 1 }, { expireAfterSeconds: 259200 });
 
-export const BacklinkDataCache = model<IBacklinkDataCache>('BacklinkDataCache', BacklinkDataCacheSchema);
+export const BacklinkDataCache = model<IBacklinkDataCache>(
+  'BacklinkDataCache',
+  BacklinkDataCacheSchema
+);
 export default BacklinkDataCache;

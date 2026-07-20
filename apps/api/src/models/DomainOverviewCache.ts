@@ -46,5 +46,8 @@ const DomainOverviewCacheSchema = new Schema<IDomainOverviewCache>({
 DomainOverviewCacheSchema.index({ cacheKey: 1, dateBucket: 1 }, { unique: true });
 DomainOverviewCacheSchema.index({ cachedAt: 1 }, { expireAfterSeconds: 259200 });
 
-export const DomainOverviewCache = model<IDomainOverviewCache>('DomainOverviewCache', DomainOverviewCacheSchema);
+export const DomainOverviewCache = model<IDomainOverviewCache>(
+  'DomainOverviewCache',
+  DomainOverviewCacheSchema
+);
 export default DomainOverviewCache;
