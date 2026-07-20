@@ -1,3 +1,4 @@
+console.log('[RankEngine] App.tsx loaded');
 import { useState, useEffect } from 'react';
 import {
   BrowserRouter,

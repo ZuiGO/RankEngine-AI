@@ -34,7 +34,7 @@ services:
       - JWT_SECRET=development_jwt_secret_must_be_long_enough
       - JWT_EXPIRY=7d
       - ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
-      - CORS_ORIGIN=http://localhost:8080
+      - CORS_ORIGIN=http://localhost:8080,http://localhost:5173
       - LLM_API_KEY=${LLM_API_KEY:-mock-llm-key}
       - SERP_API_KEY=mock-serp-key
       - SERP_API_PROVIDER=mock

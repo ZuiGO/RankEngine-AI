@@ -195,8 +195,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     api
-      .get<{ projects: Project[] }>('/projects')
-      .then(({ data }) => setProjects(data.projects ?? []))
+      .get<Project[]>('/projects')
+      .then(({ data }) => setProjects(Array.isArray(data) ? data : []))
       .catch(() => setError('Failed to load projects.'))
       .finally(() => setLoading(false));
   }, []);

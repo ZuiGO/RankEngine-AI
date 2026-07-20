@@ -33,9 +33,10 @@ app.use(helmet());
  *
  * DO NOT use cors() with no arguments in production — that allows any origin.
  */
+const allowedOrigins = config.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean);
 app.use(
   cors({
-    origin: config.CORS_ORIGIN,
+    origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
