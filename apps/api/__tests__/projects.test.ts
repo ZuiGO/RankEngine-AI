@@ -29,6 +29,7 @@ process.env.JWT_EXPIRY = '1h';
 const app = require('../src/app').default;
 const { User } = require('../src/models/User');
 const { Project } = require('../src/models/Project');
+const { crawlQueue } = require('../src/queues/crawlQueue');
 
 const request = supertest(app);
 
@@ -243,6 +244,51 @@ describe('Projects Management REST API', () => {
       const dbProject = await Project.findById(userAProjectId);
       expect(dbProject).toBeTruthy();
       expect(dbProject!.deletedAt).not.toBeNull();
+    });
+  });
+
+  describe('PATCH /api/projects/:id - Auto migration check on stagingDomain change', () => {
+    let projectNoStagingId: string;
+
+    it('should create a project without stagingDomain', async () => {
+      const res = await request
+        .post('/api/projects')
+        .set('Authorization', `Bearer ${userAToken}`)
+        .send({ name: 'No Staging', domain: 'https://no-staging.com' })
+        .expect(201);
+
+      projectNoStagingId = res.body._id;
+      expect(res.body.stagingDomain).toBeUndefined();
+    });
+
+    it('should enqueue a migration-check when stagingDomain is set for the first time', async () => {
+      const before = crawlQueue.add.mock.calls.length;
+
+      const res = await request
+        .patch(`/api/projects/${projectNoStagingId}`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .send({ stagingDomain: 'https://staging.no-staging.com' })
+        .expect(200);
+
+      expect(res.body._migrationCheckJobId).toBeDefined();
+      expect(res.body.stagingDomain).toBe('https://staging.no-staging.com');
+
+      expect(crawlQueue.add.mock.calls.length).toBe(before + 1);
+
+      const lastCall = crawlQueue.add.mock.calls[crawlQueue.add.mock.calls.length - 1];
+      expect(lastCall[1].type).toBe('migration-check');
+    });
+
+    it('should NOT enqueue another migration-check when same stagingDomain value is re-saved', async () => {
+      const before = crawlQueue.add.mock.calls.length;
+
+      await request
+        .patch(`/api/projects/${projectNoStagingId}`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .send({ stagingDomain: 'https://staging.no-staging.com' })
+        .expect(200);
+
+      expect(crawlQueue.add.mock.calls.length).toBe(before);
     });
   });
 });

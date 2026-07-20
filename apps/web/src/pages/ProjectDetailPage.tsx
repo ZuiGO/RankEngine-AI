@@ -278,6 +278,28 @@ export default function ProjectDetailPage() {
     }
   };
 
+  // Staging domain editing state
+  const [stagingEditing, setStagingEditing] = useState(false);
+  const [stagingInput, setStagingInput] = useState('');
+  const [migrationAutoJobId, setMigrationAutoJobId] = useState<string | null>(null);
+
+  const handleSaveStagingDomain = async () => {
+    if (!id || !project) return;
+    try {
+      const { data } = await api.patch<any>(`/projects/${id}`, { stagingDomain: stagingInput || undefined });
+      setProject(data);
+      setStagingEditing(false);
+      if (data._migrationCheckJobId) {
+        setMigrationAutoJobId(data._migrationCheckJobId);
+        const { data: jobData } = await api.get<{ crawlJob: CrawlJob }>(`/crawl-jobs/${data._migrationCheckJobId}`);
+        setMigrationJob(jobData.crawlJob);
+        startMigrationPolling(data._migrationCheckJobId);
+      }
+    } catch {
+      // silently ignore
+    }
+  };
+
   // Audit state
   const [activeJob, setActiveJob] = useState<CrawlJob | null>(null);
   const [auditLoading, setAuditLoading] = useState(false);
@@ -447,15 +469,79 @@ export default function ProjectDetailPage() {
         <span className="text-slate-300">{project.name}</span>
       </div>
 
+      {/* ── Auto Migration Banner ── */}
+      {migrationAutoJobId && (
+        <div className="flex items-center gap-3 bg-emerald-950/40 border border-emerald-800/30 text-emerald-300 px-4 py-3 rounded-xl">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <div className="flex-1 text-sm">
+            Migration check started automatically for{' '}
+            <span className="font-semibold">{project.domain}</span> →{' '}
+            <span className="font-semibold">{project.stagingDomain}</span>
+            {migrationJob?.status === 'running' || migrationJob?.status === 'queued' ? (
+              <span className="ml-2 text-emerald-400 animate-pulse">Scanning…</span>
+            ) : migrationJob?.status === 'completed' ? (
+              <span className="ml-2 text-emerald-400">Complete</span>
+            ) : null}
+          </div>
+          <button
+            onClick={() => setMigrationAutoJobId(null)}
+            className="text-emerald-500/60 hover:text-emerald-300 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* ── Project Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">{project.name}</h1>
           <p className="text-slate-400 text-sm mt-1">{project.domain}</p>
-          {project.stagingDomain && (
-            <span className="inline-block mt-2 text-[11px] font-medium bg-amber-900/40 border border-amber-700/30 text-amber-400 px-2.5 py-1 rounded-full">
-              Staging: {project.stagingDomain}
-            </span>
+          {stagingEditing ? (
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="text"
+                value={stagingInput}
+                onChange={(e) => setStagingInput(e.target.value)}
+                className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-300 outline-none focus:border-indigo-500 transition-colors w-64"
+                placeholder="https://staging.example.com"
+              />
+              <button
+                onClick={handleSaveStagingDomain}
+                className="text-[11px] bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setStagingEditing(false)}
+                className="text-[11px] text-slate-500 hover:text-slate-300 px-2 py-1 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : project.stagingDomain ? (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-[11px] font-medium bg-amber-900/40 border border-amber-700/30 text-amber-400 px-2.5 py-1 rounded-full">
+                Staging: {project.stagingDomain}
+              </span>
+              <button
+                onClick={() => { setStagingInput(project.stagingDomain!); setStagingEditing(true); }}
+                className="text-[10px] text-slate-500 hover:text-slate-300 underline transition-colors"
+              >
+                Edit
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setStagingInput(''); setStagingEditing(true); }}
+              className="mt-2 text-[11px] text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+            >
+              + Add staging domain
+            </button>
           )}
           <div className="mt-3 flex items-center gap-2">
             <span className="text-[11px] text-slate-500 font-medium">Auto-audit:</span>

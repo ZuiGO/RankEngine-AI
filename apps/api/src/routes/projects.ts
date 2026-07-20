@@ -138,6 +138,9 @@ router.patch('/:id', async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
+    // Capture old stagingDomain before applying update
+    const oldStagingDomain = project.stagingDomain;
+
     // Apply updates
     const updates = validation.data;
     if (updates.name !== undefined) project.name = updates.name;
@@ -146,7 +149,26 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
     await project.save();
 
-    return res.json(project);
+    // Auto-trigger migration check if stagingDomain was set or changed to a non-empty value
+    let migrationCheckJobId: string | undefined;
+    if (
+      updates.stagingDomain !== undefined &&
+      updates.stagingDomain.trim() !== '' &&
+      updates.stagingDomain !== oldStagingDomain
+    ) {
+      try {
+        const result = await enqueueMigrationCheck(project);
+        migrationCheckJobId = result.crawlJobId;
+      } catch (err) {
+        console.error('Auto migration check enqueue error:', err);
+      }
+    }
+
+    const response = project.toObject() as unknown as Record<string, unknown>;
+    if (migrationCheckJobId) {
+      response._migrationCheckJobId = migrationCheckJobId;
+    }
+    return res.json(response);
   } catch (error) {
     console.error('Update project error:', error);
     return res.status(500).json({ error: 'Internal server error' });
