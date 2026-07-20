@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { SearchCheck } from 'lucide-react';
 import api from '../lib/api';
 
 // ─────────────────────────────────────── TYPES ──────────────────────────────
@@ -826,15 +827,12 @@ export default function ProjectDetailPage() {
         {/* Empty state — no audit yet */}
         {!activeJob && !checklistData && !checklistLoading && !auditLoading && (
           <div className="border border-slate-800 rounded-2xl py-16 flex flex-col items-center text-center px-6">
-            <div className="h-14 w-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+            <div className="h-14 w-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 mb-4">
+              <SearchCheck className="h-7 w-7" />
             </div>
             <h3 className="text-sm font-semibold text-white mb-1">No audits run yet</h3>
-            <p className="text-xs text-slate-500 max-w-xs">
-              Click <span className="text-indigo-400 font-medium">Run Audit</span> to crawl{' '}
-              <span className="font-mono">{project.domain}</span> and get a full SEO checklist.
+            <p className="text-xs text-slate-400 max-w-sm">
+              An audit checks your pages for technical SEO issues that affect AI&nbsp;Overview visibility — from missing meta tags and slow load times to redirect chains and broken schema markup.
             </p>
           </div>
         )}

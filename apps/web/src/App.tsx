@@ -8,6 +8,7 @@ import {
   Link,
   Navigate,
 } from 'react-router-dom';
+import { Pencil } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -681,88 +682,101 @@ export function ContentEditor() {
               {gradingLoading && <span className="text-2xs text-indigo-400 font-normal">Analyzing...</span>}
             </h3>
 
-            {/* Radial score gauge */}
-            <div className="relative w-40 h-40 mx-auto flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  className="stroke-slate-800"
-                  strokeWidth="8"
-                  fill="transparent"
-                  r="38"
-                  cx="50"
-                  cy="50"
-                />
-                <circle
-                  className={`transition-all duration-500 ease-out ${getScoreCircleColor(score)}`}
-                  strokeWidth="8"
-                  strokeDasharray={`${2 * Math.PI * 38}`}
-                  strokeDashoffset={`${2 * Math.PI * 38 * (1 - score / 100)}`}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  r="38"
-                  cx="50"
-                  cy="50"
-                />
-              </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-4xl font-extrabold text-white tracking-tight">{score}</span>
-                <span className="text-2xs text-slate-400 uppercase font-semibold">Grade</span>
+            {text.trim().length < 20 && !gradingLoading ? (
+              <div className="py-8">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-slate-800 text-indigo-400 mb-4">
+                  <Pencil className="h-6 w-6" />
+                </div>
+                <p className="text-sm text-slate-400 max-w-xs mx-auto">
+                  Start writing in the editor to see your SEO score. We'll analyze entity coverage, heading structure, and readability against your target keyword in real time.
+                </p>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Radial score gauge */}
+                <div className="relative w-40 h-40 mx-auto flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      className="stroke-slate-800"
+                      strokeWidth="8"
+                      fill="transparent"
+                      r="38"
+                      cx="50"
+                      cy="50"
+                    />
+                    <circle
+                      className={`transition-all duration-500 ease-out ${getScoreCircleColor(score)}`}
+                      strokeWidth="8"
+                      strokeDasharray={`${2 * Math.PI * 38}`}
+                      strokeDashoffset={`${2 * Math.PI * 38 * (1 - score / 100)}`}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      r="38"
+                      cx="50"
+                      cy="50"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-4xl font-extrabold text-white tracking-tight">{score}</span>
+                    <span className="text-2xs text-slate-400 uppercase font-semibold">Grade</span>
+                  </div>
+                </div>
 
-            {/* Score Breakdown Bars */}
-            <div className="space-y-4 mt-8 text-left">
-              <div>
-                <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
-                  <span>Entity Coverage</span>
-                  <span className={`px-2 py-0.5 rounded text-2xs font-mono font-bold ${getIndicatorColor(breakdown.entityCoverage)}`}>
-                    {breakdown.entityCoverage}%
-                  </span>
-                </div>
-                <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-850">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      breakdown.entityCoverage >= 80 ? 'bg-emerald-400' : breakdown.entityCoverage >= 50 ? 'bg-amber-400' : 'bg-rose-500'
-                    }`}
-                    style={{ width: `${breakdown.entityCoverage}%` }}
-                  />
-                </div>
-              </div>
+                {/* Score Breakdown Bars */}
+                <div className="space-y-4 mt-8 text-left">
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                      <span>Entity Coverage</span>
+                      <span className={`px-2 py-0.5 rounded text-2xs font-mono font-bold ${getIndicatorColor(breakdown.entityCoverage)}`}>
+                        {breakdown.entityCoverage}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-850">
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          breakdown.entityCoverage >= 80 ? 'bg-emerald-400' : breakdown.entityCoverage >= 50 ? 'bg-amber-400' : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${breakdown.entityCoverage}%` }}
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
-                  <span>Structure Score</span>
-                  <span className={`px-2 py-0.5 rounded text-2xs font-mono font-bold ${getIndicatorColor(breakdown.structureScore)}`}>
-                    {breakdown.structureScore}%
-                  </span>
-                </div>
-                <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-850">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      breakdown.structureScore >= 80 ? 'bg-emerald-400' : breakdown.structureScore >= 50 ? 'bg-amber-400' : 'bg-rose-500'
-                    }`}
-                    style={{ width: `${breakdown.structureScore}%` }}
-                  />
-                </div>
-              </div>
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                      <span>Structure Score</span>
+                      <span className={`px-2 py-0.5 rounded text-2xs font-mono font-bold ${getIndicatorColor(breakdown.structureScore)}`}>
+                        {breakdown.structureScore}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-850">
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          breakdown.structureScore >= 80 ? 'bg-emerald-400' : breakdown.structureScore >= 50 ? 'bg-amber-400' : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${breakdown.structureScore}%` }}
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
-                  <span>Readability Ease</span>
-                  <span className={`px-2 py-0.5 rounded text-2xs font-mono font-bold ${getIndicatorColor(breakdown.readability)}`}>
-                    {breakdown.readability}%
-                  </span>
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                      <span>Readability Ease</span>
+                      <span className={`px-2 py-0.5 rounded text-2xs font-mono font-bold ${getIndicatorColor(breakdown.readability)}`}>
+                        {breakdown.readability}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-850">
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          breakdown.readability >= 80 ? 'bg-emerald-400' : breakdown.readability >= 50 ? 'bg-amber-400' : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${breakdown.readability}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-850">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      breakdown.readability >= 80 ? 'bg-emerald-400' : breakdown.readability >= 50 ? 'bg-amber-400' : 'bg-rose-500'
-                    }`}
-                    style={{ width: `${breakdown.readability}%` }}
-                  />
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           {/* Checklist helpers */}
@@ -1125,7 +1139,12 @@ export function KeywordTracker() {
             {loading ? (
               <p className="text-slate-500 text-xs">Loading tracked keywords...</p>
             ) : keywords.length === 0 ? (
-              <p className="text-slate-500 text-xs">No keywords tracked yet. Add keywords above to monitor SERPs daily.</p>
+              <div className="text-center py-10">
+                <p className="text-slate-400 text-sm mb-2">No keywords tracked yet</p>
+                <p className="text-slate-500 text-xs max-w-sm mx-auto">
+                  Add keywords above to monitor your daily ranking positions. You can also check the <span className="text-indigo-400">Suggested for you</span> section — these are terms pulled from your latest audit that your pages already mention.
+                </p>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-300">

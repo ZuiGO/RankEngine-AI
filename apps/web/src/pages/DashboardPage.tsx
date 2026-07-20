@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FolderSearch } from 'lucide-react';
 import api from '../lib/api';
 
 interface Project {
@@ -214,7 +215,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-white">Projects</h1>
           <p className="text-slate-500 text-sm mt-0.5">
             {projects.length === 0 && !loading
-              ? 'No projects yet — create your first one'
+              ? 'Your projects will appear here'
               : `${projects.length} project${projects.length !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -256,18 +257,18 @@ export default function DashboardPage() {
       {/* Empty state */}
       {!loading && projects.length === 0 && (
         <div className="text-center py-24">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-slate-900 border border-slate-800 text-slate-600 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" />
-            </svg>
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-slate-900 border border-slate-800 text-indigo-400 mb-4">
+            <FolderSearch className="h-8 w-8" />
           </div>
-          <h2 className="text-lg font-semibold text-white mb-1">No projects yet</h2>
-          <p className="text-slate-500 text-sm mb-6">Create a project to start crawling and optimizing your content.</p>
+          <h2 className="text-lg font-semibold text-white mb-1">Ready to boost your search visibility?</h2>
+          <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">
+            Add your first site and we'll scan up to 5,000 pages to find what's holding back your AI Overview rankings.
+          </p>
           <button
             onClick={() => setShowModal(true)}
             className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/30"
           >
-            Create your first project
+            Add your first site
           </button>
         </div>
       )}
