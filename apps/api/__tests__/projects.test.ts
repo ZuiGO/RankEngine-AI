@@ -291,4 +291,79 @@ describe('Projects Management REST API', () => {
       expect(crawlQueue.add.mock.calls.length).toBe(before);
     });
   });
+
+  describe('GET/POST /api/projects/:id/suggested-keywords', () => {
+    let projectId: string;
+
+    it('should create a project for keyword suggestion tests', async () => {
+      const res = await request
+        .post('/api/projects')
+        .set('Authorization', `Bearer ${userAToken}`)
+        .send({ name: 'KW Sugg Tests', domain: 'https://kw-sugg.com' })
+        .expect(201);
+      projectId = res.body._id;
+    });
+
+    it('should return empty array when no suggestions exist', async () => {
+      const res = await request
+        .get(`/api/projects/${projectId}/suggested-keywords`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .expect(200);
+
+      expect(res.body).toEqual([]);
+    });
+
+    it('should return suggestions after seeding them on the project', async () => {
+      const project = await Project.findById(projectId);
+      project!.suggestedKeywords = [
+        { keyword: 'seo audit tool', dismissed: false, source: 'audit', createdAt: new Date() },
+        { keyword: 'site migration checklist', dismissed: false, source: 'audit', createdAt: new Date() },
+        { keyword: 'keyword research guide', dismissed: true, source: 'audit', createdAt: new Date() },
+      ];
+      await project!.save();
+
+      const res = await request
+        .get(`/api/projects/${projectId}/suggested-keywords`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .expect(200);
+
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].keyword).toBe('seo audit tool');
+      expect(res.body[1].keyword).toBe('site migration checklist');
+    });
+
+    it('should dismiss a suggested keyword by index', async () => {
+      await request
+        .post(`/api/projects/${projectId}/suggested-keywords/0/dismiss`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .expect(200);
+
+      const res = await request
+        .get(`/api/projects/${projectId}/suggested-keywords`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .expect(200);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].keyword).toBe('site migration checklist');
+    });
+
+    it('should reject requests from non-owner', async () => {
+      await request
+        .get(`/api/projects/${projectId}/suggested-keywords`)
+        .set('Authorization', `Bearer ${userBToken}`)
+        .expect(403);
+
+      await request
+        .post(`/api/projects/${projectId}/suggested-keywords/0/dismiss`)
+        .set('Authorization', `Bearer ${userBToken}`)
+        .expect(403);
+    });
+
+    it('should return 400 for out-of-range index', async () => {
+      await request
+        .post(`/api/projects/${projectId}/suggested-keywords/999/dismiss`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .expect(400);
+    });
+  });
 });

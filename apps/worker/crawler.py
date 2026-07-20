@@ -240,6 +240,13 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
     except Exception as e:
         log_json("ERROR", "llm_generation_failed", crawlJobId=crawl_job_id, error=str(e))
 
+    # 3. Derive keyword suggestions from page titles/H1s and store on the Project
+    from keyword_suggester import generate_keyword_suggestions
+    try:
+        await generate_keyword_suggestions(crawl_job_id, crawled_pages)
+    except Exception as e:
+        log_json("ERROR", "keyword_suggestion_failed", crawlJobId=crawl_job_id, error=str(e))
+
     log_json(
         "INFO",
         "crawler_finished",

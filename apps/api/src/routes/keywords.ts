@@ -180,4 +180,61 @@ router.get('/:id/keywords/:keywordId/history', requireAuth, async (req: Request,
   }
 });
 
+// GET /api/projects/:id/suggested-keywords - List non-dismissed keyword suggestions
+router.get('/:id/suggested-keywords', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
+    const project = await Project.findOne({ _id: id, deletedAt: null });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.ownerId.toString() !== req.user?.userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
+    }
+
+    const active = (project.suggestedKeywords || []).filter((sk) => !sk.dismissed);
+    return res.json(active);
+  } catch (error) {
+    console.error('List suggested keywords error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/projects/:id/suggested-keywords/:index/dismiss - Dismiss a suggested keyword by array index
+router.post('/:id/suggested-keywords/:index/dismiss', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id, index } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
+    const project = await Project.findOne({ _id: id, deletedAt: null });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.ownerId.toString() !== req.user?.userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
+    }
+
+    const idx = parseInt(index, 10);
+    if (isNaN(idx) || idx < 0 || idx >= (project.suggestedKeywords || []).length) {
+      return res.status(400).json({ error: 'Invalid index' });
+    }
+
+    project.suggestedKeywords[idx].dismissed = true;
+    await project.save();
+
+    return res.json({ message: 'Keyword suggestion dismissed' });
+  } catch (error) {
+    console.error('Dismiss suggested keyword error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
