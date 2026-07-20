@@ -23,6 +23,9 @@ interface UserProfile {
   emailDigestEnabled: boolean;
   hasCompletedOnboarding: boolean;
   createdAt: string;
+  dataProviderCallsThisMonth?: number;
+  dataProviderMonthlyLimit?: number;
+  dataProviderQuotaResetAt?: string;
 }
 
 interface AuthContextValue {

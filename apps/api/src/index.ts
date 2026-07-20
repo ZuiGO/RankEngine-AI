@@ -4,6 +4,7 @@ import config from './config';
 import { initRankTrackerScheduler } from './services/rankTrackerService';
 import { initAuditScheduler } from './services/auditSchedulerService';
 import { initWeeklyDigestScheduler } from './services/weeklyDigestService';
+import { initDataProviderQuotaReset } from './services/dataProviderQuotaResetService';
 
 const PORT = config.PORT;
 
@@ -21,6 +22,9 @@ mongoose
 
     // Initialize weekly digest email scheduler
     initWeeklyDigestScheduler();
+
+    // Initialize monthly data-provider quota reset cron (1st of each month)
+    initDataProviderQuotaReset();
 
     app.listen(PORT, () => {
       console.log(`[server]: Server is running at http://localhost:${PORT}`);

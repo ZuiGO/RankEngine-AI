@@ -14,6 +14,8 @@ import crawlJobsRouter from './routes/crawlJobs';
 import contentRouter from './routes/content';
 import keywordsRouter from './routes/keywords';
 import notificationsRouter from './routes/notifications';
+import keywordResearchRouter from './routes/keywordResearch';
+import backlinksRouter from './routes/backlinks';
 
 const app = express();
 
@@ -77,6 +79,8 @@ app.use('/api/projects', keywordsRouter);
 app.use('/api/crawl-jobs', crawlJobsRouter);
 app.use('/api/content', contentRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api', keywordResearchRouter);
+app.use('/api/projects', backlinksRouter);
 
 // Dynamically load queue listeners only when not running unit tests
 if (process.env.NODE_ENV !== 'test') {

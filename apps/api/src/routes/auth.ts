@@ -143,6 +143,9 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       emailDigestEnabled: user.emailDigestEnabled,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
       createdAt: user.createdAt,
+      dataProviderCallsThisMonth: user.dataProviderCallsThisMonth,
+      dataProviderMonthlyLimit: user.dataProviderMonthlyLimit,
+      dataProviderQuotaResetAt: user.dataProviderQuotaResetAt,
     });
   } catch (error) {
     console.error('Get profile error:', error);

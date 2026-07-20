@@ -56,6 +56,13 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
   /** Global rate-limit max requests per window per IP (default: 200) */
   RATE_LIMIT_MAX: z.coerce.number().default(200),
+
+  /** DataForSEO API credentials for external SEO data (Keyword Research, Backlinks, Domain Overview) */
+  DATAFORSEO_LOGIN: z.string().default(''),
+  DATAFORSEO_PASSWORD: z.string().default(''),
+
+  /** Per-user monthly quota for external data-provider API calls (excluding cache hits) */
+  DATAFORSEO_MONTHLY_LIMIT: z.coerce.number().default(500),
 });
 
 const parseEnv = () => {

@@ -32,6 +32,7 @@ import DashboardPage from './pages/DashboardPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import OnboardingPage from './pages/OnboardingPage';
+import KeywordResearchPage from './pages/KeywordResearchPage';
 
 const API_BASE = 'http://localhost:3000/api';
 
@@ -144,6 +145,7 @@ export default function App() {
                 <Route path="/projects/:id" element={<ProjectDetailPage />} />
                 <Route path="/projects/:id/content-editor" element={<ContentEditor />} />
                 <Route path="/projects/:id/keywords" element={<KeywordTracker />} />
+                <Route path="/keyword-research" element={<KeywordResearchPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
             </Route>

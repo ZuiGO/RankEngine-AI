@@ -10,6 +10,9 @@ export interface IUser extends Document {
   emailDigestEnabled: boolean;
   hasCompletedOnboarding: boolean;
   createdAt: Date;
+  dataProviderCallsThisMonth: number;
+  dataProviderMonthlyLimit: number;
+  dataProviderQuotaResetAt: Date;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -44,6 +47,21 @@ const UserSchema = new Schema<IUser>({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  dataProviderCallsThisMonth: {
+    type: Number,
+    default: 0,
+  },
+  dataProviderMonthlyLimit: {
+    type: Number,
+    default: 500,
+  },
+  dataProviderQuotaResetAt: {
+    type: Date,
+    default: () => {
+      const now = new Date();
+      return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    },
   },
 });
 

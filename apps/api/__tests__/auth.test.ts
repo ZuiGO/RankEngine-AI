@@ -191,6 +191,9 @@ describe('Authentication Flow', () => {
         emailDigestEnabled: true,
         hasCompletedOnboarding: false,
         createdAt: expect.any(String),
+        dataProviderCallsThisMonth: 0,
+        dataProviderMonthlyLimit: 500,
+        dataProviderQuotaResetAt: expect.any(String),
       });
     });
 
