@@ -24,6 +24,7 @@ class ChecklistItem(BaseModel):
     severity: Literal["critical", "warning", "passed"]
     affectedUrls: List[str] = Field(default_factory=list, description="List of staging/live URLs affected by this issue")
     recommendation: str = Field(description="Actionable remediation steps for developers")
+    whyItMatters: str = Field(description="A single plain-English sentence explaining the business impact for a marketer audience, separate from the technical recommendation")
 
 class ChecklistResponse(BaseModel):
     items: List[ChecklistItem]
@@ -102,6 +103,8 @@ Consolidate these page-level audit findings into a high-level developer checklis
 Translate technical jargon into actionable, plain-English titles and recommendations targeted at web developers (e.g. "Fix redirect loop on staging server", not raw status codes).
 For every PASSED item, preserve it as a positive checklist confirmation with severity "passed" and a "No action needed" recommendation; never rewrite it as a problem to fix.
 
+Each checklist item must include a "whyItMatters" field — a single plain-English sentence that explains the business impact to a non-technical marketer (e.g. "Search engines may show the wrong version of this page in results, splitting your ranking signals"). Do not repeat the recommendation; keep the developer audience's actionable next steps in the "recommendation" field.
+
 CRITICAL REQUIREMENT:
 You must respond with ONLY a valid JSON object matching the following schema. No explanations, no introductory text, no markdown wrappers except valid json.
 
@@ -113,7 +116,8 @@ JSON Schema format:
       "category": "redirect" | "meta" | "schema" | "core-web-vitals",
       "severity": "critical" | "warning" | "passed",
       "affectedUrls": ["url1", "url2"],
-      "recommendation": "Detailed actionable fix instructions, or 'No action needed' for passed items"
+      "recommendation": "Detailed actionable fix instructions, or 'No action needed' for passed items",
+      "whyItMatters": "Single plain-English sentence explaining the business impact for marketers"
     }}
   ]
 }}
@@ -181,6 +185,7 @@ JSON Schema format:
                     "url": url,
                     "description": item.title,
                     "recommendation": item.recommendation,
+                    "whyItMatters": item.whyItMatters,
                     "createdAt": datetime.datetime.utcnow()
                 })
         

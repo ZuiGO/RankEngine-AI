@@ -36,7 +36,8 @@ async def test_llm_fix_list_successful_generation():
                 "category": "redirect",
                 "severity": "critical",
                 "affectedUrls": ["https://staging.com/about", "https://staging.com/contact"],
-                "recommendation": "Correct routing setup"
+                "recommendation": "Correct routing setup",
+                "whyItMatters": "Redirect loops confuse search engine crawlers and may prevent your pages from being indexed at all"
             }
         ]
     }
@@ -74,6 +75,7 @@ async def test_llm_fix_list_successful_generation():
         assert len(inserted_list) == 2
         assert inserted_list[0]["description"] == "Fix 3 redirect loops on staging server"
         assert inserted_list[0]["severity"] == "critical"
+        assert inserted_list[0]["whyItMatters"] == "Redirect loops confuse search engine crawlers and may prevent your pages from being indexed at all"
         assert count == 2
 
 async def test_llm_fix_list_retry_mechanism():
@@ -88,7 +90,8 @@ async def test_llm_fix_list_retry_mechanism():
                 "category": "meta",
                 "severity": "warning",
                 "affectedUrls": ["https://staging.com/home"],
-                "recommendation": "Update tags"
+                "recommendation": "Update tags",
+                "whyItMatters": "Missing meta tags reduce your click-through rate from search results"
             }
         ]
     }

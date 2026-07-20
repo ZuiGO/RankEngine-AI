@@ -29,6 +29,7 @@ interface AuditIssue {
   severity: 'critical' | 'warning' | 'passed';
   affectedUrls: string[];
   recommendation: string;
+  whyItMatters?: string;
 }
 
 interface Checklist {
@@ -154,9 +155,19 @@ function ChecklistSection({
                         {issue.category}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed mb-2">
-                      {issue.recommendation}
+                    <p className="text-xs text-slate-300 leading-relaxed mb-2">
+                      {issue.whyItMatters || issue.recommendation}
                     </p>
+                    {issue.recommendation && issue.recommendation !== 'No action needed' && (
+                      <details className="group mb-1.5">
+                        <summary className="text-[11px] text-indigo-400 hover:text-indigo-300 cursor-pointer select-none">
+                          Technical details
+                        </summary>
+                        <p className="mt-1.5 text-[11px] text-slate-400 leading-relaxed pl-2">
+                          {issue.recommendation}
+                        </p>
+                      </details>
+                    )}
                     {issue.affectedUrls && issue.affectedUrls.length > 0 && (
                       <details className="group">
                         <summary className="text-[11px] text-indigo-400 hover:text-indigo-300 cursor-pointer select-none">

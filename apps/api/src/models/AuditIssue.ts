@@ -9,6 +9,7 @@ export interface IAuditIssue extends Document {
   url: string;
   description: string;
   recommendation: string;
+  whyItMatters?: string;
 }
 
 const AuditIssueSchema = new Schema<IAuditIssue>({
@@ -40,6 +41,10 @@ const AuditIssueSchema = new Schema<IAuditIssue>({
   recommendation: {
     type: String,
     required: true,
+    trim: true,
+  },
+  whyItMatters: {
+    type: String,
     trim: true,
   },
 });
