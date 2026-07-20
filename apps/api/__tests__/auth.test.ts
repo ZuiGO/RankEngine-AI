@@ -188,6 +188,7 @@ describe('Authentication Flow', () => {
         email: registerPayload.email,
         role: registerPayload.role,
         companyName: registerPayload.companyName,
+        emailDigestEnabled: true,
         createdAt: expect.any(String),
       });
     });

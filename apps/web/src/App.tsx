@@ -29,6 +29,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import SettingsPage from './pages/SettingsPage';
 
 const API_BASE = 'http://localhost:3000/api';
 
@@ -139,6 +140,7 @@ export default function App() {
                 <Route path="/projects/:id" element={<ProjectDetailPage />} />
                 <Route path="/projects/:id/content-editor" element={<ContentEditor />} />
                 <Route path="/projects/:id/keywords" element={<KeywordTracker />} />
+                <Route path="/settings" element={<SettingsPage />} />
               </Route>
             </Route>
 

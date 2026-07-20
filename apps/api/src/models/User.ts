@@ -7,6 +7,7 @@ export interface IUser extends Document {
   passwordHash: string;
   role: UserRole;
   companyName: string;
+  emailDigestEnabled: boolean;
   createdAt: Date;
 }
 
@@ -30,6 +31,10 @@ const UserSchema = new Schema<IUser>({
   companyName: {
     type: String,
     required: true,
+  },
+  emailDigestEnabled: {
+    type: Boolean,
+    default: true,
   },
   createdAt: {
     type: Date,
