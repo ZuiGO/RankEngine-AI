@@ -5,12 +5,13 @@ import {
   Navigate,
 } from 'react-router-dom';
 
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import SettingsPage from './pages/SettingsPage';
@@ -22,6 +23,17 @@ import CompetitorsPage from './pages/CompetitorsPage';
 import ContentEditorPage from './pages/ContentEditorPage';
 import KeywordsPage from './pages/KeywordsPage';
 import PricingPage from './pages/PricingPage';
+import BillingPage from './pages/BillingPage';
+
+/*
+ * Root route handler — shows the LandingPage for unauthenticated visitors
+ * and redirects to /dashboard for logged-in users.
+ */
+function HomeRoute() {
+  const { token } = useAuth();
+  if (token) return <Navigate to="/dashboard" replace />;
+  return <LandingPage />;
+}
 
 export default function App() {
   return (
@@ -29,12 +41,12 @@ export default function App() {
       <BrowserRouter>
         <NotificationProvider>
           <Routes>
+            <Route path="/" element={<HomeRoute />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route element={<Layout />}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/projects/:id" element={<ProjectDetailPage />} />
                 <Route path="/projects/:id/content-editor" element={<ContentEditorPage />} />
@@ -44,10 +56,11 @@ export default function App() {
                 <Route path="/projects/:id/competitors" element={<CompetitorsPage />} />
                 <Route path="/keyword-research" element={<KeywordResearchPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/settings/billing" element={<BillingPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
               </Route>
             </Route>
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotificationProvider>
       </BrowserRouter>

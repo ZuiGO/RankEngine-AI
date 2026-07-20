@@ -149,8 +149,8 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     const sessionUrl = await createCheckoutSession(
       customerId,
       planId,
-      successUrl || `${config.CORS_ORIGIN}/billing?success=1`,
-      cancelUrl || `${config.CORS_ORIGIN}/billing?canceled=1`,
+      successUrl || `${config.CORS_ORIGIN}/settings/billing?success=1`,
+      cancelUrl || `${config.CORS_ORIGIN}/settings/billing?canceled=1`,
     );
 
     // Persist the Stripe customer ID immediately so future calls reuse it
@@ -177,7 +177,7 @@ router.get('/portal-session', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'No Stripe customer found. Subscribe first.' });
     }
 
-    const returnUrl = `${config.CORS_ORIGIN}/billing`;
+    const returnUrl = `${config.CORS_ORIGIN}/settings/billing`;
     const portalUrl = await createPortalSession(user.stripeCustomerId, returnUrl);
 
     res.json({ url: portalUrl });

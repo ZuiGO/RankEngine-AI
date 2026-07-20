@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../lib/api';
 import { Card, CardBody, Badge, Button } from '../components/ui';
 
@@ -22,6 +22,7 @@ interface TeamInvite {
 }
 
 export default function SettingsPage() {
+  const location = useLocation();
   const [digestEnabled, setDigestEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -90,11 +91,36 @@ export default function SettingsPage() {
 
   const planBadgeVariant = subscription?.plan === 'free' ? 'default' : 'success';
 
+  const tabs = [
+    { label: 'General', path: '/settings' },
+    { label: 'Billing', path: '/settings/billing' },
+  ];
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Account Settings</h1>
         <p className="text-slate-400 text-sm mt-1">Manage your plan, team, and preferences.</p>
+      </div>
+
+      {/* Sub-navigation */}
+      <div className="flex gap-1 border-b border-slate-800 pb-0">
+        {tabs.map((tab) => {
+          const isActive = location.pathname === tab.path;
+          return (
+            <Link
+              key={tab.path}
+              to={tab.path}
+              className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors ${
+                isActive
+                  ? 'bg-slate-900 text-white border border-slate-800 border-b-slate-900 -mb-px'
+                  : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+              }`}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Subscription */}
