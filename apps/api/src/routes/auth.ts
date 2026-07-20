@@ -3,6 +3,8 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
+import { Organization } from '../models/Organization';
+import { Membership } from '../models/Membership';
 import config from '../config';
 import requireAuth from '../middleware/requireAuth';
 
@@ -61,6 +63,18 @@ router.post('/register', async (req: Request, res: Response) => {
       companyName,
     });
     await user.save();
+
+    // Auto-create personal organization and membership
+    const org = await Organization.create({
+      name: companyName,
+      ownerId: user._id,
+    });
+    await Membership.create({
+      organizationId: org._id,
+      userId: user._id,
+      role: 'owner',
+      joinedAt: new Date(),
+    });
 
     // Generate JWT
     const token = generateToken(user._id.toString(), user.role);

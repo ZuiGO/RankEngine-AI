@@ -11,7 +11,7 @@ export interface ISuggestedKeyword {
 
 export interface IProject extends Document {
   name: string;
-  ownerId: Types.ObjectId;
+  organizationId: Types.ObjectId;
   domain: string;
   stagingDomain?: string;
   auditSchedule: AuditSchedule;
@@ -33,9 +33,9 @@ const ProjectSchema = new Schema<IProject>({
     required: true,
     trim: true,
   },
-  ownerId: {
+  organizationId: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Organization',
     required: true,
   },
   domain: {
@@ -66,8 +66,8 @@ const ProjectSchema = new Schema<IProject>({
   },
 });
 
-// Index to quickly fetch all active projects owned by a specific user
-ProjectSchema.index({ ownerId: 1, deletedAt: 1 });
+// Index to quickly fetch all active projects by organization
+ProjectSchema.index({ organizationId: 1, deletedAt: 1 });
 
 export const Project = model<IProject>('Project', ProjectSchema);
 export default Project;

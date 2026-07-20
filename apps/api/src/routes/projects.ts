@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project';
+import { Membership } from '../models/Membership';
 import requireAuth from '../middleware/requireAuth';
 import { enqueueCrawlJob, enqueueMigrationCheck } from '../services/crawlService';
 
@@ -45,11 +46,16 @@ router.post('/', async (req: Request, res: Response) => {
 
     const { name, domain, stagingDomain, triggerFirstAudit } = validation.data;
 
+    const membership = await Membership.findOne({ userId: req.user.userId }).sort({ createdAt: 1 });
+    if (!membership) {
+      return res.status(400).json({ error: 'No organization found for user' });
+    }
+
     const project = new Project({
       name,
       domain,
       stagingDomain,
-      ownerId: new mongoose.Types.ObjectId(req.user.userId),
+      organizationId: membership.organizationId,
     });
 
     await project.save();
@@ -82,8 +88,11 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    const memberships = await Membership.find({ userId: req.user.userId });
+    const orgIds = memberships.map((m) => m.organizationId);
+
     const projects = await Project.find({
-      ownerId: req.user.userId,
+      organizationId: { $in: orgIds },
       deletedAt: null,
     });
 
@@ -112,7 +121,11 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     // Verify ownership
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -149,7 +162,11 @@ router.patch('/:id', async (req: Request, res: Response) => {
     }
 
     // Verify ownership
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -220,7 +237,11 @@ router.patch('/:id/schedule', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -252,7 +273,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
 
     // Verify ownership
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -286,7 +311,11 @@ router.post('/:id/crawl', async (req: Request, res: Response) => {
     }
 
     // Validate ownership
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -321,7 +350,11 @@ router.post('/:id/migration-check', async (req: Request, res: Response) => {
     }
 
     // Validate ownership
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 

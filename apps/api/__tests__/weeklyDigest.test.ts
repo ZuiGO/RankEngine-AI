@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import { buildDigestForUser, sendWeeklyDigests } from '../src/services/weeklyDigestService';
 import { User } from '../src/models/User';
+import { Organization } from '../src/models/Organization';
+import { Membership } from '../src/models/Membership';
 import { Project } from '../src/models/Project';
 import { CrawlJob } from '../src/models/CrawlJob';
 import { AuditIssue } from '../src/models/AuditIssue';
@@ -48,6 +50,10 @@ beforeAll(async () => {
     emailDigestEnabled: true,
   });
   userId = user._id.toString();
+
+  // Create personal org + membership
+  const org = await Organization.create({ name: 'TestCo', ownerId: user._id });
+  await Membership.create({ organizationId: org._id, userId: user._id, role: 'owner', joinedAt: new Date() });
 });
 
 afterAll(async () => {
@@ -75,11 +81,12 @@ describe('Weekly Digest', () => {
   });
 
   it('should build correct digest from a week of mock activity', async () => {
+      const org = await Organization.findOne({ ownerId: userId });
     // Create a project
     const project = await Project.create({
       name: 'TestSite',
       domain: 'https://testsite.com',
-      ownerId: new mongoose.Types.ObjectId(userId),
+      organizationId: org!._id,
     });
 
     // Create a crawl job from 3 days ago (within the 7-day window)

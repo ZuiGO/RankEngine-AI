@@ -72,6 +72,12 @@ const envSchema = z.object({
   /** Stripe price IDs for each paid plan */
   STRIPE_PRICE_PRO: z.string().default(''),
   STRIPE_PRICE_AGENCY: z.string().default(''),
+
+  /** Local filesystem path for generated report PDFs (also used by storage service) */
+  STORAGE_PATH: z.string().default('./data/reports'),
+
+  /** Lifetime of signed download tokens in milliseconds (default: 1 hour) */
+  DOWNLOAD_TOKEN_TTL_MS: z.coerce.number().default(3600000),
 });
 
 const parseEnv = () => {

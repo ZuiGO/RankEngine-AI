@@ -28,6 +28,8 @@ process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
 // Require app & models after env variables are ready
 const app = require('../src/app').default;
 const { User } = require('../src/models/User');
+const { Organization } = require('../src/models/Organization');
+const { Membership } = require('../src/models/Membership');
 const { Project } = require('../src/models/Project');
 const { crawlQueue } = require('../src/queues/crawlQueue');
 
@@ -37,6 +39,7 @@ let userAToken: string;
 let userAId: string;
 let userBToken: string;
 let userBId: string;
+let orgAId: string;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
@@ -86,6 +89,10 @@ beforeAll(async () => {
     planId: 'pro',
     dataProviderMonthlyLimit: 2000,
   });
+
+  // Look up the personal org auto-created on registration
+  const orgA = await Organization.findOne({ ownerId: userAId });
+  orgAId = orgA!._id.toString();
 });
 
 afterAll(async () => {
@@ -116,7 +123,7 @@ describe('Projects Management REST API', () => {
           name: projectPayload.name,
           domain: projectPayload.domain,
           stagingDomain: projectPayload.stagingDomain,
-          ownerId: userAId,
+          organizationId: orgAId,
           deletedAt: null,
         })
       );
@@ -405,6 +412,130 @@ describe('Projects Management REST API', () => {
         .post(`/api/projects/${projectId}/suggested-keywords/999/dismiss`)
         .set('Authorization', `Bearer ${userAToken}`)
         .expect(400);
+    });
+  });
+
+  describe('Organization-based ownership checks', () => {
+    let orgA: any;
+    let orgAProjectId: string;
+    let adminToken: string;
+
+    beforeAll(async () => {
+      orgA = await Organization.findOne({ ownerId: userAId });
+
+      // Create a project directly in orgA (not via endpoint, for precise control)
+      const project = new Project({
+        name: 'Org A Project',
+        domain: 'https://org-a-project.com',
+        organizationId: orgA!._id,
+      });
+      await project.save();
+      orgAProjectId = project._id.toString();
+
+      // Register a third user (User C) to test membership-gated access
+      const resC = await request
+        .post('/api/auth/register')
+        .send({
+          email: 'userc-ownership@rankengine.ai',
+          password: 'password123',
+          role: 'agency_owner',
+          companyName: 'Company C',
+        })
+        .expect(201);
+      adminToken = resC.body.token;
+    });
+
+    it('allows org owner (User A) to access project via GET', async () => {
+      const res = await request
+        .get(`/api/projects/${orgAProjectId}`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .expect(200);
+      expect(res.body._id).toBe(orgAProjectId);
+    });
+
+    it('allows org owner (User A) to update project via PATCH', async () => {
+      const res = await request
+        .patch(`/api/projects/${orgAProjectId}`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .send({ name: 'Updated Org A Project' })
+        .expect(200);
+      expect(res.body.name).toBe('Updated Org A Project');
+    });
+
+    it('denies access (403) to a user from a DIFFERENT org (User B)', async () => {
+      await request
+        .get(`/api/projects/${orgAProjectId}`)
+        .set('Authorization', `Bearer ${userBToken}`)
+        .expect(403);
+    });
+
+    it('denies access (403) to unaffiliated user (User C) who is not a member of orgA', async () => {
+      await request
+        .get(`/api/projects/${orgAProjectId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(403);
+    });
+
+    it('grants access to a user added as "admin" member of the org', async () => {
+      // Get User C's ID from their token
+      const resC = await request
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+      const userCId = resC.body.id;
+
+      // Add User C as an "admin" member of orgA
+      const userCOrg = await Organization.findOne({ ownerId: userCId });
+      await Membership.create({
+        organizationId: orgA!._id,
+        userId: userCId,
+        role: 'admin',
+        joinedAt: new Date(),
+      });
+
+      // User C should now be able to access orgA's project
+      const res = await request
+        .get(`/api/projects/${orgAProjectId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+      expect(res.body._id).toBe(orgAProjectId);
+
+      // Clean up: remove the cross-org membership so User C's own org isolation test works
+      await Membership.deleteOne({ organizationId: orgA!._id, userId: userCId });
+    });
+
+    it('isolates project listings — User B sees NO projects from orgA', async () => {
+      const res = await request
+        .get('/api/projects')
+        .set('Authorization', `Bearer ${userBToken}`)
+        .expect(200);
+
+      // User B should only see their own org's project(s), not orgA's
+      const orgAProjects = res.body.filter((p: any) => p._id === orgAProjectId);
+      expect(orgAProjects).toHaveLength(0);
+    });
+
+    it('isolates crawl-job ownership across orgs', async () => {
+      const { CrawlJob } = require('../src/models/CrawlJob');
+
+      // Create a crawl job for orgA's project
+      const job = await CrawlJob.create({
+        projectId: orgAProjectId,
+        status: 'completed',
+        pageCount: 10,
+      });
+
+      // User A (orgA member) can access it
+      await request
+        .get(`/api/crawl-jobs/${job._id}`)
+        .set('Authorization', `Bearer ${userAToken}`)
+        .expect(200);
+
+      // User B (not in orgA) gets 403
+      await request
+        .get(`/api/crawl-jobs/${job._id}`)
+        .set('Authorization', `Bearer ${userBToken}`)
+        .expect(403);
     });
   });
 });

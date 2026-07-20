@@ -1,6 +1,8 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { Project } from '../src/models/Project';
+import { Organization } from '../src/models/Organization';
+import { Membership } from '../src/models/Membership';
 import { TrackedKeyword } from '../src/models/TrackedKeyword';
 import { RankSnapshot } from '../src/models/RankSnapshot';
 import { Notification } from '../src/models/Notification';
@@ -96,10 +98,14 @@ beforeAll(async () => {
   });
   userId = user._id as mongoose.Types.ObjectId;
 
+  // Create org and membership
+  const org = await Organization.create({ name: 'Test Org', ownerId: userId });
+  await Membership.create({ organizationId: org._id, userId, role: 'owner', joinedAt: new Date() });
+
   // Create project
   const project = await Project.create({
     name: 'Test Project',
-    ownerId: userId,
+    organizationId: org._id,
     domain: 'mysite.com',
   });
   projectId = project._id as mongoose.Types.ObjectId;

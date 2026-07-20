@@ -32,6 +32,8 @@ process.env.DATAFORSEO_PASSWORD = '';
 process.env.NODE_ENV = 'test';
 
 const User = require('../src/models/User').default;
+const Organization = require('../src/models/Organization').default;
+const Membership = require('../src/models/Membership').default;
 const Project = require('../src/models/Project').default;
 
 // We'll mock getBacklinkList to return deterministic data
@@ -90,10 +92,13 @@ beforeEach(async () => {
     { expiresIn: '1h' }
   );
 
+  const org = await Organization.create({ name: 'Test Org', ownerId: testUser._id });
+  await Membership.create({ organizationId: org._id, userId: testUser._id, role: 'owner', joinedAt: new Date() });
+
   testProject = await Project.create({
     name: 'Test Project',
     domain: 'example.com',
-    ownerId: testUser._id,
+    organizationId: org._id,
   });
 });
 
@@ -169,10 +174,13 @@ describe('Backlinks — toxic flag', () => {
       companyName: 'Other Co',
     });
 
+    const otherOrg = await Organization.create({ name: 'Other Org', ownerId: otherUser._id });
+    await Membership.create({ organizationId: otherOrg._id, userId: otherUser._id, role: 'owner', joinedAt: new Date() });
+
     const otherProject = await Project.create({
       name: 'Other Project',
       domain: 'other.com',
-      ownerId: otherUser._id,
+      organizationId: otherOrg._id,
     });
 
     await request(app)

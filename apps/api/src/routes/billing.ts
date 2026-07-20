@@ -3,6 +3,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import Subscription, { getPlanLimits, SubscriptionPlan } from '../models/Subscription';
 import TeamInvite from '../models/TeamInvite';
+import Organization from '../models/Organization';
 import User from '../models/User';
 import requireAuth from '../middleware/requireAuth';
 import config from '../config';
@@ -210,21 +211,27 @@ router.post('/invite', async (req: Request, res: Response) => {
 
     const sub = await Subscription.findOne({ ownerId: req.user.userId });
     const limits = getPlanLimits(sub?.plan ?? 'free');
-    const pendingCount = await TeamInvite.countDocuments({ ownerId: req.user.userId, status: 'pending' });
+    const pendingCount = await TeamInvite.countDocuments({ invitedBy: req.user.userId, status: 'pending' });
     if (pendingCount >= limits.seats) {
       return res.status(403).json({ error: 'Team seat limit reached for your plan' });
     }
 
-    const existing = await TeamInvite.findOne({ ownerId: req.user.userId, email, status: 'pending' });
+    const existing = await TeamInvite.findOne({ invitedBy: req.user.userId, email, status: 'pending' });
     if (existing) {
       return res.status(409).json({ error: 'Invite already sent to this email' });
+    }
+
+    const org = await Organization.findOne({ ownerId: req.user.userId });
+    if (!org) {
+      return res.status(400).json({ error: 'No organization found' });
     }
 
     const token = crypto.randomBytes(24).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const invite = new TeamInvite({
-      ownerId: req.user.userId,
+      organizationId: org._id,
+      invitedBy: req.user.userId,
       email,
       role,
       token,
@@ -244,7 +251,7 @@ router.get('/team', async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const invites = await TeamInvite.find({ ownerId: req.user.userId }).sort({ createdAt: -1 });
+    const invites = await TeamInvite.find({ invitedBy: req.user.userId }).sort({ createdAt: -1 });
     res.json(invites);
   } catch (error) {
     console.error('Get team error:', error);

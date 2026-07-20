@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { Project } from '../models/Project';
+import { Organization } from '../models/Organization';
 import { CrawlJob } from '../models/CrawlJob';
 import { AuditIssue } from '../models/AuditIssue';
 import { Notification } from '../models/Notification';
@@ -65,8 +66,10 @@ export const monitorCompletedAudits = async (): Promise<void> => {
         const increase = currentCritical - previousCritical;
         const message = `Critical issues increased from ${previousCritical} to ${currentCritical} (+${increase}) in latest automatic audit for "${project.name}"`;
 
+        const org = await Organization.findById(project.organizationId);
+
         const notification = new Notification({
-          userId: project.ownerId,
+          userId: org ? org.ownerId : project.organizationId,
           projectId: project._id,
           message,
         });

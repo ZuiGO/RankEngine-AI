@@ -4,6 +4,7 @@ import { z } from 'zod';
 import requireAuth from '../middleware/requireAuth';
 import { requirePlan } from '../middleware/requirePlan';
 import { Project } from '../models/Project';
+import { Membership } from '../models/Membership';
 import { TrackedKeyword } from '../models/TrackedKeyword';
 import { RankSnapshot } from '../models/RankSnapshot';
 import { collectRankSnapshotForKeyword } from '../services/rankTrackerService';
@@ -31,7 +32,11 @@ router.post('/:id/keywords', requireAuth, requirePlan('keywordTracking'), async 
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user?.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user!.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -82,7 +87,11 @@ router.get('/:id/keywords', requireAuth, requirePlan('keywordTracking'), async (
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user?.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user!.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -151,7 +160,11 @@ router.get('/:id/keywords/:keywordId/history', requireAuth, requirePlan('keyword
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user?.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user!.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -194,7 +207,11 @@ router.get('/:id/suggested-keywords', requireAuth, requirePlan('keywordTracking'
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user?.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user!.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -223,7 +240,11 @@ router.post(
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      if (project.ownerId.toString() !== req.user?.userId) {
+      const membership = await Membership.findOne({
+        organizationId: project.organizationId,
+        userId: req.user!.userId,
+      });
+      if (!membership) {
         return res.status(403).json({ error: 'Forbidden: You do not own this project' });
       }
 

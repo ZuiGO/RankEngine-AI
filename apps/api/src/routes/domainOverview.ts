@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import requireAuth from '../middleware/requireAuth';
 import { requirePlan } from '../middleware/requirePlan';
 import { Project } from '../models/Project';
+import { Membership } from '../models/Membership';
 import DomainOverviewSnapshot from '../models/DomainOverviewSnapshot';
 import {
   getDomainOverview,
@@ -36,7 +37,11 @@ const resolveProject = async (req: Request, res: Response) => {
     res.status(404).json({ error: 'Project not found' });
     return null;
   }
-  if (project.ownerId.toString() !== req.user.userId) {
+  const membership = await Membership.findOne({
+    organizationId: project.organizationId,
+    userId: req.user.userId,
+  });
+  if (!membership) {
     res.status(403).json({ error: 'Forbidden: You do not own this project' });
     return null;
   }

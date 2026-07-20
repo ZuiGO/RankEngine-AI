@@ -1,9 +1,10 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export type InviteStatus = 'pending' | 'accepted' | 'expired';
 
 export interface ITeamInvite extends Document {
-  ownerId: Schema.Types.ObjectId;
+  organizationId: Types.ObjectId;
+  invitedBy: Types.ObjectId;
   email: string;
   role: 'member' | 'admin';
   status: InviteStatus;
@@ -13,7 +14,8 @@ export interface ITeamInvite extends Document {
 }
 
 const TeamInviteSchema = new Schema<ITeamInvite>({
-  ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  organizationId: { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
+  invitedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   email: { type: String, required: true, lowercase: true, trim: true },
   role: { type: String, enum: ['member', 'admin'], default: 'member' },
   status: { type: String, enum: ['pending', 'accepted', 'expired'], default: 'pending' },
@@ -21,6 +23,8 @@ const TeamInviteSchema = new Schema<ITeamInvite>({
   expiresAt: { type: Date, required: true },
   createdAt: { type: Date, default: Date.now },
 });
+
+TeamInviteSchema.index({ organizationId: 1, email: 1, status: 1 });
 
 export const TeamInvite = model<ITeamInvite>('TeamInvite', TeamInviteSchema);
 export default TeamInvite;

@@ -29,6 +29,7 @@ process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
 // Require app & models
 const app = require('../src/app').default;
 const { User } = require('../src/models/User');
+const { Organization } = require('../src/models/Organization');
 const { Project } = require('../src/models/Project');
 const { CrawlJob } = require('../src/models/CrawlJob');
 const { AuditIssue } = require('../src/models/AuditIssue');
@@ -63,11 +64,14 @@ beforeAll(async () => {
   userToken = res.body.token;
   userId = res.body.user.id;
 
+  // Look up the personal org auto-created on registration
+  const org = await Organization.findOne({ ownerId: userId });
+
   // Create Project
   const project = new Project({
     name: 'Schema Project',
     domain: 'https://site.com',
-    ownerId: new mongoose.Types.ObjectId(userId),
+    organizationId: org!._id,
   });
   await project.save();
 

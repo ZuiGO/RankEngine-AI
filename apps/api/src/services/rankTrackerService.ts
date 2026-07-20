@@ -3,6 +3,7 @@ import cron from 'node-cron';
 import { TrackedKeyword } from '../models/TrackedKeyword';
 import { RankSnapshot } from '../models/RankSnapshot';
 import { Project } from '../models/Project';
+import { Organization } from '../models/Organization';
 import { Notification } from '../models/Notification';
 import { getSerpProvider } from './serpService';
 import { getEmailService } from './emailService';
@@ -89,9 +90,13 @@ export const collectRankSnapshotForKeyword = async (
               if (project) {
                 const message = `Competitor "${comp}" jumped ${improvement} positions from #${prevPos} to #${compPos} for keyword "${keyword}"`;
 
+                // Determine org owner for notifications
+                const org = await Organization.findById(project.organizationId);
+                const ownerUserId = org ? org.ownerId : project.organizationId;
+
                 // Write Notification Document
                 const notification = new Notification({
-                  userId: project.ownerId,
+                  userId: ownerUserId,
                   projectId: project._id,
                   keywordId: new mongoose.Types.ObjectId(keywordId),
                   message,
@@ -100,7 +105,7 @@ export const collectRankSnapshotForKeyword = async (
 
                 // Send email alert
                 const User = mongoose.model('User');
-                const owner = await User.findById(project.ownerId);
+                const owner = await User.findById(ownerUserId);
                 if (owner && owner.email) {
                   const emailService = getEmailService();
                   await emailService.sendEmail(

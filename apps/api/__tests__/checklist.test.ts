@@ -28,6 +28,7 @@ process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
 // Require app & models after mock configuration
 const app = require('../src/app').default;
 const { User } = require('../src/models/User');
+const { Organization } = require('../src/models/Organization');
 const { Project } = require('../src/models/Project');
 const { CrawlJob } = require('../src/models/CrawlJob');
 const { AuditIssue } = require('../src/models/AuditIssue');
@@ -78,11 +79,14 @@ beforeAll(async () => {
   userBToken = resB.body.token;
   userBId = resB.body.user.id;
 
-  // Create Project A (owned by User A)
+  // Look up the personal org auto-created on registration
+  const orgA = await Organization.findOne({ ownerId: userAId });
+
+  // Create Project A (owned by User A's org)
   const project = new Project({
     name: 'Checklist Test Project',
     domain: 'https://site-to-check.com',
-    ownerId: new mongoose.Types.ObjectId(userAId),
+    organizationId: orgA!._id,
   });
   await project.save();
   projectAId = project._id.toString();

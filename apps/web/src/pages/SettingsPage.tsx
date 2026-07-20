@@ -93,6 +93,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { label: 'General', path: '/settings' },
+    { label: 'Team', path: '/settings/team' },
     { label: 'Billing', path: '/settings/billing' },
   ];
 

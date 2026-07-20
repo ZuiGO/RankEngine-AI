@@ -1,7 +1,9 @@
 import express, { RequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
 import { HealthCheckResponse, CrawlJob } from '@rankengine/shared-types';
+import config from './config';
 
 import config from './config';
 import { requestLogger } from './middleware/requestLogger';
@@ -20,6 +22,8 @@ import aiVisibilityRouter from './routes/aiVisibility';
 import domainOverviewRouter from './routes/domainOverview';
 import gapAnalysisRouter from './routes/gapAnalysis';
 import billingRouter from './routes/billing';
+import organizationsRouter from './routes/organizations';
+import reportsRouter from './routes/reports';
 import { handleWebhook } from './routes/billingWebhook';
 
 const app = express();
@@ -87,6 +91,10 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), hand
 
 app.use(express.json({ limit: '1mb' })); // cap body size to prevent payload abuse
 
+// Serve uploaded files (logos, etc.) from the storage directory
+const storagePath = path.resolve(config.STORAGE_PATH);
+app.use('/api/files', express.static(storagePath));
+
 // ──────────────────────────────────────────── ROUTES ─────────────────────────
 app.use('/api/auth', authRouter);
 app.use('/api/projects', projectsRouter);
@@ -100,6 +108,9 @@ app.use('/api/projects', aiVisibilityRouter);
 app.use('/api/projects', domainOverviewRouter);
 app.use('/api/projects', gapAnalysisRouter);
 app.use('/api/billing', billingRouter);
+app.use('/api/organizations', organizationsRouter);
+app.use('/api', organizationsRouter); // for /api/invites/:token/accept
+app.use('/api/projects', reportsRouter);
 
 
 

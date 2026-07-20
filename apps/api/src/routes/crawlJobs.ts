@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { CrawlJob } from '../models/CrawlJob';
 import { Project } from '../models/Project';
+import { Membership } from '../models/Membership';
 import { AuditIssue } from '../models/AuditIssue';
 import requireAuth from '../middleware/requireAuth';
 
@@ -32,7 +33,11 @@ router.get('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Associated project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -100,7 +105,11 @@ router.get('/:id/issues', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Associated project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
@@ -141,7 +150,11 @@ router.get('/:id/checklist', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Associated project not found' });
     }
 
-    if (project.ownerId.toString() !== req.user.userId) {
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 

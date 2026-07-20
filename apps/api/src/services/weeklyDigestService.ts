@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import cron from 'node-cron';
 import { User } from '../models/User';
+import { Organization } from '../models/Organization';
+import { Membership } from '../models/Membership';
 import { Project } from '../models/Project';
 import { CrawlJob } from '../models/CrawlJob';
 import { AuditIssue } from '../models/AuditIssue';
@@ -35,7 +37,9 @@ export const buildDigestForUser = async (userId: string): Promise<WeeklyDigest |
   const user = await User.findById(userId);
   if (!user || !user.emailDigestEnabled) return null;
 
-  const projects = await Project.find({ ownerId: userId, deletedAt: null });
+  const memberships = await Membership.find({ userId });
+  const orgIds = memberships.map((m) => m.organizationId);
+  const projects = await Project.find({ organizationId: { $in: orgIds }, deletedAt: null });
   if (projects.length === 0) return null;
 
   const since = SEVEN_DAYS_AGO();

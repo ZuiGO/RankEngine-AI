@@ -1,6 +1,8 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { Project } from '../src/models/Project';
+import { Organization } from '../src/models/Organization';
+import { Membership } from '../src/models/Membership';
 import { TrackedKeyword } from '../src/models/TrackedKeyword';
 import { RankSnapshot } from '../src/models/RankSnapshot';
 
@@ -46,10 +48,14 @@ describe('Rank Tracker Scheduled Job', () => {
     await Project.deleteMany({});
     await TrackedKeyword.deleteMany({});
     await RankSnapshot.deleteMany({});
+    await Organization.deleteMany({});
+    await Membership.deleteMany({});
+
+    const org = await Organization.create({ name: 'Rank Test Org', ownerId: new mongoose.Types.ObjectId() });
 
     project1 = new Project({
       name: 'Search Tech Project',
-      ownerId: new mongoose.Types.ObjectId(),
+      organizationId: org._id,
       domain: 'https://searchtech.com',
     });
     await project1.save();

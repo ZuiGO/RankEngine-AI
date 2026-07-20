@@ -24,6 +24,7 @@ import ContentEditorPage from './pages/ContentEditorPage';
 import KeywordsPage from './pages/KeywordsPage';
 import PricingPage from './pages/PricingPage';
 import BillingPage from './pages/BillingPage';
+import TeamPage from './pages/TeamPage';
 
 /*
  * Root route handler — shows the LandingPage for unauthenticated visitors
@@ -57,6 +58,7 @@ export default function App() {
                 <Route path="/projects/:id/competitors" element={<CompetitorsPage />} />
                 <Route path="/keyword-research" element={<KeywordResearchPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/settings/team" element={<TeamPage />} />
                 <Route path="/settings/billing" element={<BillingPage />} />
               </Route>
             </Route>
