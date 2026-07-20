@@ -67,7 +67,7 @@ router.get('/subscription', async (req: Request, res: Response) => {
 
 // PATCH /api/billing/subscription (legacy direct plan change without payment)
 const updatePlanSchema = z.object({
-  plan: z.enum(['free', 'starter', 'professional', 'agency']),
+  plan: z.enum(['free', 'pro', 'agency']),
 });
 
 router.patch('/subscription', async (req: Request, res: Response) => {
@@ -153,6 +153,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       planId,
       successUrl || `${config.CORS_ORIGIN}/settings/billing?success=1`,
       cancelUrl || `${config.CORS_ORIGIN}/settings/billing?canceled=1`,
+      req.user.userId,
     );
 
     // Persist the Stripe customer ID immediately so future calls reuse it

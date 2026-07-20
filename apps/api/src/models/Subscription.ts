@@ -1,6 +1,6 @@
 import { Schema, model, Document } from 'mongoose';
 
-export type SubscriptionPlan = 'free' | 'starter' | 'professional' | 'agency';
+export type SubscriptionPlan = 'free' | 'pro' | 'agency';
 
 export interface ISubscription extends Document {
   ownerId: Schema.Types.ObjectId;
@@ -18,8 +18,7 @@ export interface ISubscription extends Document {
 
 const PLAN_LIMITS: Record<SubscriptionPlan, { projects: number; keywords: number; seats: number; dataProviderMonthlyLimit: number }> = {
   free: { projects: 1, keywords: 10, seats: 1, dataProviderMonthlyLimit: 100 },
-  starter: { projects: 5, keywords: 50, seats: 2, dataProviderMonthlyLimit: 500 },
-  professional: { projects: 20, keywords: 200, seats: 5, dataProviderMonthlyLimit: 2000 },
+  pro: { projects: 20, keywords: 200, seats: 5, dataProviderMonthlyLimit: 2000 },
   agency: { projects: 100, keywords: 1000, seats: 25, dataProviderMonthlyLimit: 10000 },
 };
 
@@ -30,7 +29,7 @@ export function getPlanLimits(plan: SubscriptionPlan) {
 const SubscriptionSchema = new Schema<ISubscription>(
   {
     ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-    plan: { type: String, enum: ['free', 'starter', 'professional', 'agency'], default: 'free' },
+    plan: { type: String, enum: ['free', 'pro', 'agency'], default: 'free' },
     status: {
       type: String,
       enum: ['active', 'canceled', 'past_due', 'incomplete'],

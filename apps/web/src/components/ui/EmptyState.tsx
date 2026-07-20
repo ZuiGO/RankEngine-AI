@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import { fadeIn } from '../../lib/motion';
 import { Card, CardBody } from './Card';
 
 interface EmptyStateProps {
@@ -24,7 +26,12 @@ export function EmptyState({ icon, title, description, action, compact }: EmptyS
   }
 
   return (
-    <div className="text-center py-24">
+    <motion.div
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
+      className="text-center py-24"
+    >
       {icon && (
         <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-slate-900 border border-slate-800 text-indigo-400 mb-4">
           {icon}
@@ -33,7 +40,7 @@ export function EmptyState({ icon, title, description, action, compact }: EmptyS
       <h2 className="text-lg font-semibold text-white mb-1">{title}</h2>
       {description && <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">{description}</p>}
       {action}
-    </div>
+    </motion.div>
   );
 }
 

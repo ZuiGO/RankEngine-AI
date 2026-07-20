@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 interface StatGaugeProps {
@@ -34,8 +35,14 @@ export function StatGauge({
   const cx = size / 2;
   const cy = size / 2;
   const circumference = 2 * Math.PI * r;
+  const [animOffset, setAnimOffset] = useState(circumference);
   const offset = circumference * (1 - score / 100);
   const delta = previous != null ? score - previous : null;
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setAnimOffset(offset));
+    return () => cancelAnimationFrame(raf);
+  }, [offset]);
 
   return (
     <div className={`flex items-center gap-5 ${cfg.bg} border ${cfg.border} rounded-2xl px-5 py-4`}>
@@ -43,10 +50,10 @@ export function StatGauge({
         <svg className="w-full h-full transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
           <circle className="stroke-slate-800" strokeWidth={strokeWidth} fill="transparent" r={r} cx={cx} cy={cy} />
           <circle
-            className="transition-all duration-700 ease-out"
+            className="transition-all duration-1000 ease-out"
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
-            strokeDashoffset={offset}
+            strokeDashoffset={animOffset}
             strokeLinecap="round"
             fill="transparent"
             r={r}
@@ -96,7 +103,7 @@ export function MiniStatGauge({ score, size = 40 }: { score: number; size?: numb
       <svg className="w-full h-full transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
         <circle className="stroke-slate-800" strokeWidth="3" fill="transparent" r={r} cx={cx} cy={cy} />
         <circle
-          className="transition-all duration-500 ease-out"
+          className="transition-all duration-700 ease-out"
           strokeWidth="3"
           strokeDasharray={circumference}
           strokeDashoffset={offset}

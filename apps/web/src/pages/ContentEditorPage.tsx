@@ -5,7 +5,7 @@ import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import api from '../lib/api';
-import { Card, CardBody, StatGauge } from '../components/ui';
+import { Card } from '../components/ui';
 
 interface GradeBreakdown {
   entityCoverage: number;

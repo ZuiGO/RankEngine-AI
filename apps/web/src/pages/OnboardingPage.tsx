@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ui';
+import { PageTransition } from '../components/PageTransition';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -150,7 +152,8 @@ export default function OnboardingPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12">
+    <PageTransition>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12">
       {/* Logo */}
       <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/30 mb-6">
         <span className="text-white font-bold text-lg">RE</span>
@@ -207,13 +210,14 @@ export default function OnboardingPage() {
                 placeholder="staging.example.com"
               />
             </div>
-            <button
+            <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm py-2.5 rounded-lg transition-all shadow-lg shadow-indigo-600/30"
+              loading={submitting}
+              className="w-full"
             >
               {submitting ? 'Creating…' : 'Start scanning'}
-            </button>
+            </Button>
           </form>
         </div>
       )}
@@ -279,13 +283,14 @@ export default function OnboardingPage() {
               </div>
 
               {createdProject && (
-                <button
+                <Button
                   onClick={handleFinish}
                   disabled={finishing}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm py-2.5 rounded-lg transition-all shadow-lg shadow-indigo-600/30 mb-3"
+                  loading={finishing}
+                  className="w-full mb-3"
                 >
                   {finishing ? 'Loading…' : 'Explore full results'}
-                </button>
+                </Button>
               )}
               <p className="text-xs text-slate-500 text-center">
                 You can run new audits and manage settings from the dashboard.
@@ -299,18 +304,19 @@ export default function OnboardingPage() {
                   : 'Audit complete! Loading your results…'}
               </p>
               {createdProject && (
-                <button
+                <Button
                   onClick={handleFinish}
-                  className="mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm py-2.5 px-5 rounded-lg transition-all"
+                  className="mt-4"
                 >
                   Go to project
-                </button>
+                </Button>
               )}
             </div>
           )}
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

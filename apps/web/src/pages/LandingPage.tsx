@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui';
+import { PageTransition } from '../components/PageTransition';
 
 const FEATURES = [
   {
@@ -63,7 +64,8 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <PageTransition>
+      <div className="min-h-screen bg-slate-950 text-white">
       {/* ── Navbar ─────────────────────────────────────────── */}
       <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -227,6 +229,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </PageTransition>
   );
 }

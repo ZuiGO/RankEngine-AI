@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 import api from '../lib/api';
-import { Card, CardBody, Badge } from '../components/ui';
+import { Card, CardBody, Badge, Button } from '../components/ui';
 
 interface BacklinkItem {
   sourceUrl: string;
@@ -315,21 +315,23 @@ export default function BacklinksPage() {
             Page {page}
           </p>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               disabled={page <= 1}
               onClick={() => handlePageChange(page - 1)}
-              className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              variant="secondary"
+              className="text-xs px-3 py-1.5"
             >
               Previous
-            </button>
+            </Button>
             <span className="text-2xs text-slate-600 tabular-nums">{page}</span>
-            <button
+            <Button
               disabled={!hasMore}
               onClick={() => handlePageChange(page + 1)}
-              className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              variant="secondary"
+              className="text-xs px-3 py-1.5"
             >
               Next
-            </button>
+            </Button>
           </div>
         </div>
       )}

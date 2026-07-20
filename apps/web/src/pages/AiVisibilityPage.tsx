@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../lib/api';
-import { Card, CardBody, StatGauge } from '../components/ui';
+import { Card, CardBody, StatGauge, Button } from '../components/ui';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -214,13 +214,14 @@ export default function AiVisibilityPage() {
               className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all"
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={submitting || !promptText.trim()}
-            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs px-5 py-2 rounded-lg transition-colors h-[34px] flex-shrink-0"
+            loading={submitting}
+            className="h-[34px] flex-shrink-0"
           >
             {submitting ? 'Adding…' : 'Add Prompt'}
-          </button>
+          </Button>
         </form>
       </Card>
 

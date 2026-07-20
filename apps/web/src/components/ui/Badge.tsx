@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import { badgePop } from '../../lib/motion';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
@@ -18,10 +20,13 @@ const variantStyles: Record<BadgeVariant, string> = {
 
 export function Badge({ children, variant = 'default', className = '' }: BadgeProps) {
   return (
-    <span
+    <motion.span
+      variants={badgePop}
+      initial="hidden"
+      animate="visible"
       className={`inline-block text-2xs font-semibold px-2.5 py-0.5 rounded-full border ${variantStyles[variant]} ${className}`}
     >
       {children}
-    </span>
+    </motion.span>
   );
 }

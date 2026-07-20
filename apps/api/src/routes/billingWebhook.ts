@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
+import Subscription from '../models/Subscription';
 import { constructWebhookEvent, parseSubscriptionMetadata } from '../services/stripeService';
 import { getPlanConfig } from '../config/plans';
 
@@ -40,6 +41,17 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
           },
         );
 
+        await Subscription.findOneAndUpdate(
+          { ownerId: (await User.findOne({ stripeCustomerId: customerId }))?._id },
+          {
+            plan: planId as any,
+            status: 'active',
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscriptionId,
+          },
+          { upsert: true },
+        );
+
         console.log(`[Webhook] checkout.session.completed: customer=${customerId}, plan=${planId}`);
         break;
       }
@@ -63,6 +75,14 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
           updateFields,
         );
 
+        await Subscription.findOneAndUpdate(
+          { stripeCustomerId: meta.customerId },
+          {
+            plan: meta.planId as any,
+            status: meta.status as string,
+          },
+        );
+
         console.log(`[Webhook] customer.subscription.updated: customer=${meta.customerId}, status=${meta.status}`);
         break;
       }
@@ -78,6 +98,15 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
             planId: 'free',
             subscriptionStatus: 'canceled',
             dataProviderMonthlyLimit: freePlan.dataProviderMonthlyLimit,
+          },
+        );
+
+        await Subscription.findOneAndUpdate(
+          { stripeCustomerId: meta.customerId },
+          {
+            plan: 'free',
+            status: 'canceled',
+            stripeSubscriptionId: null,
           },
         );
 

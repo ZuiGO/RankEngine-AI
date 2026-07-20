@@ -1,4 +1,6 @@
 import type { ReactNode, ButtonHTMLAttributes } from 'react';
+import { motion } from 'framer-motion';
+import { pressScale } from '../../lib/motion';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -28,8 +30,9 @@ export function Button({
   ...props
 }: ButtonProps) {
   return (
-    <button
+    <motion.button
       disabled={disabled || loading}
+      {...pressScale}
       className={`inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all ${variantStyles[variant]} ${className}`}
       {...props}
     >
@@ -44,6 +47,6 @@ export function Button({
         </svg>
       )}
       {children}
-    </button>
+    </motion.button>
   );
 }

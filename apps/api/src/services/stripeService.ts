@@ -40,6 +40,7 @@ export async function createCheckoutSession(
   planId: PlanId,
   successUrl: string,
   cancelUrl: string,
+  userId?: string,
 ): Promise<string> {
   const stripe = getStripe();
   const plan = getPlanConfig(planId);
@@ -54,7 +55,7 @@ export async function createCheckoutSession(
     line_items: [{ price: plan.stripePriceId, quantity: 1 }],
     success_url: successUrl,
     cancel_url: cancelUrl,
-    metadata: { planId, userId: customerId },
+    metadata: { planId, ...(userId ? { userId } : {}) },
     subscription_data: {
       metadata: { planId },
     },

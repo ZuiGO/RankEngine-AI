@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 import api from '../lib/api';
-import { Card, CardBody, Badge } from '../components/ui';
+import { Card, CardBody, Badge, Button } from '../components/ui';
 
 interface TrackedKeywordData {
   _id: string;
@@ -219,13 +219,13 @@ export default function KeywordsPage() {
                     onChange={(e) => setCompetitors(e.target.value)}
                   />
                 </div>
-                <button
+                <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-colors h-[32px] mt-auto cursor-pointer"
+                  className="h-[32px] mt-auto"
                 >
                   Track
-                </button>
+                </Button>
               </div>
             </form>
             </CardBody>

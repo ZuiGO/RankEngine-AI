@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import api from '../lib/api';
 import { UpgradeBanner } from './UpgradeBanner';
+import { pageTransition } from '../lib/motion';
 
 function Icon({ path }: { path: string }) {
   return (
@@ -489,7 +491,17 @@ export default function Layout() {
 
         {/* ─────────────── PAGE CONTENT ─────────────── */}
         <main className="flex-1 overflow-y-auto">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={pageTransition.initial}
+              animate={pageTransition.animate}
+              exit={pageTransition.exit}
+              transition={pageTransition.transition}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>
