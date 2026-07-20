@@ -19,6 +19,7 @@ import backlinksRouter from './routes/backlinks';
 import aiVisibilityRouter from './routes/aiVisibility';
 import domainOverviewRouter from './routes/domainOverview';
 import gapAnalysisRouter from './routes/gapAnalysis';
+import billingRouter from './routes/billing';
 
 const app = express();
 
@@ -89,7 +90,7 @@ app.use('/api/projects', backlinksRouter);
 app.use('/api/projects', aiVisibilityRouter);
 app.use('/api/projects', domainOverviewRouter);
 app.use('/api/projects', gapAnalysisRouter);
-
+app.use('/api/billing', billingRouter);
 
 
 

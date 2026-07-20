@@ -3,6 +3,9 @@ process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/
 process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
 process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
+process.env.SERP_API_PROVIDER = 'mock';
+process.env.SERP_API_KEY = 'mock-serp-key';
+process.env.LLM_API_KEY = 'mock-llm-key';
 
 import { _closeRedisClient } from '../src/middleware/rateLimiter';
 
