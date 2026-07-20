@@ -19,6 +19,7 @@ export type PlanFeature = keyof PlanFeatures;
 export interface PlanConfig {
   id: PlanId;
   name: string;
+  price: number;
   dataProviderMonthlyLimit: number;
   projects: number;
   keywords: number;
@@ -31,6 +32,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   free: {
     id: 'free',
     name: 'Free',
+    price: 0,
     dataProviderMonthlyLimit: 100,
     projects: 1,
     keywords: 10,
@@ -53,6 +55,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   pro: {
     id: 'pro',
     name: 'Pro',
+    price: 29,
     dataProviderMonthlyLimit: 2000,
     projects: 20,
     keywords: 200,
@@ -75,6 +78,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   agency: {
     id: 'agency',
     name: 'Agency',
+    price: 99,
     dataProviderMonthlyLimit: 10000,
     projects: 100,
     keywords: 1000,

@@ -42,6 +42,7 @@ export default function App() {
         <NotificationProvider>
           <Routes>
             <Route path="/" element={<HomeRoute />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
@@ -57,7 +58,6 @@ export default function App() {
                 <Route path="/keyword-research" element={<KeywordResearchPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/billing" element={<BillingPage />} />
-                <Route path="/pricing" element={<PricingPage />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

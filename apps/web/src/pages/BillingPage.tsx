@@ -300,9 +300,17 @@ export default function BillingPage() {
       {/* Plan comparison (Free users only) */}
       {isFree && (
         <section>
-          <h2 className="text-lg font-bold text-white mb-4">
-            Upgrade your plan
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">
+              Upgrade your plan
+            </h2>
+            <Link
+              to="/pricing"
+              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+            >
+              Compare all plans →
+            </Link>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {plans
               .filter((p) => p.id !== 'free')

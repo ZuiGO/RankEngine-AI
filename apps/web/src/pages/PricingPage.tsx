@@ -1,71 +1,117 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Card, CardBody, Button, Badge } from '../components/ui';
+import { Button, Badge } from '../components/ui';
 import api from '../lib/api';
 
-interface Plan {
+interface PlanData {
   id: string;
   name: string;
   price: number;
-  features: string[];
+  dataProviderMonthlyLimit: number;
+  projects: number;
+  keywords: number;
+  teamSeats: number;
+  features: Record<string, boolean>;
+  hasPrice: boolean;
 }
 
-const MONTHLY_FEATURES = [
-  'Site audits & migration checks',
-  'Content optimization editor with AI grading',
-  'Keyword rank tracking',
-  'Keyword research',
-  'Backlink analysis',
-  'AI visibility monitoring',
-  'Competitor gap analysis',
-  'Team collaboration',
-  'White-label PDF exports',
+const FEATURE_LABELS: Record<string, string> = {
+  audit: 'Site audits & migration checks',
+  keywordTracking: 'Keyword rank tracking',
+  backlinks: 'Backlink analysis',
+  aiVisibility: 'AI visibility monitoring',
+  domainOverview: 'Domain overview & SERP history',
+  gapAnalysis: 'Competitor gap analysis',
+  contentEditor: 'Content optimization editor with AI grading',
+  keywordResearch: 'Keyword research & discovery',
+  apiAccess: 'API access',
+  whiteLabel: 'White-label PDF exports',
+  prioritySupport: 'Priority support',
+};
+
+const FEATURE_DISPLAY_ORDER = [
+  'audit',
+  'contentEditor',
+  'keywordTracking',
+  'keywordResearch',
+  'backlinks',
+  'aiVisibility',
+  'domainOverview',
+  'gapAnalysis',
+  'apiAccess',
+  'whiteLabel',
+  'prioritySupport',
+];
+
+const QUOTA_FIELDS: { key: keyof PlanData; label: string }[] = [
+  { key: 'projects', label: 'Projects' },
+  { key: 'keywords', label: 'Tracked keywords' },
+  { key: 'teamSeats', label: 'Team seats' },
+  { key: 'dataProviderMonthlyLimit', label: 'Data API calls / mo' },
 ];
 
 export default function PricingPage() {
-  const { user } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<string>('free');
+  const [searchParams] = useSearchParams();
+  const preselected = searchParams.get('plan');
+
+  const [plans, setPlans] = useState<PlanData[]>([]);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [changing, setChanging] = useState<string | null>(null);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPlans = async () => {
       try {
-        const [{ data: plansData }, { data: subData }] = await Promise.all([
-          api.get<Plan[]>('/billing/plans'),
-          api.get<{ plan: string }>('/billing/subscription'),
-        ]);
-        setPlans(plansData);
-        setCurrentPlan(subData.plan);
+        const { data } = await api.get<PlanData[]>('/billing/plans');
+        setPlans(data);
       } catch {
-        //
+        setError('Failed to load pricing plans.');
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
 
-  const handleSelectPlan = async (planId: string) => {
-    setChanging(planId);
-    try {
-      await api.patch('/billing/subscription', { plan: planId });
-      setCurrentPlan(planId);
-    } catch {
-      //
-    } finally {
-      setChanging(null);
+    const fetchCurrentPlan = async () => {
+      if (!token) return;
+      try {
+        const { data } = await api.get<{ plan: string }>('/billing/subscription');
+        setCurrentPlan(data.plan);
+      } catch {
+        // user may not be fully authenticated yet
+      }
+    };
+
+    Promise.all([fetchPlans(), fetchCurrentPlan()]);
+  }, [token]);
+
+  const handleCta = async (planId: string) => {
+    if (!token) {
+      navigate(`/register?plan=${planId}`);
+      return;
     }
-  };
 
-  const handleGetStarted = () => {
-    if (user) {
+    if (planId === 'free') {
       navigate('/dashboard');
-    } else {
-      navigate('/register');
+      return;
+    }
+
+    // Logged-in user upgrading — go directly to Stripe checkout
+    setUpgrading(planId);
+    setError('');
+    try {
+      const { data } = await api.post<{ url: string }>(
+        '/billing/create-checkout-session',
+        { planId },
+      );
+      window.location.href = data.url;
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Failed to start checkout.');
+    } finally {
+      setUpgrading(null);
     }
   };
 
@@ -78,113 +124,188 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Pricing & Plans
-          </h1>
-          <p className="text-slate-400 text-sm mt-3 max-w-lg mx-auto">
-            Choose the plan that fits your agency's needs. All plans include a 14-day free trial.
-          </p>
+    <div className="min-h-screen bg-slate-950 text-white">
+      {/* ── Navbar ──────────────────────────────────────── */}
+      <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/30">
+              <span className="text-white font-bold text-sm">RE</span>
+            </div>
+            <span className="font-bold text-lg tracking-tight">RankEngine AI</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            {token ? (
+              <Link to="/dashboard">
+                <Button variant="secondary">Dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:inline"
+                >
+                  Sign in
+                </Link>
+                <Link to="/register">
+                  <Button>Start Free</Button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
+      </header>
 
-        {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan) => {
+      {/* ── Header ──────────────────────────────────────── */}
+      <div className="max-w-6xl mx-auto px-6 pt-20 pb-12 text-center">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+          Simple, transparent pricing
+        </h1>
+        <p className="text-slate-400 mt-4 max-w-xl mx-auto">
+          Start free. Upgrade when you need more projects, keywords, or team members.
+        </p>
+      </div>
+
+      {/* ── Error ────────────────────────────────────────── */}
+      {error && (
+        <div className="max-w-6xl mx-auto px-6 mb-8">
+          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-4 rounded-xl">
+            {error}
+          </div>
+        </div>
+      )}
+
+      {/* ── Plan cards ──────────────────────────────────── */}
+      <div className="max-w-6xl mx-auto px-6 pb-24">
+        <div className="grid md:grid-cols-3 gap-6 items-start">
+          {plans.map((plan, idx) => {
             const isCurrent = currentPlan === plan.id;
+            const isPreselected = preselected === plan.id;
             const isFree = plan.id === 'free';
+
+            const border =
+              isPreselected
+                ? 'border-indigo-500 ring-1 ring-indigo-500'
+                : plan.id === 'agency'
+                  ? 'border-violet-600/50'
+                  : 'border-slate-800';
+
+            const ctaAction = isFree
+              ? () => handleCta('free')
+              : () => handleCta(plan.id);
+
+            const ctaLabel = isFree
+              ? 'Get Started'
+              : !token
+                ? `Start ${plan.name} Free`
+                : isCurrent
+                  ? 'Current Plan'
+                  : `Upgrade to ${plan.name}`;
+
+            const ctaDisabled = (isCurrent && token) || upgrading === plan.id;
+            const ctaVariant =
+              isFree && token ? 'secondary'
+                : plan.id === 'agency'
+                  ? 'primary'
+                  : isPreselected ? 'primary' : 'secondary';
+
             return (
-              <Card
+              <div
                 key={plan.id}
-                className={`relative flex flex-col ${
-                  isCurrent ? 'border-indigo-500 ring-1 ring-indigo-500' : ''
-                }`}
+                className={`relative bg-slate-900/70 border rounded-2xl p-6 flex flex-col transition-all ${border} ${isFree ? '' : 'md:scale-105'} ${isPreselected ? 'ring-1 ring-indigo-500' : ''}`}
               >
-                <CardBody className="flex flex-col h-full">
-                  {isCurrent && (
-                    <Badge variant="info" className="absolute top-3 right-3">
-                      Current
-                    </Badge>
+                {/* Badges */}
+                <div className="flex items-center gap-2 mb-4">
+                  {isCurrent && token && (
+                    <Badge variant="info" className="text-xs">Current</Badge>
                   )}
+                  {isPreselected && !isCurrent && (
+                    <Badge variant="success" className="text-xs">Selected</Badge>
+                  )}
+                  {plan.id === 'agency' && (
+                    <Badge variant="success" className="text-xs">Best Value</Badge>
+                  )}
+                </div>
 
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-                    <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold text-white">
-                        ${plan.price}
-                      </span>
-                      <span className="text-slate-500 text-sm">/mo</span>
-                    </div>
-                  </div>
+                {/* Name + Price */}
+                <h2 className="text-xl font-bold">{plan.name}</h2>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold">${plan.price}</span>
+                  <span className="text-slate-500 text-sm">/ month</span>
+                </div>
 
-                  <ul className="space-y-2.5 mb-8 flex-1">
-                    {plan.features.map((f) => (
-                      <li key={f} className="text-xs text-slate-400 flex items-start gap-2">
-                        <svg className="h-4 w-4 text-emerald-400 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                {/* Quota stats */}
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  {QUOTA_FIELDS.map(({ key, label }) => {
+                    const val = plan[key] as number;
+                    return (
+                      <div key={key} className="bg-slate-950 rounded-lg p-2.5 text-center">
+                        <p className="text-base font-bold text-white">
+                          {val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}
+                        </p>
+                        <p className="text-2xs text-slate-500 leading-tight">{label}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Feature list */}
+                <ul className="mt-6 space-y-2.5 flex-1">
+                  {FEATURE_DISPLAY_ORDER.map((key) => {
+                    const enabled = plan.features[key];
+                    const label = FEATURE_LABELS[key];
+                    return (
+                      <li
+                        key={key}
+                        className={`text-xs flex items-start gap-2 ${enabled ? 'text-slate-300' : 'text-slate-600 line-through'}`}
+                      >
+                        <svg
+                          className={`h-4 w-4 mt-0.5 flex-shrink-0 ${enabled ? 'text-emerald-400' : 'text-slate-700'}`}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d={enabled ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'} />
                         </svg>
-                        {f}
+                        {label}
                       </li>
-                    ))}
-                    <li className="text-xs text-slate-400 flex items-start gap-2">
-                      <svg className="h-4 w-4 text-emerald-400 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      All RankEngine features
-                    </li>
-                  </ul>
+                    );
+                  })}
+                </ul>
 
-                  {isFree ? (
-                    <Button
-                      variant="secondary"
-                      onClick={handleGetStarted}
-                      className="w-full"
-                    >
-                      Get Started
-                    </Button>
-                  ) : isCurrent ? (
-                    <Button variant="ghost" disabled className="w-full">
-                      Current Plan
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="primary"
-                      loading={changing === plan.id}
-                      onClick={() => handleSelectPlan(plan.id)}
-                      className="w-full"
-                    >
-                      {changing === plan.id ? 'Updating…' : 'Select Plan'}
-                    </Button>
-                  )}
-                </CardBody>
-              </Card>
+                {/* CTA */}
+                <Button
+                  variant={ctaVariant as 'primary' | 'secondary'}
+                  disabled={ctaDisabled}
+                  loading={upgrading === plan.id}
+                  onClick={ctaAction}
+                  className={`w-full mt-8 ${plan.id === 'agency' ? 'shadow-xl shadow-violet-600/30' : ''}`}
+                >
+                  {upgrading === plan.id ? 'Redirecting…' : ctaLabel}
+                </Button>
+              </div>
             );
           })}
         </div>
-
-        {/* Feature comparison */}
-        <Card className="mt-16">
-          <CardBody>
-            <h2 className="text-lg font-bold text-white mb-6 text-center">
-              Everything included across all plans
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {MONTHLY_FEATURES.map((feature) => (
-                <div key={feature} className="flex items-center gap-3 bg-slate-950 rounded-lg p-3">
-                  <div className="h-8 w-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                    <svg className="h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-xs text-slate-300 font-medium">{feature}</span>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
       </div>
+
+      {/* ── Footer ──────────────────────────────────────── */}
+      <footer className="border-t border-slate-800/60">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="inline-flex items-center justify-center h-6 w-6 rounded bg-gradient-to-tr from-indigo-600 to-indigo-500">
+              <span className="text-white font-bold text-[10px]">RE</span>
+            </div>
+            RankEngine AI
+          </div>
+          <div className="flex items-center gap-6 text-xs text-slate-600">
+            <span>&copy; {new Date().getFullYear()} RankEngine AI</span>
+            <Link to="/" className="hover:text-slate-400 transition-colors">Home</Link>
+            <Link to="/login" className="hover:text-slate-400 transition-colors">Sign in</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

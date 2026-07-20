@@ -15,13 +15,12 @@ import {
 
 const router = Router();
 
-router.use(requireAuth);
-
-// GET /api/billing/plans
+// GET /api/billing/plans (public — no auth required)
 router.get('/plans', (_req: Request, res: Response) => {
   const plans = Object.values(PLANS).map((p) => ({
     id: p.id,
     name: p.name,
+    price: p.price,
     dataProviderMonthlyLimit: p.dataProviderMonthlyLimit,
     projects: p.projects,
     keywords: p.keywords,
@@ -31,6 +30,8 @@ router.get('/plans', (_req: Request, res: Response) => {
   }));
   res.json(plans);
 });
+
+router.use(requireAuth);
 
 // GET /api/billing/subscription
 router.get('/subscription', async (req: Request, res: Response) => {

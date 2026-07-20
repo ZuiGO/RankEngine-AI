@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../lib/api';
 
 const ROLE_OPTIONS = [
   { value: 'agency_owner', label: 'Agency Owner' },
@@ -11,9 +12,17 @@ const ROLE_OPTIONS = [
 
 type Role = (typeof ROLE_OPTIONS)[number]['value'];
 
+const PLAN_LABELS: Record<string, string> = {
+  pro: 'Pro',
+  agency: 'Agency',
+};
+
 export default function RegisterPage() {
   const { register, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planParam = searchParams.get('plan');
+  const planName = planParam ? PLAN_LABELS[planParam] ?? null : null;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +38,17 @@ export default function RegisterPage() {
     try {
       await register(email, password, role, companyName);
       await refreshProfile();
+
+      // If a paid plan was pre-selected, redirect to Stripe checkout
+      if (planParam && planParam !== 'free') {
+        const { data } = await api.post<{ url: string }>(
+          '/billing/create-checkout-session',
+          { planId: planParam },
+        );
+        window.location.href = data.url;
+        return;
+      }
+
       navigate('/dashboard');
     } catch (err: any) {
       const details = err?.response?.data?.details;
@@ -44,6 +64,10 @@ export default function RegisterPage() {
     }
   };
 
+  const subText = planName
+    ? `You're signing up for the ${planName} plan`
+    : 'Start ranking smarter with AI';
+
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
@@ -53,7 +77,7 @@ export default function RegisterPage() {
             <span className="text-white font-bold text-lg">RE</span>
           </div>
           <h1 className="text-2xl font-bold text-white">Create your account</h1>
-          <p className="text-slate-400 text-sm mt-1">Start ranking smarter with AI</p>
+          <p className="text-slate-400 text-sm mt-1">{subText}</p>
         </div>
 
         <form
@@ -142,6 +166,13 @@ export default function RegisterPage() {
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>
+
+          {planName && (
+            <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs p-3 rounded-lg text-center">
+              After creating your account, you'll be redirected to set up your{' '}
+              <span className="font-semibold text-indigo-200">{planName}</span> subscription.
+            </div>
+          )}
 
           <p className="text-center text-xs text-slate-500">
             Already have an account?{' '}
