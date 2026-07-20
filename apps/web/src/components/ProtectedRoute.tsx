@@ -1,15 +1,10 @@
 import { useEffect } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-/**
- * Wraps a group of routes that require authentication.
- * Redirects to /login when no JWT token is present.
- * Redirects to /onboarding if the user hasn't completed onboarding.
- * Use as: <Route element={<ProtectedRoute />}> ... </Route>
- */
 export default function ProtectedRoute() {
   const { token, profile, refreshProfile } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     if (token && !profile) {
@@ -22,10 +17,11 @@ export default function ProtectedRoute() {
   }
 
   if (!profile) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#020617', color: '#94a3b8', fontFamily: 'system-ui, sans-serif' }}>Loading profile…</div>;
+    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm">Loading…</div>;
   }
 
-  if (!profile.hasCompletedOnboarding) {
+  // Don't redirect if already on onboarding — let the child route render
+  if (!profile.hasCompletedOnboarding && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 
