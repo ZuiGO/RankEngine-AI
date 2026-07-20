@@ -3,6 +3,7 @@ import { z } from 'zod';
 import mongoose from 'mongoose';
 import requireAuth from '../middleware/requireAuth';
 import { Project } from '../models/Project';
+import BacklinkSnapshot from '../models/BacklinkSnapshot';
 import {
   getBacklinkOverview,
   getBacklinkList,
@@ -10,38 +11,120 @@ import {
 } from '../services/dataProviderService';
 
 const router = Router();
-
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
-// GET /api/projects/:id/backlinks/overview?domain=...
+const getDateBucket = (date: Date = new Date()): string => date.toISOString().split('T')[0];
+
+const isCacheFresh = (cachedAt: Date, ttlMs: number): boolean =>
+  Date.now() - cachedAt.getTime() < ttlMs;
+
+const CACHE_TTL_SNAPSHOT = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+// ── Toxic link config ──────────────────────────────────────────────────────
+
+const SPAM_ANCHOR_PATTERNS = [
+  'casino',
+  'gambling',
+  'bet',
+  'poker',
+  'slot',
+  'pharmacy',
+  'pharma',
+  'viagra',
+  'cialis',
+  'levitra',
+  'adult',
+  'porn',
+  'xxx',
+  'escort',
+  'payday loan',
+  'quick cash',
+  'debt consolidation',
+  'free money',
+  'work from home',
+  'make money fast',
+  'click here',
+  'buy now',
+  'cheap',
+];
+
+const SPAM_SCORE_THRESHOLD = 60;
+
+const isToxic = (spamScore: number, anchorText: string): boolean => {
+  if (spamScore > SPAM_SCORE_THRESHOLD) return true;
+  const lower = anchorText.toLowerCase();
+  return SPAM_ANCHOR_PATTERNS.some((pattern) => lower.includes(pattern));
+};
+
+// ── Middleware: resolve and own-project-check ───────────────────────────────
+
+const resolveProject = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return null;
+  }
+  const { id } = req.params;
+  if (!isValidObjectId(id)) {
+    res.status(400).json({ error: 'Invalid project ID format' });
+    return null;
+  }
+  const project = await Project.findOne({ _id: id, deletedAt: null });
+  if (!project) {
+    res.status(404).json({ error: 'Project not found' });
+    return null;
+  }
+  if (project.ownerId.toString() !== req.user.userId) {
+    res.status(403).json({ error: 'Forbidden: You do not own this project' });
+    return null;
+  }
+  return project;
+};
+
+// GET /api/projects/:id/backlinks/overview
 router.get('/:id/backlinks/overview', requireAuth, async (req: Request, res: Response) => {
   try {
-    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    const project = await resolveProject(req, res);
+    if (!project) return;
 
-    const { id } = req.params;
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ error: 'Invalid project ID format' });
-    }
+    const today = getDateBucket();
 
-    const project = await Project.findOne({ _id: id, deletedAt: null });
-    if (!project) return res.status(404).json({ error: 'Project not found' });
-    if (project.ownerId.toString() !== req.user.userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
-    }
-
-    const schema = z.object({
-      domain: z.string().min(1).max(500),
+    // Check snapshot cache first
+    const cached = await BacklinkSnapshot.findOne({
+      projectId: project._id,
+      date: today,
     });
-    const validation = schema.safeParse(req.query);
-    if (!validation.success) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        details: validation.error.flatten().fieldErrors,
+    if (cached && isCacheFresh(cached.cachedAt, CACHE_TTL_SNAPSHOT)) {
+      return res.json({
+        totalBacklinks: cached.totalBacklinks,
+        referringDomains: cached.referringDomains,
+        authorityScore: cached.authorityScore,
       });
     }
 
-    const data = await getBacklinkOverview(req.user.userId, validation.data.domain);
-    return res.json(data);
+    // Fetch fresh data
+    const data = await getBacklinkOverview(req.user!.userId, project.domain);
+
+    const authorityScore = data.domainRating;
+
+    // Upsert snapshot
+    await BacklinkSnapshot.findOneAndUpdate(
+      { projectId: project._id, date: today },
+      {
+        projectId: project._id,
+        date: today,
+        totalBacklinks: data.totalBacklinks,
+        referringDomains: data.referringDomains,
+        authorityScore,
+        cachedAt: new Date(),
+      },
+      { upsert: true, new: true }
+    );
+
+    return res.json({
+      totalBacklinks: data.totalBacklinks,
+      referringDomains: data.referringDomains,
+      authorityScore,
+    });
   } catch (error) {
     if (error instanceof DataProviderQuotaError) {
       return res.status(429).json({
@@ -54,24 +137,14 @@ router.get('/:id/backlinks/overview', requireAuth, async (req: Request, res: Res
   }
 });
 
-// GET /api/projects/:id/backlinks/list?domain=...&limit=...
+// GET /api/projects/:id/backlinks/list?page=1
 router.get('/:id/backlinks/list', requireAuth, async (req: Request, res: Response) => {
   try {
-    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-
-    const { id } = req.params;
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ error: 'Invalid project ID format' });
-    }
-
-    const project = await Project.findOne({ _id: id, deletedAt: null });
-    if (!project) return res.status(404).json({ error: 'Project not found' });
-    if (project.ownerId.toString() !== req.user.userId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
-    }
+    const project = await resolveProject(req, res);
+    if (!project) return;
 
     const schema = z.object({
-      domain: z.string().min(1).max(500),
+      page: z.coerce.number().min(1).default(1),
       limit: z.coerce.number().min(1).max(1000).default(100),
     });
     const validation = schema.safeParse(req.query);
@@ -82,9 +155,21 @@ router.get('/:id/backlinks/list', requireAuth, async (req: Request, res: Respons
       });
     }
 
-    const { domain, limit } = validation.data;
-    const items = await getBacklinkList(req.user.userId, domain, limit);
-    return res.json(items);
+    const { page, limit } = validation.data;
+    const offset = (page - 1) * limit;
+
+    const items = await getBacklinkList(req.user!.userId, project.domain, limit, offset);
+
+    const enriched = items.map((item) => ({
+      ...item,
+      toxic: isToxic(item.spamScore, item.anchorText),
+    }));
+
+    return res.json({
+      page,
+      limit,
+      items: enriched,
+    });
   } catch (error) {
     if (error instanceof DataProviderQuotaError) {
       return res.status(429).json({

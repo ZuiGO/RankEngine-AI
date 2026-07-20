@@ -8,6 +8,7 @@ import DomainOverviewCache from '../models/DomainOverviewCache';
 // ─── Public types ──────────────────────────────────────────────────────────
 
 export interface KeywordData {
+  keyword?: string;
   searchVolume: number;
   difficulty: number;
   cpc: number;
@@ -62,7 +63,7 @@ export interface IDataProvider {
   fetchKeywordData(keywords: string[], locationCode?: string): Promise<KeywordData[]>;
   fetchKeywordIdeas(keyword: string, locationCode?: string): Promise<KeywordData[]>;
   fetchBacklinkOverview(domain: string): Promise<BacklinkOverview>;
-  fetchBacklinkList(domain: string, limit: number): Promise<BacklinkItem[]>;
+  fetchBacklinkList(domain: string, limit: number, offset: number): Promise<BacklinkItem[]>;
   fetchDomainOverview(domain: string): Promise<DomainOverview>;
 }
 
@@ -71,6 +72,7 @@ export interface IDataProvider {
 export class MockDataProvider implements IDataProvider {
   async fetchKeywordData(keywords: string[], _locationCode?: string): Promise<KeywordData[]> {
     return keywords.map((kw) => ({
+      keyword: kw,
       searchVolume: Math.floor(Math.random() * 5000) + 100,
       difficulty: Math.floor(Math.random() * 100),
       cpc: parseFloat((Math.random() * 10).toFixed(2)),
@@ -123,6 +125,7 @@ export class MockDataProvider implements IDataProvider {
     ];
     for (const mod of modifiers) {
       ideas.push({
+        keyword: `${keyword} ${mod}`,
         searchVolume: Math.floor(Math.random() * 5000) + 50,
         difficulty: Math.floor(Math.random() * 100),
         cpc: parseFloat((Math.random() * 10).toFixed(2)),
@@ -136,7 +139,7 @@ export class MockDataProvider implements IDataProvider {
     return ideas.slice(0, 30);
   }
 
-  async fetchBacklinkOverview(domain: string): Promise<BacklinkOverview> {
+  async fetchBacklinkOverview(_domain: string): Promise<BacklinkOverview> {
     return {
       totalBacklinks: Math.floor(Math.random() * 50000) + 100,
       referringDomains: Math.floor(Math.random() * 2000) + 10,
@@ -144,11 +147,16 @@ export class MockDataProvider implements IDataProvider {
     };
   }
 
-  async fetchBacklinkList(domain: string, limit: number): Promise<BacklinkItem[]> {
-    return Array.from({ length: Math.min(limit, 20) }, (_, i) => ({
-      sourceUrl: `https://referrer-${i + 1}.com/article`,
+  async fetchBacklinkList(
+    domain: string,
+    limit: number,
+    offset: number = 0
+  ): Promise<BacklinkItem[]> {
+    const count = Math.min(limit, 20);
+    return Array.from({ length: count }, (_, i) => ({
+      sourceUrl: `https://referrer-${offset + i + 1}.com/article`,
       targetUrl: `https://${domain}/page`,
-      anchorText: `anchor text ${i + 1}`,
+      anchorText: `anchor text ${offset + i + 1}`,
       firstSeen: new Date(Date.now() - Math.random() * 365 * 86400000).toISOString().split('T')[0],
       spamScore: Math.floor(Math.random() * 100),
     }));
@@ -231,6 +239,7 @@ export class DataForSEOProvider implements IDataProvider {
       throw new Error('DataForSEO keyword data returned no result');
     }
     return result.items.map((item) => ({
+      keyword: item.keyword,
       searchVolume: item.search_volume ?? 0,
       difficulty: Math.round((item.competition ?? 0) * 100),
       cpc: item.cpc ?? 0,
@@ -274,6 +283,7 @@ export class DataForSEOProvider implements IDataProvider {
     );
     const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
     return items.map((item) => ({
+      keyword: item.keyword,
       searchVolume: item.search_volume ?? 0,
       difficulty: Math.round((item.competition ?? 0) * 100),
       cpc: item.cpc ?? 0,
@@ -295,7 +305,11 @@ export class DataForSEOProvider implements IDataProvider {
     };
   }
 
-  async fetchBacklinkList(domain: string, limit: number): Promise<BacklinkItem[]> {
+  async fetchBacklinkList(
+    domain: string,
+    limit: number,
+    offset: number = 0
+  ): Promise<BacklinkItem[]> {
     const response = await axios.post<{
       tasks: {
         result: {
@@ -308,7 +322,7 @@ export class DataForSEOProvider implements IDataProvider {
           }[];
         }[];
       }[];
-    }>(`${DATAFORSEO_BASE}/v3/backlinks/backlinks/live`, [{ target: domain, limit, offset: 0 }], {
+    }>(`${DATAFORSEO_BASE}/v3/backlinks/backlinks/live`, [{ target: domain, limit, offset }], {
       headers: {
         Authorization: this.authHeader,
         'Content-Type': 'application/json',
@@ -538,15 +552,13 @@ export const getBacklinkOverview = async (
 export const getBacklinkList = async (
   userId: string,
   domain: string,
-  limit: number = 100
+  limit: number = 100,
+  offset: number = 0
 ): Promise<BacklinkItem[]> => {
-  const now = new Date();
-  const dateBucket = getDateBucket(now);
-
   await checkAndIncrementQuota(userId, 'backlinkList', false);
 
   const provider = getDataProvider();
-  const items = await provider.fetchBacklinkList(domain, limit);
+  const items = await provider.fetchBacklinkList(domain, limit, offset);
 
   return items;
 };

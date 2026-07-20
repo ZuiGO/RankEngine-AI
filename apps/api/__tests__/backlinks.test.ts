@@ -1,0 +1,227 @@
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+import express from 'express';
+import request from 'supertest';
+
+jest.setTimeout(60000);
+
+// Mock BullMQ
+jest.mock('bullmq', () => {
+  return {
+    Queue: jest.fn().mockImplementation(() => ({
+      add: jest.fn().mockResolvedValue({ id: 'mock-job-id' }),
+      close: jest.fn().mockResolvedValue(undefined),
+    })),
+    Worker: jest.fn(),
+    QueueEvents: jest.fn().mockImplementation(() => ({
+      on: jest.fn(),
+      close: jest.fn().mockResolvedValue(undefined),
+    })),
+  };
+});
+
+let mongoServer: MongoMemoryServer;
+
+process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_placeholder';
+process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
+process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
+process.env.DATAFORSEO_LOGIN = '';
+process.env.DATAFORSEO_PASSWORD = '';
+process.env.NODE_ENV = 'test';
+
+const User = require('../src/models/User').default;
+const Project = require('../src/models/Project').default;
+
+// We'll mock getBacklinkList to return deterministic data
+const mockGetBacklinkList = jest.fn();
+
+jest.mock('../src/services/dataProviderService', () => {
+  const actual = jest.requireActual('../src/services/dataProviderService');
+  return {
+    ...actual,
+    getBacklinkList: (...args: any[]) => mockGetBacklinkList(...args),
+  };
+});
+
+const { app } = require('../src/app');
+
+let testUser: any;
+let testProject: any;
+let token: string;
+
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  process.env.MONGODB_URI = uri;
+
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+  await mongoose.connect(uri);
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
+});
+
+beforeEach(async () => {
+  const collections = mongoose.connection.collections;
+  for (const key in collections) {
+    await collections[key].deleteMany({});
+  }
+
+  testUser = await User.create({
+    email: 'backlink@test.com',
+    passwordHash: '$2b$10$mockhash',
+    role: 'agency_owner',
+    companyName: 'Test Co',
+    dataProviderCallsThisMonth: 0,
+    dataProviderMonthlyLimit: 500,
+    dataProviderQuotaResetAt: new Date(Date.UTC(2099, 0, 1)),
+  });
+
+  token = jwt.sign(
+    { userId: testUser._id.toString(), role: testUser.role },
+    process.env.JWT_SECRET!,
+    { expiresIn: '1h' }
+  );
+
+  testProject = await Project.create({
+    name: 'Test Project',
+    domain: 'example.com',
+    ownerId: testUser._id,
+  });
+});
+
+describe('Backlinks — toxic flag', () => {
+  it('marks backlinks as toxic when spamScore exceeds threshold or anchor matches spam pattern', async () => {
+    mockGetBacklinkList.mockResolvedValue([
+      {
+        sourceUrl: 'https://good-site.com/article',
+        targetUrl: 'https://example.com/page',
+        anchorText: 'useful resource',
+        firstSeen: '2025-01-15',
+        spamScore: 10,
+      },
+      {
+        sourceUrl: 'https://spammy-casino.com',
+        targetUrl: 'https://example.com/page',
+        anchorText: 'best casino bonuses',
+        firstSeen: '2025-01-16',
+        spamScore: 30,
+      },
+      {
+        sourceUrl: 'https://pharma-pills.com',
+        targetUrl: 'https://example.com/page',
+        anchorText: 'cheap viagra online',
+        firstSeen: '2025-01-17',
+        spamScore: 5,
+      },
+      {
+        sourceUrl: 'https://high-spam-score.com',
+        targetUrl: 'https://example.com/page',
+        anchorText: 'normal anchor text',
+        firstSeen: '2025-01-18',
+        spamScore: 85,
+      },
+      {
+        sourceUrl: 'https://borderline.com',
+        targetUrl: 'https://example.com/page',
+        anchorText: 'click here for info',
+        firstSeen: '2025-01-19',
+        spamScore: 45,
+      },
+    ]);
+
+    const res = await request(app)
+      .get(`/api/projects/${testProject._id}/backlinks/list?page=1&limit=100`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(res.body).toHaveProperty('items');
+    expect(res.body.items).toHaveLength(5);
+
+    // spamScore 10, normal anchor → NOT toxic
+    expect(res.body.items[0].toxic).toBe(false);
+
+    // spamScore 30, but anchor "best casino bonuses" matches "casino" → TOXIC
+    expect(res.body.items[1].toxic).toBe(true);
+
+    // spamScore 5, but anchor "cheap viagra online" matches "viagra" → TOXIC
+    expect(res.body.items[2].toxic).toBe(true);
+
+    // spamScore 85 > 60 → TOXIC
+    expect(res.body.items[3].toxic).toBe(true);
+
+    // spamScore 45, "click here" matches pattern → TOXIC
+    expect(res.body.items[4].toxic).toBe(true);
+  });
+
+  it('returns 403 for non-owner projects', async () => {
+    const otherUser = await User.create({
+      email: 'other@test.com',
+      passwordHash: '$2b$10$mockhash',
+      role: 'developer',
+      companyName: 'Other Co',
+    });
+
+    const otherProject = await Project.create({
+      name: 'Other Project',
+      domain: 'other.com',
+      ownerId: otherUser._id,
+    });
+
+    await request(app)
+      .get(`/api/projects/${otherProject._id}/backlinks/list?page=1`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(403);
+  });
+
+  it('returns 429 when quota is exhausted', async () => {
+    await User.findByIdAndUpdate(testUser._id, {
+      dataProviderCallsThisMonth: 500,
+      dataProviderMonthlyLimit: 500,
+    });
+
+    // Mock must throw for fresh calls (list is never cached)
+    mockGetBacklinkList.mockRejectedValue(
+      new (require('../src/services/dataProviderService').DataProviderQuotaError)(
+        'Quota exceeded',
+        86400000
+      )
+    );
+
+    const res = await request(app)
+      .get(`/api/projects/${testProject._id}/backlinks/list?page=1`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(429);
+
+    expect(res.body).toHaveProperty('retryAfterMs');
+  });
+
+  it('returns overview with snapshot caching', async () => {
+    // First call — no snapshot, goes via service
+    const res1 = await request(app)
+      .get(`/api/projects/${testProject._id}/backlinks/overview`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(res1.body).toHaveProperty('totalBacklinks');
+    expect(res1.body).toHaveProperty('referringDomains');
+    expect(res1.body).toHaveProperty('authorityScore');
+    expect(typeof res1.body.totalBacklinks).toBe('number');
+
+    // Second call should hit snapshot cache with same data shape
+    const res2 = await request(app)
+      .get(`/api/projects/${testProject._id}/backlinks/overview`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(res2.body).toHaveProperty('totalBacklinks');
+    expect(res2.body).toHaveProperty('referringDomains');
+    expect(res2.body).toHaveProperty('authorityScore');
+  });
+});
