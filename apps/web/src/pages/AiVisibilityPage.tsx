@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../lib/api';
+import { Card, CardBody, StatGauge } from '../components/ui';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -34,18 +35,6 @@ const ENGINES: { key: string; label: string }[] = [
   { key: 'perplexity', label: 'Perplexity' },
   { key: 'google_aio', label: 'Google AI Overview' },
 ];
-
-const SCORE_CONFIG = {
-  red: { stroke: '#f43f5e', bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400' },
-  yellow: { stroke: '#fbbf24', bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400' },
-  green: { stroke: '#34d399', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400' },
-};
-
-function getScoreConfig(score: number) {
-  if (score < 50) return SCORE_CONFIG.red;
-  if (score < 80) return SCORE_CONFIG.yellow;
-  return SCORE_CONFIG.green;
-}
 
 // ── Component ──────────────────────────────────────────────────────────────
 
@@ -112,10 +101,6 @@ export default function AiVisibilityPage() {
   }
 
   const score = data?.visibilityScore ?? 0;
-  const cfg = getScoreConfig(score);
-  const radius = 54;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - score / 100);
 
   const prompts = data?.prompts ?? [];
 
@@ -170,66 +155,42 @@ export default function AiVisibilityPage() {
 
       {/* Score + engine breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Big visibility score */}
-        <div className={`${cfg.bg} ${cfg.border} border rounded-2xl px-6 py-5 shadow-xl flex items-center gap-6`}>
-          <div className="relative w-28 h-28 flex-shrink-0">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-              <circle className="stroke-slate-800" strokeWidth="8" fill="transparent" r={radius} cx="60" cy="60" />
-              <circle
-                className="transition-all duration-700 ease-out"
-                strokeWidth="8"
-                strokeDasharray={circumference}
-                strokeDashoffset={offset}
-                strokeLinecap="round"
-                fill="transparent"
-                r={radius}
-                cx="60"
-                cy="60"
-                style={{ stroke: cfg.stroke }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-extrabold text-white">{score}</span>
-              <span className="text-[10px] text-slate-500 uppercase font-semibold -mt-0.5">Visibility</span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-base font-bold text-white">AI Visibility Score</p>
-            <p className={`text-xs mt-1 ${cfg.text}`}>
-              {score >= 80 ? 'Your brand is well represented across AI platforms.' :
-               score >= 50 ? 'Moderate AI presence — opportunities to improve.' :
-               'Low AI visibility — consider adding more content that AI assistants can reference.'}
-            </p>
-          </div>
-        </div>
+        <StatGauge score={score} size={112} label="Visibility">
+          <p className="text-base font-bold text-white">AI Visibility Score</p>
+          <p className="text-xs mt-1">
+            {score >= 80 ? 'Your brand is well represented across AI platforms.' :
+             score >= 50 ? 'Moderate AI presence — opportunities to improve.' :
+             'Low AI visibility — consider adding more content that AI assistants can reference.'}
+          </p>
+        </StatGauge>
 
-        {/* Engine breakdown cards */}
         {engineStats.map((eng) => {
           const pct = eng.total > 0 ? Math.round((eng.mentioned / eng.total) * 100) : 0;
-          const eCfg = getScoreConfig(pct);
           return (
-            <div key={eng.key} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-              <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-2">
-                {eng.label}
-              </p>
-              <p className={`text-2xl font-bold tabular-nums ${eCfg.text}`}>
-                {eng.mentioned}
-                <span className="text-slate-500 text-base font-normal"> / {eng.total}</span>
-              </p>
-              <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${eng.total === 0 ? 'bg-slate-700' : eCfg.text.replace('text-', 'bg-')}`}
-                  style={{ width: `${eng.total > 0 ? pct : 0}%` }}
-                />
-              </div>
-              <p className="text-2xs text-slate-500 mt-1">{pct}% mention rate</p>
-            </div>
+            <Card key={eng.key} className="p-5">
+              <CardBody>
+                <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-2">
+                  {eng.label}
+                </p>
+                <p className="text-2xl font-bold tabular-nums text-white">
+                  {eng.mentioned}
+                  <span className="text-slate-500 text-base font-normal"> / {eng.total}</span>
+                </p>
+                <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${pct >= 80 ? 'bg-emerald-400' : pct >= 50 ? 'bg-amber-400' : pct === 0 ? 'bg-slate-700' : 'bg-rose-500'}`}
+                    style={{ width: `${eng.total > 0 ? pct : 0}%` }}
+                  />
+                </div>
+                <p className="text-2xs text-slate-500 mt-1">{pct}% mention rate</p>
+              </CardBody>
+            </Card>
           );
         })}
       </div>
 
       {/* Add prompt form */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl mb-8">
+      <Card className="p-5 mb-8">
         <h3 className="text-sm font-bold text-white mb-4">Track a New Prompt</h3>
         <form onSubmit={handleAddPrompt} className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex-1 w-full">
@@ -261,7 +222,7 @@ export default function AiVisibilityPage() {
             {submitting ? 'Adding…' : 'Add Prompt'}
           </button>
         </form>
-      </div>
+      </Card>
 
       {/* Tracked prompts table */}
       <h3 className="text-sm font-bold text-white mb-4">
@@ -269,11 +230,13 @@ export default function AiVisibilityPage() {
       </h3>
 
       {prompts.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-xl">
-          <p className="text-slate-500 text-sm">No prompts tracked yet. Add one above to start monitoring AI visibility.</p>
-        </div>
+        <Card className="p-8">
+          <CardBody className="text-center">
+            <p className="text-slate-500 text-sm">No prompts tracked yet. Add one above to start monitoring AI visibility.</p>
+          </CardBody>
+        </Card>
       ) : (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <Card className="shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
@@ -371,7 +334,7 @@ export default function AiVisibilityPage() {
               );
             })}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

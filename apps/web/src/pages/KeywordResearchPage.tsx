@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 
 interface KeywordResult {
   keyword: string;
@@ -29,20 +30,17 @@ type SortOrder = 'asc' | 'desc';
 const INTENT_STYLES: Record<string, string> = {
   informational: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
   navigational: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-  commercial: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  transactional: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
 };
 
-function difficultyColor(score: number): string {
-  if (score < 30) return 'text-emerald-400';
-  if (score <= 60) return 'text-amber-400';
-  return 'text-rose-500';
-}
+const INTENT_VARIANTS: Record<string, 'success' | 'warning' | 'default'> = {
+  commercial: 'warning',
+  transactional: 'success',
+};
 
-function difficultyBg(score: number): string {
-  if (score < 30) return 'bg-emerald-500/10 border-emerald-500/20';
-  if (score <= 60) return 'bg-amber-500/10 border-amber-500/20';
-  return 'bg-rose-500/10 border-rose-500/20';
+function difficultyVariant(score: number): 'success' | 'warning' | 'danger' {
+  if (score < 30) return 'success';
+  if (score <= 60) return 'warning';
+  return 'danger';
 }
 
 export default function KeywordResearchPage() {
@@ -198,23 +196,14 @@ export default function KeywordResearchPage() {
             placeholder="Enter a seed keyword, e.g. SEO tools..."
             className="flex-1 bg-transparent px-4 py-3 text-base text-white placeholder-slate-600 outline-none"
           />
-          <button
+          <Button
             onClick={handleSearch}
             disabled={loading || !seedKeyword.trim()}
-            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors"
+            loading={loading}
+            className="px-6 py-3"
           >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Searching…
-              </span>
-            ) : (
-              'Search'
-            )}
-          </button>
+            {loading ? 'Searching…' : 'Search'}
+          </Button>
         </div>
         {error && (
           <div className="mt-4 max-w-2xl mx-auto bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-3 rounded-lg">
@@ -227,7 +216,7 @@ export default function KeywordResearchPage() {
         {/* Main: Results table */}
         <div className="lg:col-span-8 space-y-6">
           {sorted.length > 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+            <Card className="overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-300">
                   <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
@@ -261,25 +250,21 @@ export default function KeywordResearchPage() {
                           {formatNumber(row.searchVolume)}
                         </td>
                         <td className="p-4 text-right">
-                          <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${difficultyBg(row.difficulty)} ${difficultyColor(row.difficulty)}`}
-                          >
+                          <Badge variant={difficultyVariant(row.difficulty)} className="text-xs">
                             {row.difficulty}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="p-4 text-right font-mono tabular-nums text-slate-300">
                           ${row.cpc.toFixed(2)}
                         </td>
                         <td className="p-4 text-center">
                           {row.intent ? (
-                            <span
-                              className={`inline-block px-2.5 py-0.5 rounded-full text-2xs font-semibold border capitalize ${
-                                INTENT_STYLES[row.intent.toLowerCase()] ??
-                                'bg-slate-800 text-slate-400 border-slate-700'
-                              }`}
+                            <Badge
+                              variant={INTENT_VARIANTS[row.intent.toLowerCase()] ?? 'default'}
+                              className={`capitalize ${INTENT_STYLES[row.intent.toLowerCase()] ?? ''}`}
                             >
                               {row.intent}
-                            </span>
+                            </Badge>
                           ) : (
                             <span className="text-slate-600">—</span>
                           )}
@@ -299,13 +284,13 @@ export default function KeywordResearchPage() {
                                 ))}
                               </select>
                             )}
-                            <button
+                            <Button
                               onClick={() => handleTrack(row.keyword)}
                               disabled={trackingKeyword === row.keyword || !pickerProject}
-                              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-2xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                              className="text-2xs px-3 py-1.5"
                             >
                               {trackingKeyword === row.keyword ? '…' : 'Track'}
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -313,60 +298,62 @@ export default function KeywordResearchPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </Card>
           )}
 
           {!loading && results.length === 0 && (
-            <div className="text-center py-16">
-              <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 mb-4">
+            <EmptyState
+              icon={
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              </div>
-              <p className="text-slate-500 text-sm">
-                Enter a seed keyword above to discover related terms with full SEO metrics.
-              </p>
-            </div>
+              }
+              title="Enter a seed keyword above to discover related terms with full SEO metrics."
+            />
           )}
         </div>
 
         {/* Sidebar: Recent searches */}
         <div className="lg:col-span-4">
           {recentSearches.length > 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Recent Searches
-              </h3>
-              <ul className="space-y-1">
-                {recentSearches.map((q) => (
-                  <li key={q._id}>
-                    <button
-                      onClick={() => handleClickRecent(q.seedKeyword)}
-                      className="w-full text-left text-xs text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg px-3 py-2 transition-colors flex items-center justify-between gap-2"
-                    >
-                      <span className="truncate font-medium">{q.seedKeyword}</span>
-                      <span className="text-2xs text-slate-600 tabular-nums flex-shrink-0">
-                        {new Date(q.timestamp).toLocaleDateString()}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <Card>
+              <CardBody>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Recent Searches
+                </h3>
+                <ul className="space-y-1">
+                  {recentSearches.map((q) => (
+                    <li key={q._id}>
+                      <button
+                        onClick={() => handleClickRecent(q.seedKeyword)}
+                        className="w-full text-left text-xs text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg px-3 py-2 transition-colors flex items-center justify-between gap-2"
+                      >
+                        <span className="truncate font-medium">{q.seedKeyword}</span>
+                        <span className="text-2xs text-slate-600 tabular-nums flex-shrink-0">
+                          {new Date(q.timestamp).toLocaleDateString()}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </CardBody>
+            </Card>
           )}
 
           {/* Quick tip */}
-          <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 shadow-xl mt-6">
-            <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">
-              About the data
-            </h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Search volume reflects monthly averages. Difficulty is a 0–100 score estimating how hard it is to rank in the top 10. CPC is the average cost-per-click for Google Ads.
-            </p>
-          </div>
+          <Card className="bg-slate-900/50 border-slate-800/60 mt-6">
+            <CardBody>
+              <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">
+                About the data
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Search volume reflects monthly averages. Difficulty is a 0–100 score estimating how hard it is to rank in the top 10. CPC is the average cost-per-click for Google Ads.
+              </p>
+            </CardBody>
+          </Card>
         </div>
       </div>
     </div>

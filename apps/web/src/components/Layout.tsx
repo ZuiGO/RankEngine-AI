@@ -3,6 +3,7 @@ import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-do
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import api from '../lib/api';
+import { UpgradeBanner } from './UpgradeBanner';
 
 function Icon({ path }: { path: string }) {
   return (
@@ -27,10 +28,12 @@ interface Project {
 
 const STORAGE_KEY = 're_selected_project';
 
-type NavGroup =
-  | { label: string; items: { label: string; to: string | null; icon: string }[] };
+type NavItemDef = { label: string; to: string | null; icon: string };
 
-const NAV_GROUPS: NavGroup[] = [
+type NavGroup =
+  | { label: string; items: NavItemDef[] };
+
+export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Site Health',
     items: [
@@ -70,6 +73,31 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+// ── Standalone route resolver (exported for testing) ─────────────────────
+// Every NAV_GROUPS item whose `to` is not a global route must appear here.
+const LABEL_ROUTE_MAP: Record<string, string> = {
+  'Audit / Checklist': '',
+  'Migration Check': '',
+  'Keywords': '/keywords',
+  'Backlinks': '/backlinks',
+  'AI Visibility': '/ai-visibility',
+  'Overview & Gap Analysis': '/competitors',
+  'Content Editor': '/content-editor',
+};
+
+export function resolveNavRoute(
+  item: NavItemDef,
+  selectedProjectId: string | null,
+): string | null {
+  if (item.to === '/keyword-research') return '/keyword-research';
+  if (!selectedProjectId) return null;
+  const suffix = LABEL_ROUTE_MAP[item.label];
+  return suffix !== undefined
+    ? `/projects/${selectedProjectId}${suffix}`
+    : null;
+}
+// ──────────────────────────────────────────────────────────────────────────
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -112,24 +140,8 @@ export default function Layout() {
     navigate(`/projects/${pid}`);
   };
 
-  const resolveTo = (item: { label: string; to: string | null }): string | null => {
-    // Global routes
-    if (item.to === '/keyword-research') return '/keyword-research';
-
-    // Project-scoped routes — map label → path suffix
-    if (!selectedProjectId) return null;
-    const map: Record<string, string> = {
-      'Audit / Checklist': '',
-      'Migration Check': '',
-      'Keywords': '/keywords',
-      'Backlinks': '/backlinks',
-      'AI Visibility': '/ai-visibility',
-      'Overview & Gap Analysis': '/competitors',
-      'Content Editor': '/content-editor',
-    };
-    const suffix = map[item.label];
-    return suffix ? `/projects/${selectedProjectId}${suffix}` : null;
-  };
+  const resolveTo = (item: NavItemDef): string | null =>
+    resolveNavRoute(item, selectedProjectId);
 
   const handleLogout = () => {
     logout();
@@ -471,6 +483,9 @@ export default function Layout() {
             )}
           </div>
         </header>
+
+        {/* ─────────────── UPGRADE BANNER ─────────────── */}
+        <UpgradeBanner />
 
         {/* ─────────────── PAGE CONTENT ─────────────── */}
         <main className="flex-1 overflow-y-auto">

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import requireAuth from '../middleware/requireAuth';
+import { requirePlan } from '../middleware/requirePlan';
 import { Project } from '../models/Project';
 import TrackedPrompt from '../models/TrackedPrompt';
 import AiVisibilitySnapshot from '../models/AiVisibilitySnapshot';
@@ -35,6 +36,7 @@ const resolveProject = async (req: Request, res: Response) => {
 router.post(
   '/:id/ai-visibility/prompts',
   requireAuth,
+  requirePlan('aiVisibility'),
   async (req: Request, res: Response) => {
     try {
       const project = await resolveProject(req, res);
@@ -72,6 +74,7 @@ router.post(
 router.get(
   '/:id/ai-visibility',
   requireAuth,
+  requirePlan('aiVisibility'),
   async (req: Request, res: Response) => {
     try {
       const project = await resolveProject(req, res);

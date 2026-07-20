@@ -146,6 +146,8 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       dataProviderCallsThisMonth: user.dataProviderCallsThisMonth,
       dataProviderMonthlyLimit: user.dataProviderMonthlyLimit,
       dataProviderQuotaResetAt: user.dataProviderQuotaResetAt,
+      planId: user.planId,
+      subscriptionStatus: user.subscriptionStatus,
     });
   } catch (error) {
     console.error('Get profile error:', error);

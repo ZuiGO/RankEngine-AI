@@ -5,41 +5,31 @@ import Subscription, { getPlanLimits, SubscriptionPlan } from '../models/Subscri
 import TeamInvite from '../models/TeamInvite';
 import User from '../models/User';
 import requireAuth from '../middleware/requireAuth';
+import config from '../config';
+import { getPlanConfig, type PlanId, PLANS } from '../config/plans';
+import {
+  createOrRetrieveCustomer,
+  createCheckoutSession,
+  createPortalSession,
+} from '../services/stripeService';
 
 const router = Router();
 
 router.use(requireAuth);
 
-const PLANS: { id: SubscriptionPlan; name: string; price: number; features: string[] }[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    features: ['1 project', '10 keywords', '1 team seat', '100 data API calls/mo'],
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    price: 29,
-    features: ['5 projects', '50 keywords', '2 team seats', '500 data API calls/mo'],
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    price: 79,
-    features: ['20 projects', '200 keywords', '5 team seats', '2,000 data API calls/mo'],
-  },
-  {
-    id: 'agency',
-    name: 'Agency',
-    price: 199,
-    features: ['100 projects', '1,000 keywords', '25 team seats', '10,000 data API calls/mo'],
-  },
-];
-
 // GET /api/billing/plans
 router.get('/plans', (_req: Request, res: Response) => {
-  res.json(PLANS);
+  const plans = Object.values(PLANS).map((p) => ({
+    id: p.id,
+    name: p.name,
+    dataProviderMonthlyLimit: p.dataProviderMonthlyLimit,
+    projects: p.projects,
+    keywords: p.keywords,
+    teamSeats: p.teamSeats,
+    features: p.features,
+    hasPrice: !!p.stripePriceId,
+  }));
+  res.json(plans);
 });
 
 // GET /api/billing/subscription
@@ -47,18 +37,25 @@ router.get('/subscription', async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
-    let sub = await Subscription.findOne({ ownerId: req.user.userId });
-    if (!sub) {
-      sub = new Subscription({ ownerId: req.user.userId });
-      await sub.save();
-    }
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const limits = getPlanLimits(sub.plan);
+    const plan = getPlanConfig(user.planId);
+
+    let sub = await Subscription.findOne({ ownerId: req.user.userId });
+
     res.json({
-      plan: sub.plan,
-      status: sub.status,
-      currentPeriodEnd: sub.currentPeriodEnd,
-      ...limits,
+      plan: user.planId,
+      planName: plan.name,
+      status: user.subscriptionStatus,
+      stripeCustomerId: user.stripeCustomerId,
+      stripeSubscriptionId: user.stripeSubscriptionId,
+      dataProviderMonthlyLimit: user.dataProviderMonthlyLimit,
+      projects: plan.projects,
+      keywords: plan.keywords,
+      seats: plan.teamSeats,
+      features: plan.features,
+      currentPeriodEnd: sub?.currentPeriodEnd ?? null,
     });
   } catch (error) {
     console.error('Get subscription error:', error);
@@ -66,7 +63,7 @@ router.get('/subscription', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/billing/subscription
+// PATCH /api/billing/subscription (legacy direct plan change without payment)
 const updatePlanSchema = z.object({
   plan: z.enum(['free', 'starter', 'professional', 'agency']),
 });
@@ -106,6 +103,86 @@ router.patch('/subscription', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Update subscription error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/billing/create-checkout-session
+const checkoutSchema = z.object({
+  planId: z.enum(['free', 'pro', 'agency']),
+  successUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+});
+
+router.post('/create-checkout-session', async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const validation = checkoutSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: validation.error.flatten().fieldErrors,
+      });
+    }
+
+    const { planId, successUrl, cancelUrl } = validation.data;
+
+    if (planId === 'free') {
+      return res.status(400).json({ error: 'Free plan does not require a checkout session' });
+    }
+
+    const plan = getPlanConfig(planId);
+    if (!plan.stripePriceId) {
+      return res.status(500).json({ error: `No Stripe price configured for plan "${planId}"` });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const customerId = await createOrRetrieveCustomer(
+      req.user.userId,
+      user.email,
+      user.stripeCustomerId,
+    );
+
+    const sessionUrl = await createCheckoutSession(
+      customerId,
+      planId,
+      successUrl || `${config.CORS_ORIGIN}/billing?success=1`,
+      cancelUrl || `${config.CORS_ORIGIN}/billing?canceled=1`,
+    );
+
+    // Persist the Stripe customer ID immediately so future calls reuse it
+    if (!user.stripeCustomerId) {
+      await User.findByIdAndUpdate(req.user.userId, { stripeCustomerId: customerId });
+    }
+
+    res.json({ url: sessionUrl });
+  } catch (error) {
+    console.error('Create checkout session error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/billing/portal-session
+router.get('/portal-session', async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (!user.stripeCustomerId) {
+      return res.status(400).json({ error: 'No Stripe customer found. Subscribe first.' });
+    }
+
+    const returnUrl = `${config.CORS_ORIGIN}/billing`;
+    const portalUrl = await createPortalSession(user.stripeCustomerId, returnUrl);
+
+    res.json({ url: portalUrl });
+  } catch (error) {
+    console.error('Create portal session error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

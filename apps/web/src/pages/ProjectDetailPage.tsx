@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SearchCheck } from 'lucide-react';
 import api from '../lib/api';
+import { Card, CardBody, Badge, Button } from '../components/ui';
 
 // ─────────────────────────────────────── TYPES ──────────────────────────────
 
@@ -118,9 +119,7 @@ function ChecklistSection({
           <span className="text-sm font-semibold text-white">
             {cfg.label}
             {tag && (
-              <span className="ml-2 text-[10px] font-medium bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">
-                {tag}
-              </span>
+              <Badge variant="default" className="ml-2">{tag}</Badge>
             )}
           </span>
           <span className={`text-sm font-bold ${cfg.countColor}`}>{items.length}</span>
@@ -285,34 +284,36 @@ function CrawlProgressBar({ job }: { job: CrawlJob }) {
   const pct = job.status === 'completed' ? 100 : Math.min((job.pageCount / 50) * 100, 95);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl px-5 py-4 space-y-2">
-      <div className="flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2">
-          {isRunning && (
-            <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
-          )}
-          <span className="font-medium text-slate-300">
-            {job.status === 'queued' && 'Audit queued…'}
-            {job.status === 'running' && `Crawling — ${job.pageCount} pages scanned`}
-            {job.status === 'completed' && `Completed — ${job.pageCount} pages scanned`}
-            {job.status === 'failed' && 'Audit failed'}
-          </span>
+    <Card className="rounded-xl">
+      <CardBody className="p-4 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            {isRunning && (
+              <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+            )}
+            <span className="font-medium text-slate-300">
+              {job.status === 'queued' && 'Audit queued…'}
+              {job.status === 'running' && `Crawling — ${job.pageCount} pages scanned`}
+              {job.status === 'completed' && `Completed — ${job.pageCount} pages scanned`}
+              {job.status === 'failed' && 'Audit failed'}
+            </span>
+          </div>
+          <span className="text-slate-500 font-mono">{Math.round(pct)}%</span>
         </div>
-        <span className="text-slate-500 font-mono">{Math.round(pct)}%</span>
-      </div>
-      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ${
-            job.status === 'failed'
-              ? 'bg-rose-500'
-              : job.status === 'completed'
-              ? 'bg-emerald-500'
-              : 'bg-indigo-500'
-          }`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
+        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ${
+              job.status === 'failed'
+                ? 'bg-rose-500'
+                : job.status === 'completed'
+                ? 'bg-emerald-500'
+                : 'bg-indigo-500'
+            }`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </CardBody>
+    </Card>
   );
 }
 
@@ -608,12 +609,13 @@ export default function ProjectDetailPage() {
                 className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-300 outline-none focus:border-indigo-500 transition-colors w-64"
                 placeholder="https://staging.example.com"
               />
-              <button
+              <Button
                 onClick={handleSaveStagingDomain}
-                className="text-[11px] bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+                variant="primary"
+                className="text-[11px] px-2.5 py-1 rounded-lg font-medium shadow-none"
               >
                 Save
-              </button>
+              </Button>
               <button
                 onClick={() => setStagingEditing(false)}
                 className="text-[11px] text-slate-500 hover:text-slate-300 px-2 py-1 transition-colors"
@@ -623,9 +625,9 @@ export default function ProjectDetailPage() {
             </div>
           ) : project.stagingDomain ? (
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-[11px] font-medium bg-amber-900/40 border border-amber-700/30 text-amber-400 px-2.5 py-1 rounded-full">
+              <Badge variant="warning" className="text-[11px] px-2.5 py-1">
                 Staging: {project.stagingDomain}
-              </span>
+              </Badge>
               <button
                 onClick={() => { setStagingInput(project.stagingDomain!); setStagingEditing(true); }}
                 className="text-[10px] text-slate-500 hover:text-slate-300 underline transition-colors"
@@ -671,7 +673,7 @@ export default function ProjectDetailPage() {
               {migrationLoading ? 'Starting…' : 'Check Migration Safety'}
             </button>
           )}
-          <button
+          <Button
             id="run-audit-btn"
             onClick={handleRunAudit}
             disabled={
@@ -679,14 +681,14 @@ export default function ProjectDetailPage() {
               activeJob?.status === 'running' ||
               activeJob?.status === 'queued'
             }
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-600/25"
+            className="rounded-xl py-2.5 shadow-lg shadow-indigo-600/25"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             {auditLoading ? 'Starting…' : 'Run Audit'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -712,18 +714,18 @@ export default function ProjectDetailPage() {
             iconColor: 'text-emerald-300',
           },
         ].map((f) => (
-          <Link
-            key={f.label}
-            to={f.to}
-            className="group bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition-all hover:shadow-lg hover:-translate-y-0.5"
-          >
-            <div className={`h-10 w-10 rounded-xl bg-gradient-to-tr ${f.grad} border ${f.border} flex items-center justify-center mb-3`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${f.iconColor}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
-                <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
-              </svg>
-            </div>
-            <h3 className="text-sm font-semibold text-white group-hover:text-indigo-200 transition-colors mb-1">{f.label}</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+          <Link key={f.label} to={f.to} className="group block">
+            <Card className="hover:border-slate-700 hover:shadow-lg hover:-translate-y-0.5 transition-all">
+              <CardBody>
+                <div className={`h-10 w-10 rounded-xl bg-gradient-to-tr ${f.grad} border ${f.border} flex items-center justify-center mb-3`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${f.iconColor}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-semibold text-white group-hover:text-indigo-200 transition-colors mb-1">{f.label}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+              </CardBody>
+            </Card>
           </Link>
         ))}
       </div>
@@ -826,15 +828,17 @@ export default function ProjectDetailPage() {
 
         {/* Empty state — no audit yet */}
         {!activeJob && !checklistData && !checklistLoading && !auditLoading && (
-          <div className="border border-slate-800 rounded-2xl py-16 flex flex-col items-center text-center px-6">
-            <div className="h-14 w-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 mb-4">
-              <SearchCheck className="h-7 w-7" />
-            </div>
-            <h3 className="text-sm font-semibold text-white mb-1">No audits run yet</h3>
-            <p className="text-xs text-slate-400 max-w-sm">
-              An audit checks your pages for technical SEO issues that affect AI&nbsp;Overview visibility — from missing meta tags and slow load times to redirect chains and broken schema markup.
-            </p>
-          </div>
+          <Card>
+            <CardBody className="py-16 flex flex-col items-center text-center">
+              <div className="h-14 w-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 mb-4">
+                <SearchCheck className="h-7 w-7" />
+              </div>
+              <h3 className="text-sm font-semibold text-white mb-1">No audits run yet</h3>
+              <p className="text-xs text-slate-400 max-w-sm">
+                An audit checks your pages for technical SEO issues that affect AI&nbsp;Overview visibility — from missing meta tags and slow load times to redirect chains and broken schema markup.
+              </p>
+            </CardBody>
+          </Card>
         )}
       </div>
 

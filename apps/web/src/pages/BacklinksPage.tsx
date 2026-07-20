@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 import api from '../lib/api';
+import { Card, CardBody, Badge } from '../components/ui';
 
 interface BacklinkItem {
   sourceUrl: string;
@@ -59,7 +60,7 @@ export default function BacklinksPage() {
       );
       setOverview(data);
     } catch {
-      // silently ignore — overview is non-critical
+      //
     }
   }, [id]);
 
@@ -70,7 +71,7 @@ export default function BacklinksPage() {
       );
       setSnapshots(data);
     } catch {
-      // silently ignore
+      //
     }
   }, [id]);
 
@@ -111,9 +112,14 @@ export default function BacklinksPage() {
 
   const formatNumber = (n: number) => n.toLocaleString();
 
+  const authorityBadge = (score: number) => {
+    if (score >= 50) return 'success';
+    if (score >= 30) return 'warning';
+    return 'danger';
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Breadcrumb */}
       <div className="flex items-center justify-between mb-6">
         <Link
           to={`/projects/${id}`}
@@ -127,88 +133,85 @@ export default function BacklinksPage() {
         <span className="text-slate-500 text-xs">Backlink Analysis</span>
       </div>
 
-      {/* Overview cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
-            Total Backlinks
-          </p>
-          <p className="text-2xl font-bold text-white tabular-nums">
-            {overview ? formatNumber(overview.totalBacklinks) : '…'}
-          </p>
-        </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
-            Referring Domains
-          </p>
-          <p className="text-2xl font-bold text-white tabular-nums">
-            {overview ? formatNumber(overview.referringDomains) : '…'}
-          </p>
-        </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
-            Authority Score
-          </p>
-          <p className="text-2xl font-bold text-white tabular-nums">
-            {overview ? overview.authorityScore : '…'}
-          </p>
-          {overview && (
-            <span
-              className={`inline-block mt-1 text-2xs font-semibold px-2 py-0.5 rounded-full border ${
-                overview.authorityScore >= 50
-                  ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+        <Card>
+          <CardBody>
+            <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+              Total Backlinks
+            </p>
+            <p className="text-2xl font-bold text-white tabular-nums">
+              {overview ? formatNumber(overview.totalBacklinks) : '…'}
+            </p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody>
+            <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+              Referring Domains
+            </p>
+            <p className="text-2xl font-bold text-white tabular-nums">
+              {overview ? formatNumber(overview.referringDomains) : '…'}
+            </p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody>
+            <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+              Authority Score
+            </p>
+            <p className="text-2xl font-bold text-white tabular-nums">
+              {overview ? overview.authorityScore : '…'}
+            </p>
+            {overview && (
+              <Badge variant={authorityBadge(overview.authorityScore)} className="mt-1">
+                {overview.authorityScore >= 50
+                  ? 'Strong'
                   : overview.authorityScore >= 30
-                    ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-                    : 'text-rose-500 bg-rose-500/10 border-rose-500/20'
-              }`}
-            >
-              {overview.authorityScore >= 50
-                ? 'Strong'
-                : overview.authorityScore >= 30
-                  ? 'Moderate'
-                  : 'Weak'}
-            </span>
-          )}
-        </div>
+                    ? 'Moderate'
+                    : 'Weak'}
+              </Badge>
+            )}
+          </CardBody>
+        </Card>
       </div>
 
-      {/* Trend chart */}
       {snapshots.length > 1 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl mb-8">
-          <h3 className="text-sm font-bold text-white mb-4">Backlink Growth</h3>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={snapshots}
-                margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1e293b',
-                    border: '1px solid #334155',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                  }}
-                  labelStyle={{ color: '#94a3b8' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="totalBacklinks"
-                  stroke="#818cf8"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: '#818cf8' }}
-                  name="Total Backlinks"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Card className="mb-8">
+          <CardBody>
+            <h3 className="text-sm font-bold text-white mb-4">Backlink Growth</h3>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={snapshots}
+                  margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #334155',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                    labelStyle={{ color: '#94a3b8' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="totalBacklinks"
+                    stroke="#818cf8"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#818cf8' }}
+                    name="Total Backlinks"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardBody>
+        </Card>
       )}
 
-      {/* Explainer */}
       <div className="bg-indigo-950/30 border border-indigo-800/20 rounded-2xl p-4 mb-6">
         <p className="text-xs text-slate-400 leading-relaxed">
           <span className="text-indigo-400 font-semibold">Backlinks</span> are
@@ -217,7 +220,6 @@ export default function BacklinksPage() {
         </p>
       </div>
 
-      {/* Table header + filter */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-white">
           {showToxicOnly ? 'Toxic Backlinks' : 'All Backlinks'}
@@ -241,15 +243,13 @@ export default function BacklinksPage() {
         </label>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-3 rounded-lg mb-4">
           {error}
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
             <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
@@ -296,13 +296,9 @@ export default function BacklinksPage() {
                     </td>
                     <td className="p-4 text-center">
                       {item.toxic ? (
-                        <span className="inline-block bg-rose-500/10 border border-rose-500/20 text-rose-400 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                          Toxic
-                        </span>
+                        <Badge variant="danger">Toxic</Badge>
                       ) : (
-                        <span className="inline-block bg-emerald-500/5 border border-emerald-500/10 text-emerald-500 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                          Clean
-                        </span>
+                        <Badge variant="success">Clean</Badge>
                       )}
                     </td>
                   </tr>
@@ -311,9 +307,8 @@ export default function BacklinksPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
-      {/* Pagination */}
       {!showToxicOnly && (
         <div className="flex items-center justify-between mt-4">
           <p className="text-2xs text-slate-500">

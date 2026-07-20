@@ -192,8 +192,10 @@ describe('Authentication Flow', () => {
         hasCompletedOnboarding: false,
         createdAt: expect.any(String),
         dataProviderCallsThisMonth: 0,
-        dataProviderMonthlyLimit: 500,
+        dataProviderMonthlyLimit: 100,
         dataProviderQuotaResetAt: expect.any(String),
+        planId: 'free',
+        subscriptionStatus: 'active',
       });
     });
 

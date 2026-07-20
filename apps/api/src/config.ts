@@ -63,6 +63,15 @@ const envSchema = z.object({
 
   /** Per-user monthly quota for external data-provider API calls (excluding cache hits) */
   DATAFORSEO_MONTHLY_LIMIT: z.coerce.number().default(500),
+
+  /** Stripe secret key (sk_test_... or sk_live_...) */
+  STRIPE_SECRET_KEY: z.string().default('sk_test_mock'),
+  /** Stripe webhook signing secret (whsec_...) */
+  STRIPE_WEBHOOK_SECRET: z.string().default('whsec_mock'),
+
+  /** Stripe price IDs for each paid plan */
+  STRIPE_PRICE_PRO: z.string().default(''),
+  STRIPE_PRICE_AGENCY: z.string().default(''),
 });
 
 const parseEnv = () => {

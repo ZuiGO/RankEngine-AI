@@ -26,6 +26,8 @@ interface UserProfile {
   dataProviderCallsThisMonth?: number;
   dataProviderMonthlyLimit?: number;
   dataProviderQuotaResetAt?: string;
+  planId?: string;
+  subscriptionStatus?: string;
 }
 
 interface AuthContextValue {

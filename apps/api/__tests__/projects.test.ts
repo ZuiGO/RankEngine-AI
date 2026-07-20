@@ -62,6 +62,12 @@ beforeAll(async () => {
   userAToken = resA.body.token;
   userAId = resA.body.user.id;
 
+  // Upgrade User A to Pro so keyword-tracking routes are accessible in tests
+  await User.findByIdAndUpdate(userAId, {
+    planId: 'pro',
+    dataProviderMonthlyLimit: 2000,
+  });
+
   // Seed User B
   const resB = await request
     .post('/api/auth/register')
@@ -74,6 +80,12 @@ beforeAll(async () => {
     .expect(201);
   userBToken = resB.body.token;
   userBId = resB.body.user.id;
+
+  // Upgrade User B to Pro so ownership-rejection tests still reach the route
+  await User.findByIdAndUpdate(userBId, {
+    planId: 'pro',
+    dataProviderMonthlyLimit: 2000,
+  });
 });
 
 afterAll(async () => {

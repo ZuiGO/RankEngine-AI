@@ -1,6 +1,8 @@
 import { Schema, model, Document } from 'mongoose';
+import { getPlanConfig } from '../config/plans';
 
 export type UserRole = 'agency_owner' | 'marketer' | 'developer';
+export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid';
 
 export interface IUser extends Document {
   email: string;
@@ -13,6 +15,10 @@ export interface IUser extends Document {
   dataProviderCallsThisMonth: number;
   dataProviderMonthlyLimit: number;
   dataProviderQuotaResetAt: Date;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  planId: string;
+  subscriptionStatus: SubscriptionStatus;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -54,7 +60,7 @@ const UserSchema = new Schema<IUser>({
   },
   dataProviderMonthlyLimit: {
     type: Number,
-    default: 500,
+    default: () => getPlanConfig('free').dataProviderMonthlyLimit,
   },
   dataProviderQuotaResetAt: {
     type: Date,
@@ -62,6 +68,14 @@ const UserSchema = new Schema<IUser>({
       const now = new Date();
       return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
     },
+  },
+  stripeCustomerId: { type: String },
+  stripeSubscriptionId: { type: String },
+  planId: { type: String, default: 'free' },
+  subscriptionStatus: {
+    type: String,
+    enum: ['active', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'trialing', 'unpaid'],
+    default: 'active',
   },
 });
 

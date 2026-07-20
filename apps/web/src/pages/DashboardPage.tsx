@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FolderSearch } from 'lucide-react';
 import api from '../lib/api';
+import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 
 interface Project {
   _id: string;
@@ -65,7 +66,7 @@ function NewProjectModal({
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
+      <Card className="w-full max-w-md shadow-2xl shadow-black/60 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
           <h2 className="text-base font-semibold text-white">New Project</h2>
           <button
@@ -131,24 +132,25 @@ function NewProjectModal({
           </div>
 
           <div className="flex gap-3 pt-1">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg border border-slate-700 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+              className="flex-1 py-2.5"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               id="create-project-submit-btn"
               type="submit"
-              disabled={loading}
-              className="flex-1 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-600/30"
+              loading={loading}
+              className="flex-1 py-2.5 disabled:opacity-60 shadow-indigo-600/30"
             >
               {loading ? 'Creating…' : 'Create project'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -207,10 +209,11 @@ function ProjectCard({
     n != null ? n.toLocaleString() : '…';
 
   return (
-    <div
+    <Card
+      className="group hover:border-indigo-700/50 cursor-pointer transition-all hover:shadow-xl hover:shadow-indigo-950/30 hover:-translate-y-0.5"
       onClick={onClick}
-      className="group bg-slate-900 border border-slate-800 hover:border-indigo-700/50 rounded-2xl p-5 cursor-pointer transition-all hover:shadow-xl hover:shadow-indigo-950/30 hover:-translate-y-0.5"
     >
+      <CardBody>
       {/* Top row */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -225,9 +228,7 @@ function ProjectCard({
           </div>
         </div>
         {project.stagingDomain && (
-          <span className="text-[10px] font-medium bg-amber-900/40 border border-amber-700/30 text-amber-400 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
-            Staging
-          </span>
+          <Badge variant="warning" className="flex-shrink-0 ml-2">Staging</Badge>
         )}
       </div>
 
@@ -287,7 +288,8 @@ function ProjectCard({
           Open →
         </span>
       </div>
-    </div>
+      </CardBody>
+    </Card>
   );
 }
 
@@ -352,16 +354,16 @@ export default function DashboardPage() {
               : `${projects.length} project${projects.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <button
+        <Button
           id="new-project-btn"
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/30"
+          className="rounded-xl py-2.5 shadow-indigo-600/30"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           New Project
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -373,7 +375,8 @@ export default function DashboardPage() {
       {loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 animate-pulse">
+            <Card key={i} className="animate-pulse">
+              <CardBody>
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-9 w-9 rounded-xl bg-slate-800" />
                 <div className="flex-1">
@@ -383,27 +386,26 @@ export default function DashboardPage() {
               </div>
               <div className="h-14 bg-slate-800/60 rounded-xl mb-3" />
               <div className="h-2.5 w-1/3 bg-slate-800 rounded" />
-            </div>
+              </CardBody>
+            </Card>
           ))}
         </div>
       )}
 
       {!loading && projects.length === 0 && (
-        <div className="text-center py-24">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-slate-900 border border-slate-800 text-indigo-400 mb-4">
-            <FolderSearch className="h-8 w-8" />
-          </div>
-          <h2 className="text-lg font-semibold text-white mb-1">Ready to boost your search visibility?</h2>
-          <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">
-            Add your first site and we'll scan up to 5,000 pages to find what's holding back your AI Overview rankings.
-          </p>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/30"
-          >
-            Add your first site
-          </button>
-        </div>
+        <EmptyState
+          icon={<FolderSearch className="h-8 w-8" />}
+          title="Ready to boost your search visibility?"
+          description="Add your first site and we'll scan up to 5,000 pages to find what's holding back your AI Overview rankings."
+          action={
+            <Button
+              onClick={() => setShowModal(true)}
+              className="rounded-xl py-2.5 px-5 shadow-indigo-600/30"
+            >
+              Add your first site
+            </Button>
+          }
+        />
       )}
 
       {!loading && projects.length > 0 && (

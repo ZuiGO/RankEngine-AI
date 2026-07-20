@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 import api from '../lib/api';
+import { Card, CardBody, Badge } from '../components/ui';
 
 interface TrackedKeywordData {
   _id: string;
@@ -171,7 +172,8 @@ export default function KeywordsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <Card>
+            <CardBody>
             <h3 className="text-sm font-bold text-white mb-4">Track New Keyword</h3>
             {error && (
               <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-3 rounded-lg mb-4">
@@ -226,10 +228,12 @@ export default function KeywordsPage() {
                 </button>
               </div>
             </form>
-          </div>
+            </CardBody>
+          </Card>
 
           {suggestedKeywords.length > 0 && (
-            <div className="bg-slate-900 border border-indigo-800/30 rounded-2xl p-5 shadow-xl">
+            <Card className="border-indigo-800/30">
+            <CardBody>
               <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -253,10 +257,12 @@ export default function KeywordsPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </CardBody>
+          </Card>
           )}
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl overflow-hidden">
+          <Card className="overflow-hidden">
+            <CardBody>
             <h3 className="text-sm font-bold text-white mb-4">Tracked Search Keywords</h3>
             {loading ? (
               <p className="text-slate-500 text-xs">Loading tracked keywords...</p>
@@ -296,9 +302,9 @@ export default function KeywordsPage() {
                         <td className="p-3">{getTrendIcon(kw.trend)}</td>
                         <td className="p-3">
                           {kw.aioPresence ? (
-                            <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xs px-2 py-0.5 rounded-full font-semibold animate-pulse">
+                            <Badge variant="success" className="animate-pulse">
                               In AI Overview
-                            </span>
+                            </Badge>
                           ) : (
                             <span className="bg-slate-950 border border-slate-850 text-slate-500 text-2xs px-2 py-0.5 rounded-full">
                               No AIO Links
@@ -323,11 +329,12 @@ export default function KeywordsPage() {
                 </table>
               </div>
             )}
-          </div>
+            </CardBody>
+          </Card>
         </div>
 
         <div className="lg:col-span-5">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative min-h-[400px]">
+          <Card className="p-6 relative min-h-[400px]">
             <h3 className="text-sm font-bold text-white mb-6">
               30-Day Ranking Chart {selectedKeywordName && `: "${selectedKeywordName}"`}
             </h3>
@@ -390,7 +397,7 @@ export default function KeywordsPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </div>

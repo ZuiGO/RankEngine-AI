@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import requireAuth from '../middleware/requireAuth';
+import { requirePlan } from '../middleware/requirePlan';
 import { Project } from '../models/Project';
 import BacklinkSnapshot from '../models/BacklinkSnapshot';
 import {
@@ -81,7 +82,7 @@ const resolveProject = async (req: Request, res: Response) => {
 };
 
 // GET /api/projects/:id/backlinks/overview
-router.get('/:id/backlinks/overview', requireAuth, async (req: Request, res: Response) => {
+router.get('/:id/backlinks/overview', requireAuth, requirePlan('backlinks'), async (req: Request, res: Response) => {
   try {
     const project = await resolveProject(req, res);
     if (!project) return;
@@ -138,7 +139,7 @@ router.get('/:id/backlinks/overview', requireAuth, async (req: Request, res: Res
 });
 
 // GET /api/projects/:id/backlinks/list?page=1
-router.get('/:id/backlinks/list', requireAuth, async (req: Request, res: Response) => {
+router.get('/:id/backlinks/list', requireAuth, requirePlan('backlinks'), async (req: Request, res: Response) => {
   try {
     const project = await resolveProject(req, res);
     if (!project) return;
@@ -183,7 +184,7 @@ router.get('/:id/backlinks/list', requireAuth, async (req: Request, res: Respons
 });
 
 // GET /api/projects/:id/backlinks/snapshots — history of daily snapshot data for trend charts
-router.get('/:id/backlinks/snapshots', requireAuth, async (req: Request, res: Response) => {
+router.get('/:id/backlinks/snapshots', requireAuth, requirePlan('backlinks'), async (req: Request, res: Response) => {
   try {
     const project = await resolveProject(req, res);
     if (!project) return;

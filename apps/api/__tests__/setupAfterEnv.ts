@@ -6,6 +6,8 @@ process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
 process.env.SERP_API_PROVIDER = 'mock';
 process.env.SERP_API_KEY = 'mock-serp-key';
 process.env.LLM_API_KEY = 'mock-llm-key';
+process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+process.env.STRIPE_WEBHOOK_SECRET = 'whsec_mock';
 
 import { _closeRedisClient } from '../src/middleware/rateLimiter';
 

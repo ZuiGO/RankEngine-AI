@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import requireAuth from '../middleware/requireAuth';
+import { requirePlan } from '../middleware/requirePlan';
 import { Project } from '../models/Project';
 import DomainOverviewSnapshot from '../models/DomainOverviewSnapshot';
 import {
@@ -43,7 +44,7 @@ const resolveProject = async (req: Request, res: Response) => {
 };
 
 // GET /api/projects/:id/domain-overview
-router.get('/:id/domain-overview', requireAuth, async (req: Request, res: Response) => {
+router.get('/:id/domain-overview', requireAuth, requirePlan('domainOverview'), async (req: Request, res: Response) => {
   try {
     const project = await resolveProject(req, res);
     if (!project) return;
@@ -91,7 +92,7 @@ router.get('/:id/domain-overview', requireAuth, async (req: Request, res: Respon
 });
 
 // POST /api/projects/:id/domain-overview/compare
-router.post('/:id/domain-overview/compare', requireAuth, async (req: Request, res: Response) => {
+router.post('/:id/domain-overview/compare', requireAuth, requirePlan('domainOverview'), async (req: Request, res: Response) => {
   try {
     const project = await resolveProject(req, res);
     if (!project) return;

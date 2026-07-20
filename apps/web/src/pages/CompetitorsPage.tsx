@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { Card, CardBody, Badge, Button } from '../components/ui';
 
 interface TopKeyword {
   keyword: string;
@@ -252,98 +253,99 @@ export default function CompetitorsPage() {
       {/* Domain Overview Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Project stats */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-            <span className="text-indigo-400 font-mono text-xs">{projectInfo?.domain ?? id}</span>
-          </h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
-                Traffic Estimate
-              </p>
-              <p className="text-2xl font-bold text-white tabular-nums">
-                {overview ? formatNumber(overview.organicTrafficEstimate) : '…'}
-              </p>
-            </div>
-            <div>
-              <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
-                Keyword Count
-              </p>
-              <p className="text-2xl font-bold text-white tabular-nums">
-                {overview ? formatNumber(overview.organicKeywordCount) : '…'}
-              </p>
-            </div>
-          </div>
-          {overview && overview.topKeywords.length > 0 && (
-            <div>
-              <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1.5">
-                Top Keywords
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {overview.topKeywords.slice(0, 8).map((kw, i) => (
-                  <span
-                    key={i}
-                    className="text-2xs bg-slate-950 border border-slate-700 text-slate-300 px-2 py-0.5 rounded-md font-mono"
-                  >
-                    {kw.keyword}
-                    {kw.position != null && (
-                      <span className="text-slate-600 ml-1">#{kw.position}</span>
-                    )}
-                  </span>
-                ))}
+        <Card>
+          <CardBody>
+            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <span className="text-indigo-400 font-mono text-xs">{projectInfo?.domain ?? id}</span>
+            </h3>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+                  Traffic Estimate
+                </p>
+                <p className="text-2xl font-bold text-white tabular-nums">
+                  {overview ? formatNumber(overview.organicTrafficEstimate) : '…'}
+                </p>
+              </div>
+              <div>
+                <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+                  Keyword Count
+                </p>
+                <p className="text-2xl font-bold text-white tabular-nums">
+                  {overview ? formatNumber(overview.organicKeywordCount) : '…'}
+                </p>
               </div>
             </div>
-          )}
-        </div>
+            {overview && overview.topKeywords.length > 0 && (
+              <div>
+                <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1.5">
+                  Top Keywords
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {overview.topKeywords.slice(0, 8).map((kw, i) => (
+                    <Badge key={i} variant="default" className="bg-slate-950 rounded-md font-mono px-2">
+                      {kw.keyword}
+                      {kw.position != null && (
+                        <span className="text-slate-600 ml-1">#{kw.position}</span>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardBody>
+        </Card>
 
         {/* Add competitor */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <h3 className="text-sm font-bold text-white mb-3">Add Competitors</h3>
-          <div className="flex items-center gap-2 mb-3">
-            <input
-              type="text"
-              value={competitorInput}
-              onChange={(e) => setCompetitorInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="e.g. competitor.com"
-              className="flex-1 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all"
-            />
-            <button
-              onClick={handleAddCompetitor}
-              disabled={comparing || !competitorInput.trim() || competitors.length >= 5}
-              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs px-4 py-2 rounded-lg transition-colors flex-shrink-0"
-            >
-              {comparing ? '…' : 'Add'}
-            </button>
-          </div>
-          {competitors.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {competitors.map((c) => (
-                <span
-                  key={c}
-                  className="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-2xs font-semibold px-2.5 py-1 rounded-full"
-                >
-                  {c}
-                  <button onClick={() => handleRemoveCompetitor(c)} className="hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              {competitors.length < 5 && (
-                <span className="text-2xs text-slate-600 self-center">
-                  {5 - competitors.length} slot{5 - competitors.length !== 1 ? 's' : ''} remaining
-                </span>
-              )}
+        <Card>
+          <CardBody>
+            <h3 className="text-sm font-bold text-white mb-3">Add Competitors</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <input
+                type="text"
+                value={competitorInput}
+                onChange={(e) => setCompetitorInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="e.g. competitor.com"
+                className="flex-1 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all"
+              />
+              <Button
+                onClick={handleAddCompetitor}
+                disabled={comparing || !competitorInput.trim() || competitors.length >= 5}
+                className="text-xs flex-shrink-0 shadow-none"
+              >
+                {comparing ? '…' : 'Add'}
+              </Button>
             </div>
-          )}
-          {competitors.length === 0 && (
-            <p className="text-2xs text-slate-600 mt-1">
-              Add up to 5 competitor domains to start a gap analysis.
-            </p>
-          )}
-        </div>
+            {competitors.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {competitors.map((c) => (
+                  <span
+                    key={c}
+                    className="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-2xs font-semibold px-2.5 py-1 rounded-full"
+                  >
+                    {c}
+                    <button onClick={() => handleRemoveCompetitor(c)} className="hover:text-white transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+                {competitors.length < 5 && (
+                  <span className="text-2xs text-slate-600 self-center">
+                    {5 - competitors.length} slot{5 - competitors.length !== 1 ? 's' : ''} remaining
+                  </span>
+                )}
+              </div>
+            )}
+            {competitors.length === 0 && (
+              <p className="text-2xs text-slate-600 mt-1">
+                Add up to 5 competitor domains to start a gap analysis.
+              </p>
+            )}
+          </CardBody>
+        </Card>
       </div>
 
       {/* Tabs */}
@@ -369,78 +371,84 @@ export default function CompetitorsPage() {
           {tab === 'overview' && (
             <div className="space-y-6">
               {comparing && (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl text-center">
-                  <p className="text-slate-400 text-xs">Running gap analysis…</p>
-                </div>
+                <Card>
+                  <CardBody className="p-6 text-center">
+                    <p className="text-slate-400 text-xs">Running gap analysis…</p>
+                  </CardBody>
+                </Card>
               )}
               {!comparing && (
                 <>
                   {/* Traffic comparison */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                    <h3 className="text-sm font-bold text-white mb-4">Organic Traffic Comparison</h3>
-                    <div className="h-56">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={compareData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                          <XAxis
-                            dataKey="domain"
-                            stroke="#64748b"
-                            tick={{ fontSize: 10 }}
-                            tickFormatter={(v: string) => {
-                              const p = projectInfo?.domain ?? '';
-                              return v === p ? 'You' : v.replace(/\.[^.]+$/, '');
-                            }}
-                          />
-                          <YAxis stroke="#64748b" tick={{ fontSize: 10 }} tickFormatter={(v) => formatNumber(Number(v))} />
-                          <Tooltip
-                            contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px' }}
-                            labelStyle={{ color: '#94a3b8' }}
-                            formatter={(value: any) => [formatNumber(Number(value)), 'Traffic']}
-                          />
-                          <Bar dataKey="organicTrafficEstimate" radius={[4, 4, 0, 0]} maxBarSize={60}>
-                            {compareData.map((_, i) => (
-                              <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                  <Card>
+                    <CardBody>
+                      <h3 className="text-sm font-bold text-white mb-4">Organic Traffic Comparison</h3>
+                      <div className="h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={compareData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                            <XAxis
+                              dataKey="domain"
+                              stroke="#64748b"
+                              tick={{ fontSize: 10 }}
+                              tickFormatter={(v: string) => {
+                                const p = projectInfo?.domain ?? '';
+                                return v === p ? 'You' : v.replace(/\.[^.]+$/, '');
+                              }}
+                            />
+                            <YAxis stroke="#64748b" tick={{ fontSize: 10 }} tickFormatter={(v) => formatNumber(Number(v))} />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px' }}
+                              labelStyle={{ color: '#94a3b8' }}
+                              formatter={(value: any) => [formatNumber(Number(value)), 'Traffic']}
+                            />
+                            <Bar dataKey="organicTrafficEstimate" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                              {compareData.map((_, i) => (
+                                <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardBody>
+                  </Card>
 
                   {/* Keyword count comparison */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                    <h3 className="text-sm font-bold text-white mb-4">Keyword Count Comparison</h3>
-                    <div className="h-56">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={compareData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                          <XAxis
-                            dataKey="domain"
-                            stroke="#64748b"
-                            tick={{ fontSize: 10 }}
-                            tickFormatter={(v: string) => {
-                              const p = projectInfo?.domain ?? '';
-                              return v === p ? 'You' : v.replace(/\.[^.]+$/, '');
-                            }}
-                          />
-                          <YAxis stroke="#64748b" tick={{ fontSize: 10 }} tickFormatter={(v) => formatNumber(Number(v))} />
-                          <Tooltip
-                            contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px' }}
-                            labelStyle={{ color: '#94a3b8' }}
-                            formatter={(value: any) => [formatNumber(Number(value)), 'Keywords']}
-                          />
-                          <Bar dataKey="organicKeywordCount" radius={[4, 4, 0, 0]} maxBarSize={60}>
-                            {compareData.map((_, i) => (
-                              <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                  <Card>
+                    <CardBody>
+                      <h3 className="text-sm font-bold text-white mb-4">Keyword Count Comparison</h3>
+                      <div className="h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={compareData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                            <XAxis
+                              dataKey="domain"
+                              stroke="#64748b"
+                              tick={{ fontSize: 10 }}
+                              tickFormatter={(v: string) => {
+                                const p = projectInfo?.domain ?? '';
+                                return v === p ? 'You' : v.replace(/\.[^.]+$/, '');
+                              }}
+                            />
+                            <YAxis stroke="#64748b" tick={{ fontSize: 10 }} tickFormatter={(v) => formatNumber(Number(v))} />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px' }}
+                              labelStyle={{ color: '#94a3b8' }}
+                              formatter={(value: any) => [formatNumber(Number(value)), 'Keywords']}
+                            />
+                            <Bar dataKey="organicKeywordCount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                              {compareData.map((_, i) => (
+                                <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardBody>
+                  </Card>
 
                   {/* Full comparison table */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                  <Card className="overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-sm text-slate-300">
                         <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
@@ -460,9 +468,9 @@ export default function CompetitorsPage() {
                                   <span className="text-xs font-semibold text-white flex items-center gap-2">
                                     {entry.domain}
                                     {isYou && (
-                                      <span className="text-2xs text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded-full">
+                                      <Badge variant="info" className="px-1.5">
                                         You
-                                      </span>
+                                      </Badge>
                                     )}
                                   </span>
                                   {entry.error && (
@@ -478,12 +486,14 @@ export default function CompetitorsPage() {
                                 <td className="p-4 max-w-[200px]">
                                   <div className="flex flex-wrap gap-1">
                                     {entry.topKeywords.slice(0, 4).map((kw, ki) => (
-                                      <span key={ki} className="text-2xs text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                                      <Badge key={ki} variant="default" className="bg-slate-950 text-slate-400 border-slate-800 rounded px-1.5">
                                         {kw.keyword}
-                                      </span>
+                                      </Badge>
                                     ))}
                                     {entry.topKeywords.length > 4 && (
-                                      <span className="text-2xs text-slate-600">+{entry.topKeywords.length - 4}</span>
+                                      <Badge variant="default" className="bg-slate-950 text-slate-600 border-slate-800 rounded px-1.5">
+                                        +{entry.topKeywords.length - 4}
+                                      </Badge>
                                     )}
                                   </div>
                                 </td>
@@ -493,7 +503,7 @@ export default function CompetitorsPage() {
                         </tbody>
                       </table>
                     </div>
-                  </div>
+                  </Card>
                 </>
               )}
             </div>
@@ -503,9 +513,11 @@ export default function CompetitorsPage() {
           {tab === 'keyword-gap' && (
             <div>
               {comparing ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl text-center">
-                  <p className="text-slate-400 text-xs">Analyzing keyword gaps…</p>
-                </div>
+                <Card>
+                  <CardBody className="p-6 text-center">
+                    <p className="text-slate-400 text-xs">Analyzing keyword gaps…</p>
+                  </CardBody>
+                </Card>
               ) : keywordGap ? (
                 <div className="space-y-6">
                   {/* Gap Opportunities (highest value — shown first) */}
@@ -518,7 +530,7 @@ export default function CompetitorsPage() {
                           — keywords all competitors rank for that you don't
                         </span>
                       </h3>
-                      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                      <Card className="overflow-hidden">
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-sm text-slate-300">
                             <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
@@ -534,34 +546,34 @@ export default function CompetitorsPage() {
                                 <tr key={i} className="hover:bg-slate-800/30 transition-colors">
                                   <td className="p-4 font-medium text-white text-xs">{entry.keyword}</td>
                                   <td className="p-4 text-center">
-                                    <span className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-2xs font-semibold px-2 py-0.5 rounded-full">
+                                    <Badge variant="danger">
                                       {entry.rankCount}/{keywordGap.competitors.length}
-                                    </span>
+                                    </Badge>
                                   </td>
                                   <td className="p-4 text-xs text-slate-400">
                                     <div className="flex flex-wrap gap-1">
                                       {entry.domains.map((d, di) => (
-                                        <span key={di} className="text-2xs text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                                        <Badge key={di} variant="default" className="bg-slate-950 text-slate-500 border-slate-800 rounded px-1.5">
                                           {d}
-                                        </span>
+                                        </Badge>
                                       ))}
                                     </div>
                                   </td>
                                   <td className="p-4 text-right">
-                                    <button
+                                    <Button
                                       onClick={() => handleTrackKeyword(entry.keyword)}
                                       disabled={trackingKeyword === entry.keyword}
-                                      className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-2xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                                      className="text-2xs px-3 py-1.5 shadow-none"
                                     >
                                       {trackingKeyword === entry.keyword ? '…' : 'Track'}
-                                    </button>
+                                    </Button>
                                   </td>
                                 </tr>
                               ))}
                             </tbody>
                           </table>
                         </div>
-                      </div>
+                      </Card>
                     </div>
                   )}
 
@@ -575,7 +587,7 @@ export default function CompetitorsPage() {
                           — keywords some competitors rank for that you don't
                         </span>
                       </h3>
-                      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                      <Card className="overflow-hidden">
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-sm text-slate-300">
                             <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
@@ -591,34 +603,34 @@ export default function CompetitorsPage() {
                                 <tr key={i} className="hover:bg-slate-800/30 transition-colors">
                                   <td className="p-4 font-medium text-white text-xs">{entry.keyword}</td>
                                   <td className="p-4 text-center">
-                                    <span className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-2xs font-semibold px-2 py-0.5 rounded-full">
+                                    <Badge variant="warning">
                                       {entry.rankCount}/{keywordGap.competitors.length}
-                                    </span>
+                                    </Badge>
                                   </td>
                                   <td className="p-4 text-xs text-slate-400">
                                     <div className="flex flex-wrap gap-1">
                                       {entry.domains.map((d, di) => (
-                                        <span key={di} className="text-2xs text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                                        <Badge key={di} variant="default" className="bg-slate-950 text-slate-500 border-slate-800 rounded px-1.5">
                                           {d}
-                                        </span>
+                                        </Badge>
                                       ))}
                                     </div>
                                   </td>
                                   <td className="p-4 text-right">
-                                    <button
+                                    <Button
                                       onClick={() => handleTrackKeyword(entry.keyword)}
                                       disabled={trackingKeyword === entry.keyword}
-                                      className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-2xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                                      className="text-2xs px-3 py-1.5 shadow-none"
                                     >
                                       {trackingKeyword === entry.keyword ? '…' : 'Track'}
-                                    </button>
+                                    </Button>
                                   </td>
                                 </tr>
                               ))}
                             </tbody>
                           </table>
                         </div>
-                      </div>
+                      </Card>
                     </div>
                   )}
 
@@ -632,35 +644,38 @@ export default function CompetitorsPage() {
                           — keywords you rank for that no competitor does
                         </span>
                       </h3>
-                      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
-                        <div className="flex flex-wrap gap-2">
-                          {keywordGap.yourAdvantage.map((kw, i) => (
-                            <span
-                              key={i}
-                              className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full font-medium"
-                            >
-                              {kw}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                      <Card>
+                        <CardBody className="p-4">
+                          <div className="flex flex-wrap gap-2">
+                            {keywordGap.yourAdvantage.map((kw, i) => (
+                              <Badge key={i} variant="success" className="text-xs px-2.5 py-1">
+                                {kw}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardBody>
+                      </Card>
                     </div>
                   )}
 
                   {keywordGap.gapOpportunities.length === 0 && keywordGap.partialOverlap.length === 0 && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-xl">
-                      <p className="text-slate-500 text-sm">
-                        No keyword gaps found against your competitors.
-                      </p>
-                    </div>
+                    <Card>
+                      <CardBody className="p-8 text-center">
+                        <p className="text-slate-500 text-sm">
+                          No keyword gaps found against your competitors.
+                        </p>
+                      </CardBody>
+                    </Card>
                   )}
                 </div>
               ) : (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-xl">
-                  <p className="text-slate-500 text-sm">
-                    Add competitors above to see keyword gap analysis.
-                  </p>
-                </div>
+                <Card>
+                  <CardBody className="p-8 text-center">
+                    <p className="text-slate-500 text-sm">
+                      Add competitors above to see keyword gap analysis.
+                    </p>
+                  </CardBody>
+                </Card>
               )}
             </div>
           )}
@@ -669,9 +684,11 @@ export default function CompetitorsPage() {
           {tab === 'backlink-gap' && (
             <div>
               {comparing ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl text-center">
-                  <p className="text-slate-400 text-xs">Analyzing backlink gaps…</p>
-                </div>
+                <Card>
+                  <CardBody className="p-6 text-center">
+                    <p className="text-slate-400 text-xs">Analyzing backlink gaps…</p>
+                  </CardBody>
+                </Card>
               ) : backlinkGap ? (
                 <div>
                   <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
@@ -683,13 +700,15 @@ export default function CompetitorsPage() {
                   </h3>
 
                   {backlinkGap.linkOpportunities.length === 0 ? (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-xl">
-                      <p className="text-slate-500 text-sm">
-                        No link opportunities found. All competitor backlinks already point to your domain.
-                      </p>
-                    </div>
+                    <Card>
+                      <CardBody className="p-8 text-center">
+                        <p className="text-slate-500 text-sm">
+                          No link opportunities found. All competitor backlinks already point to your domain.
+                        </p>
+                      </CardBody>
+                    </Card>
                   ) : (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                    <Card className="overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-slate-300">
                           <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
@@ -713,16 +732,16 @@ export default function CompetitorsPage() {
                                   </a>
                                 </td>
                                 <td className="p-4 text-center">
-                                  <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xs font-semibold px-2 py-0.5 rounded-full">
+                                  <Badge variant="success">
                                     {entry.linkedBy.length}/{backlinkGap.competitors.length}
-                                  </span>
+                                  </Badge>
                                 </td>
                                 <td className="p-4 text-xs text-slate-400">
                                   <div className="flex flex-wrap gap-1">
                                     {entry.linkedBy.map((d, di) => (
-                                      <span key={di} className="text-2xs text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                                      <Badge key={di} variant="default" className="bg-slate-950 text-slate-500 border-slate-800 rounded px-1.5">
                                         {d}
-                                      </span>
+                                      </Badge>
                                     ))}
                                   </div>
                                 </td>
@@ -731,15 +750,17 @@ export default function CompetitorsPage() {
                           </tbody>
                         </table>
                       </div>
-                    </div>
+                    </Card>
                   )}
                 </div>
               ) : (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-xl">
-                  <p className="text-slate-500 text-sm">
-                    Add competitors above to see backlink gap analysis.
-                  </p>
-                </div>
+                <Card>
+                  <CardBody className="p-8 text-center">
+                    <p className="text-slate-500 text-sm">
+                      Add competitors above to see backlink gap analysis.
+                    </p>
+                  </CardBody>
+                </Card>
               )}
             </div>
           )}

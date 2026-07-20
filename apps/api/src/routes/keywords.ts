@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { z } from 'zod';
 import requireAuth from '../middleware/requireAuth';
+import { requirePlan } from '../middleware/requirePlan';
 import { Project } from '../models/Project';
 import { TrackedKeyword } from '../models/TrackedKeyword';
 import { RankSnapshot } from '../models/RankSnapshot';
@@ -18,7 +19,7 @@ const trackKeywordSchema = z.object({
 });
 
 // POST /api/projects/:id/keywords - Track a new keyword
-router.post('/:id/keywords', requireAuth, async (req: Request, res: Response) => {
+router.post('/:id/keywords', requireAuth, requirePlan('keywordTracking'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
@@ -69,7 +70,7 @@ router.post('/:id/keywords', requireAuth, async (req: Request, res: Response) =>
 });
 
 // GET /api/projects/:id/keywords - List all tracked keywords with current positions and 7-day trend
-router.get('/:id/keywords', requireAuth, async (req: Request, res: Response) => {
+router.get('/:id/keywords', requireAuth, requirePlan('keywordTracking'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
@@ -138,7 +139,7 @@ router.get('/:id/keywords', requireAuth, async (req: Request, res: Response) => 
 });
 
 // GET /api/projects/:id/keywords/:keywordId/history - Get 30 days history for line chart
-router.get('/:id/keywords/:keywordId/history', requireAuth, async (req: Request, res: Response) => {
+router.get('/:id/keywords/:keywordId/history', requireAuth, requirePlan('keywordTracking'), async (req: Request, res: Response) => {
   try {
     const { id, keywordId } = req.params;
     if (!isValidObjectId(id) || !isValidObjectId(keywordId)) {
@@ -181,7 +182,7 @@ router.get('/:id/keywords/:keywordId/history', requireAuth, async (req: Request,
 });
 
 // GET /api/projects/:id/suggested-keywords - List non-dismissed keyword suggestions
-router.get('/:id/suggested-keywords', requireAuth, async (req: Request, res: Response) => {
+router.get('/:id/suggested-keywords', requireAuth, requirePlan('keywordTracking'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
@@ -209,6 +210,7 @@ router.get('/:id/suggested-keywords', requireAuth, async (req: Request, res: Res
 router.post(
   '/:id/suggested-keywords/:index/dismiss',
   requireAuth,
+  requirePlan('keywordTracking'),
   async (req: Request, res: Response) => {
     try {
       const { id, index } = req.params;

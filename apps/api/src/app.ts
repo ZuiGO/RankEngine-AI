@@ -20,6 +20,7 @@ import aiVisibilityRouter from './routes/aiVisibility';
 import domainOverviewRouter from './routes/domainOverview';
 import gapAnalysisRouter from './routes/gapAnalysis';
 import billingRouter from './routes/billing';
+import { handleWebhook } from './routes/billingWebhook';
 
 const app = express();
 
@@ -76,6 +77,14 @@ app.use(globalRateLimiter);
 app.use(requestLogger);
 
 // ──────────────────────────────────────── BODY PARSING ───────────────────────
+/**
+ * Stripe webhook must receive the raw body buffer for signature verification.
+ * This route is registered BEFORE the global express.json() so the raw parser
+ * takes priority. The global JSON middleware will skip this path because the
+ * body has already been consumed.
+ */
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
 app.use(express.json({ limit: '1mb' })); // cap body size to prevent payload abuse
 
 // ──────────────────────────────────────────── ROUTES ─────────────────────────

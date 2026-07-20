@@ -5,6 +5,7 @@ import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import api from '../lib/api';
+import { Card, CardBody, StatGauge } from '../components/ui';
 
 interface GradeBreakdown {
   entityCoverage: number;
@@ -154,7 +155,7 @@ export default function ContentEditorPage() {
         <span className="text-slate-500 text-xs">Real-Time SEO Editor</span>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-6 flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4 shadow-lg">
+      <Card className="p-4 mb-6 flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
         <div className="flex-1">
           <label className="block text-xs font-semibold text-slate-400 mb-1.5">Target Keyword</label>
           <input
@@ -174,7 +175,7 @@ export default function ContentEditorPage() {
             {serpLoading ? 'Analyzing...' : 'Run SERP Analysis'}
           </button>
         </div>
-      </div>
+      </Card>
 
       {serpError && (
         <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-3 rounded-lg mb-6">
@@ -184,7 +185,7 @@ export default function ContentEditorPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <Card className="p-5">
             <h3 className="text-sm font-bold text-white mb-3">Document Editor</h3>
             <div data-color-mode="dark">
               <MDEditor
@@ -194,9 +195,9 @@ export default function ContentEditorPage() {
                 preview="edit"
               />
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <Card className="p-5">
             <h3 className="text-sm font-bold text-white mb-4">AI Overview H2 Direct-Answer Validation</h3>
             {h2Analyses.length === 0 ? (
               <p className="text-slate-500 text-xs">No H2 headings detected in document editor yet. Add "## Heading" to trigger validations.</p>
@@ -232,11 +233,11 @@ export default function ContentEditorPage() {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl text-center relative overflow-hidden">
+          <Card className="p-6 text-center relative overflow-hidden">
             <h3 className="text-sm font-bold text-white mb-6 text-left flex items-center justify-between">
               <span>SEO Content Score</span>
               {gradingLoading && <span className="text-2xs text-indigo-400 font-normal">Analyzing...</span>}
@@ -335,9 +336,9 @@ export default function ContentEditorPage() {
                 </div>
               </>
             )}
-          </div>
+          </Card>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <Card className="p-6">
             <h3 className="text-sm font-bold text-white mb-4">Competitor SEO Checklist</h3>
             {sharedEntities.length === 0 && sharedSubtopics.length === 0 ? (
               <p className="text-slate-500 text-xs">Run SERP Analysis to populate competitor target checklists.</p>
@@ -396,7 +397,7 @@ export default function ContentEditorPage() {
                 )}
               </div>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </div>

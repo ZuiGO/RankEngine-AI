@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import requireAuth from '../middleware/requireAuth';
+import { requirePlan } from '../middleware/requirePlan';
 import { Project } from '../models/Project';
 import {
   getDomainOverview,
@@ -42,7 +43,7 @@ const competitorsSchema = z.object({
 });
 
 // POST /api/projects/:id/keyword-gap
-router.post('/:id/keyword-gap', requireAuth, async (req: Request, res: Response) => {
+router.post('/:id/keyword-gap', requireAuth, requirePlan('gapAnalysis'), async (req: Request, res: Response) => {
   try {
     const project = await resolveProject(req, res);
     if (!project) return;
@@ -146,7 +147,7 @@ router.post('/:id/keyword-gap', requireAuth, async (req: Request, res: Response)
 });
 
 // POST /api/projects/:id/backlink-gap
-router.post('/:id/backlink-gap', requireAuth, async (req: Request, res: Response) => {
+router.post('/:id/backlink-gap', requireAuth, requirePlan('gapAnalysis'), async (req: Request, res: Response) => {
   try {
     const project = await resolveProject(req, res);
     if (!project) return;

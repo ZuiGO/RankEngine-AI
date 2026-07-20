@@ -1,13 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import requireAuth from '../middleware/requireAuth';
+import { requirePlan } from '../middleware/requirePlan';
 import { getKeywordIdeas, DataProviderQuotaError } from '../services/dataProviderService';
 import KeywordResearchQuery from '../models/KeywordResearchQuery';
 
 const router = Router();
 
 // POST /api/keyword-research — run keyword research for a seed keyword
-router.post('/keyword-research', requireAuth, async (req: Request, res: Response) => {
+router.post('/keyword-research', requireAuth, requirePlan('keywordResearch'), async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -47,7 +48,7 @@ router.post('/keyword-research', requireAuth, async (req: Request, res: Response
 });
 
 // GET /api/keyword-research/history — last 20 queries for the current user
-router.get('/keyword-research/history', requireAuth, async (req: Request, res: Response) => {
+router.get('/keyword-research/history', requireAuth, requirePlan('keywordResearch'), async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 

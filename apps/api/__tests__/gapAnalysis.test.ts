@@ -77,8 +77,9 @@ beforeEach(async () => {
     passwordHash: '$2b$10$mockhash',
     role: 'agency_owner',
     companyName: 'Test Co',
+    planId: 'agency',
     dataProviderCallsThisMonth: 0,
-    dataProviderMonthlyLimit: 500,
+    dataProviderMonthlyLimit: 10000,
     dataProviderQuotaResetAt: new Date(Date.UTC(2099, 0, 1)),
   });
 
