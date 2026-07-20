@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import api from '../lib/api';
 
-// ── Icon helpers (inline SVG to avoid an icon-lib dep) ─────────────────────
 function Icon({ path }: { path: string }) {
   return (
     <svg
@@ -19,31 +19,55 @@ function Icon({ path }: { path: string }) {
   );
 }
 
-const NAV_ITEMS = [
+interface Project {
+  _id: string;
+  name: string;
+  domain: string;
+}
+
+const STORAGE_KEY = 're_selected_project';
+
+type NavGroup =
+  | { label: string; items: { label: string; to: string | null; icon: string }[] };
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Projects',
-    to: '/dashboard',
-    icon: 'M3 7h18M3 12h18M3 17h18',
+    label: 'Site Health',
+    items: [
+      { label: 'Audit / Checklist', to: null, icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { label: 'Migration Check', to: null, icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' },
+    ],
   },
   {
-    label: 'Keyword Research',
-    to: '/keyword-research',
-    icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+    label: 'Content',
+    items: [
+      { label: 'Content Editor', to: null, icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+    ],
   },
   {
-    label: 'Content Editor',
-    to: null, // context-sensitive — no global route
-    icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+    label: 'Rankings',
+    items: [
+      { label: 'Keywords', to: null, icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z' },
+      { label: 'Keyword Research', to: '/keyword-research', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+    ],
   },
   {
-    label: 'Keyword Tracking',
-    to: null, // context-sensitive
-    icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z',
+    label: 'Authority',
+    items: [
+      { label: 'Backlinks', to: null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
+    ],
   },
   {
-    label: 'Notifications',
-    to: '/notifications',
-    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+    label: 'AI Visibility',
+    items: [
+      { label: 'AI Visibility', to: null, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+    ],
+  },
+  {
+    label: 'Competitors',
+    items: [
+      { label: 'Overview & Gap Analysis', to: null, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+    ],
   },
 ];
 
@@ -51,10 +75,59 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markRead } = useNotifications();
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(() =>
+    localStorage.getItem(STORAGE_KEY),
+  );
   const [bellOpen, setBellOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [projectPickerOpen, setProjectPickerOpen] = useState(false);
+
+  // Detect project ID from current URL
+  useEffect(() => {
+    const m = location.pathname.match(/^\/projects\/([a-f0-9]+)/);
+    if (m) {
+      setSelectedProjectId(m[1]);
+      localStorage.setItem(STORAGE_KEY, m[1]);
+    }
+  }, [location.pathname]);
+
+  // Fetch projects for the switcher
+  useEffect(() => {
+    api
+      .get<Project[]>('/projects')
+      .then(({ data }) => setProjects(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  const selectedProject = projects.find((p) => p._id === selectedProjectId);
+
+  const handleSwitchProject = (pid: string) => {
+    setSelectedProjectId(pid);
+    localStorage.setItem(STORAGE_KEY, pid);
+    setProjectPickerOpen(false);
+    navigate(`/projects/${pid}`);
+  };
+
+  const resolveTo = (item: { label: string; to: string | null }): string | null => {
+    // Global routes
+    if (item.to === '/keyword-research') return '/keyword-research';
+
+    // Project-scoped routes — map label → path suffix
+    if (!selectedProjectId) return null;
+    const map: Record<string, string> = {
+      'Keywords': '/keywords',
+      'Backlinks': '/backlinks',
+      'AI Visibility': '/ai-visibility',
+      'Overview & Gap Analysis': '/competitors',
+      'Content Editor': '/content-editor',
+    };
+    const suffix = map[item.label];
+    return suffix ? `/projects/${selectedProjectId}${suffix}` : null;
+  };
 
   const handleLogout = () => {
     logout();
@@ -74,12 +147,12 @@ export default function Layout() {
     <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
       {/* ──────────────────────────────────── SIDEBAR ── */}
       <aside
-        className={`flex flex-col border-r border-slate-900 bg-slate-950 transition-all duration-300 ${
+        className={`flex flex-col border-r border-slate-800 bg-slate-950 transition-all duration-300 ${
           sidebarOpen ? 'w-60' : 'w-16'
         }`}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center px-4 border-b border-slate-900 flex-shrink-0">
+        {/* Logo + toggle */}
+        <div className="h-14 flex items-center px-4 border-b border-slate-800 flex-shrink-0">
           <button
             onClick={() => setSidebarOpen((o) => !o)}
             className="mr-3 p-1 rounded hover:bg-slate-800 transition-colors"
@@ -93,11 +166,7 @@ export default function Layout() {
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
           {sidebarOpen && (
@@ -107,54 +176,148 @@ export default function Layout() {
           )}
         </div>
 
-        {/* Nav Links */}
-        <nav className="flex-1 py-4 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const isDisabled = item.to === null;
-            const baseClasses =
-              'flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg mx-2 transition-all';
-
-            if (isDisabled) {
-              return (
-                <div
-                  key={item.label}
-                  className={`${baseClasses} text-slate-600 cursor-not-allowed select-none`}
-                  title={`${item.label} — select a project first`}
-                >
-                  <Icon path={item.icon} />
-                  {sidebarOpen && <span>{item.label}</span>}
-                </div>
-              );
-            }
-
-            return (
-              <NavLink
-                key={item.label}
-                to={item.to!}
-                className={({ isActive }) =>
-                  `${baseClasses} ${
-                    isActive
-                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-700/30'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                  }`
-                }
+        {/* Project switcher */}
+        {sidebarOpen && (
+          <div className="px-3 pt-3 pb-1 border-b border-slate-800">
+            <div className="relative">
+              <button
+                onClick={() => setProjectPickerOpen((o) => !o)}
+                className="w-full flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-left transition-colors"
               >
-                <Icon path={item.icon} />
-                {sidebarOpen && <span>{item.label}</span>}
-                {/* Unread badge on Notifications nav item */}
-                {item.label === 'Notifications' && unreadCount > 0 && sidebarOpen && (
-                  <span className="ml-auto bg-indigo-500 text-white text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </NavLink>
-            );
-          })}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <span className="truncate text-slate-300">
+                  {selectedProject ? selectedProject.name : 'Select project…'}
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-600 ml-auto flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {projectPickerOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setProjectPickerOpen(false)} />
+                  <div className="absolute left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl shadow-black/60 z-20 max-h-48 overflow-y-auto">
+                    {projects.length === 0 ? (
+                      <p className="px-3 py-2 text-2xs text-slate-600">No projects yet</p>
+                    ) : (
+                      projects.map((p) => (
+                        <button
+                          key={p._id}
+                          onClick={() => handleSwitchProject(p._id)}
+                          className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-800 transition-colors flex items-center gap-2 ${
+                            p._id === selectedProjectId ? 'bg-indigo-500/10 text-indigo-300' : 'text-slate-300'
+                          }`}
+                        >
+                          <span className="truncate flex-1">{p.name}</span>
+                          <span className="text-2xs text-slate-600 truncate max-w-[80px]">{p.domain}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Nav links — grouped sections */}
+        <nav className="flex-1 py-3 overflow-y-auto space-y-3">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label}>
+              {sidebarOpen && (
+                <p className="px-5 text-2xs font-semibold text-slate-600 uppercase tracking-widest mb-0.5">
+                  {group.label}
+                </p>
+              )}
+              {group.items.map((item) => {
+                const to = resolveTo(item);
+                const isDisabled = to === null;
+
+                if (isDisabled) {
+                  return (
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 cursor-not-allowed select-none mx-2 rounded-lg"
+                      title={
+                        !selectedProjectId
+                          ? `${item.label} — select a project first`
+                          : `${item.label} — coming soon`
+                      }
+                    >
+                      <Icon path={item.icon} />
+                      {sidebarOpen && <span>{item.label}</span>}
+                    </div>
+                  );
+                }
+
+                return (
+                  <NavLink
+                    key={item.label}
+                    to={to!}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-4 py-2 text-sm font-medium mx-2 rounded-lg transition-all ${
+                        isActive
+                          ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-700/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                      }`
+                    }
+                  >
+                    <Icon path={item.icon} />
+                    {sidebarOpen && <span>{item.label}</span>}
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))}
+
+          {/* Project list (from old nav) */}
+          <div>
+            {sidebarOpen && (
+              <p className="px-5 text-2xs font-semibold text-slate-600 uppercase tracking-widest mb-0.5">
+                General
+              </p>
+            )}
+            <NavLink
+              to="/dashboard"
+              end
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-2 text-sm font-medium mx-2 rounded-lg transition-all ${
+                  isActive
+                    ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-700/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`
+              }
+            >
+              <Icon path="M3 7h18M3 12h18M3 17h18" />
+              {sidebarOpen && <span>All Projects</span>}
+            </NavLink>
+
+            <NavLink
+              to="/notifications"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-2 text-sm font-medium mx-2 rounded-lg transition-all ${
+                  isActive
+                    ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-700/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`
+              }
+            >
+              <Icon path="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              {sidebarOpen && <span>Notifications</span>}
+              {unreadCount > 0 && sidebarOpen && (
+                <span className="ml-auto bg-indigo-500 text-white text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </NavLink>
+          </div>
         </nav>
 
         {/* Sidebar footer */}
         {sidebarOpen && (
-          <div className="px-4 py-3 border-t border-slate-900 text-[11px] text-slate-600">
+          <div className="px-4 py-3 border-t border-slate-800 text-[11px] text-slate-600">
             RankEngine AI v1.0
           </div>
         )}
@@ -164,7 +327,7 @@ export default function Layout() {
       <div className="flex flex-col flex-1 overflow-hidden">
 
         {/* ─────────────── TOP HEADER ─────────────── */}
-        <header className="h-16 bg-slate-950 border-b border-slate-900 flex items-center justify-end px-6 gap-3 flex-shrink-0">
+        <header className="h-14 bg-slate-950 border-b border-slate-800 flex items-center justify-end px-6 gap-3 flex-shrink-0">
 
           {/* ── Notification Bell ── */}
           <div className="relative">
@@ -185,7 +348,6 @@ export default function Layout() {
               )}
             </button>
 
-            {/* Bell dropdown */}
             {bellOpen && (
               <div
                 id="notification-dropdown"
@@ -199,9 +361,7 @@ export default function Layout() {
                 </div>
                 <div className="max-h-72 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <p className="text-slate-500 text-xs text-center py-8">
-                      No notifications yet
-                    </p>
+                    <p className="text-slate-500 text-xs text-center py-8">No notifications yet</p>
                   ) : (
                     notifications.slice(0, 10).map((n) => (
                       <div
@@ -273,24 +433,9 @@ export default function Layout() {
                   onClick={() => setUserMenuOpen(false)}
                   className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-slate-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   Settings
                 </NavLink>
@@ -298,19 +443,8 @@ export default function Layout() {
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-slate-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                   Logout
                 </button>

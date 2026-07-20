@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FolderSearch } from 'lucide-react';
@@ -12,7 +12,14 @@ interface Project {
   createdAt: string;
 }
 
-// ── Tiny date formatter ───────────────────────────────────────────────────
+interface ProjectSummary {
+  backlinks: number | null;
+  bestKeywordPosition: number | null;
+  keywordCount: number;
+  aiVisibility: number | null;
+  loading: boolean;
+}
+
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const days = Math.floor(diff / 86_400_000);
@@ -22,7 +29,6 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
-// ── New Project Modal ──────────────────────────────────────────────────────
 function NewProjectModal({
   onClose,
   onCreate,
@@ -55,13 +61,11 @@ function NewProjectModal({
   };
 
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
           <h2 className="text-base font-semibold text-white">New Project</h2>
           <button
@@ -75,7 +79,6 @@ function NewProjectModal({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           {error && (
             <div className="bg-red-950/60 border border-red-800/50 text-red-300 text-sm rounded-lg px-4 py-2.5">
@@ -115,8 +118,7 @@ function NewProjectModal({
 
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="project-staging">
-              Staging domain{' '}
-              <span className="text-slate-600 font-normal">(optional)</span>
+              Staging domain <span className="text-slate-600 font-normal">(optional)</span>
             </label>
             <input
               id="project-staging"
@@ -151,29 +153,133 @@ function NewProjectModal({
   );
 }
 
-// ── Project Card ───────────────────────────────────────────────────────────
-function ProjectCard({ project, onClick }: { project: Project; onClick: () => void }) {
+function fetchProjectSummary(id: string): Promise<ProjectSummary> {
+  return Promise.all([
+    api
+      .get<{ totalBacklinks: number }>(`/projects/${id}/backlinks/overview`)
+      .then((r) => r.data.totalBacklinks)
+      .catch(() => null),
+    api
+      .get<any[]>(`/projects/${id}/keywords`)
+      .then((r) => {
+        const list = Array.isArray(r.data) ? r.data : [];
+        const positions = list
+          .map((k: any) => k.currentPosition)
+          .filter((p: number) => p != null && p < 101);
+        return {
+          best: positions.length > 0 ? Math.min(...positions) : null,
+          count: list.length,
+        };
+      })
+      .catch(() => ({ best: null, count: 0 })),
+    api
+      .get<{ visibilityScore: number }>(`/projects/${id}/ai-visibility`)
+      .then((r) => r.data.visibilityScore)
+      .catch(() => null),
+  ]).then(([backlinks, kw, aiVis]) => ({
+    backlinks,
+    bestKeywordPosition: kw.best,
+    keywordCount: kw.count,
+    aiVisibility: aiVis,
+    loading: false,
+  }));
+}
+
+function HealthBadge({ score }: { score: number | null }) {
+  if (score === null) return <span className="text-slate-600 text-2xs">—</span>;
+  let color: string;
+  if (score >= 70) color = 'text-emerald-400';
+  else if (score >= 40) color = 'text-amber-400';
+  else color = 'text-rose-400';
+  return <span className={`text-xs font-bold tabular-nums ${color}`}>{score}</span>;
+}
+
+function ProjectCard({
+  project,
+  summary,
+  onClick,
+}: {
+  project: Project;
+  summary: ProjectSummary | null;
+  onClick: () => void;
+}) {
+  const formatNumber = (n: number | null) =>
+    n != null ? n.toLocaleString() : '…';
+
   return (
     <div
       onClick={onClick}
       className="group bg-slate-900 border border-slate-800 hover:border-indigo-700/50 rounded-2xl p-5 cursor-pointer transition-all hover:shadow-xl hover:shadow-indigo-950/30 hover:-translate-y-0.5"
     >
-      {/* Icon + Domain */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-700/40 to-violet-700/40 border border-indigo-700/20 flex items-center justify-center text-indigo-300 font-bold text-sm">
-          {project.name.slice(0, 2).toUpperCase()}
+      {/* Top row */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-700/40 to-violet-700/40 border border-indigo-700/20 flex items-center justify-center text-indigo-300 font-bold text-sm flex-shrink-0">
+            {project.name.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-white group-hover:text-indigo-200 transition-colors truncate">
+              {project.name}
+            </h3>
+            <p className="text-xs text-slate-500 truncate">{project.domain}</p>
+          </div>
         </div>
         {project.stagingDomain && (
-          <span className="text-[10px] font-medium bg-amber-900/40 border border-amber-700/30 text-amber-400 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-medium bg-amber-900/40 border border-amber-700/30 text-amber-400 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
             Staging
           </span>
         )}
       </div>
 
-      <h3 className="text-sm font-semibold text-white group-hover:text-indigo-200 transition-colors mb-1 truncate">
-        {project.name}
-      </h3>
-      <p className="text-xs text-slate-500 truncate mb-4">{project.domain}</p>
+      {/* Summary strip */}
+      <div className="grid grid-cols-4 gap-3 mb-3 py-2.5 px-3 bg-slate-950/60 rounded-xl border border-slate-800/50">
+        <div className="text-center">
+          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">Health</p>
+          <HealthBadge
+            score={
+              summary && !summary.loading
+                ? Math.round(
+                    ((summary.aiVisibility ?? 0) +
+                      (summary.backlinks ? Math.min(summary.backlinks / 100, 100) : 0) +
+                      (summary.bestKeywordPosition
+                        ? Math.max(0, 100 - summary.bestKeywordPosition * 2)
+                        : summary.keywordCount > 0 ? 50 : 0)) / 3
+                  )
+                : null
+            }
+          />
+        </div>
+        <div className="text-center">
+          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">Rank</p>
+          <p className="text-xs font-bold text-white tabular-nums">
+            {summary && !summary.loading
+              ? summary.bestKeywordPosition != null
+                ? `#${summary.bestKeywordPosition}`
+                : summary.keywordCount > 0
+                  ? '101+'
+                  : '—'
+              : '…'}
+          </p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">AI Vis.</p>
+          <p className="text-xs font-bold text-white tabular-nums">
+            {summary && !summary.loading
+              ? summary.aiVisibility != null
+                ? `${summary.aiVisibility}%`
+                : '—'
+              : '…'}
+          </p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">Backlinks</p>
+          <p className="text-xs font-bold text-white tabular-nums">
+            {summary && !summary.loading
+              ? formatNumber(summary.backlinks)
+              : '…'}
+          </p>
+        </div>
+      </div>
 
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-slate-600">{timeAgo(project.createdAt)}</span>
@@ -185,10 +291,10 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
   );
 }
 
-// ── Dashboard Page ─────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [summaries, setSummaries] = useState<Record<string, ProjectSummary>>({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
@@ -196,10 +302,38 @@ export default function DashboardPage() {
   useEffect(() => {
     api
       .get<Project[]>('/projects')
-      .then(({ data }) => setProjects(Array.isArray(data) ? data : []))
-      .catch(() => setError('Failed to load projects.'))
+      .then(({ data }) => {
+        const list = Array.isArray(data) ? data : [];
+        setProjects(list);
+        return list;
+      })
+      .catch(() => {
+        setError('Failed to load projects.');
+        return [] as Project[];
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  const fetchSummaries = useCallback(async (list: Project[]) => {
+    const results = await Promise.allSettled(
+      list.map((p) =>
+        fetchProjectSummary(p._id).then((s) => ({ id: p._id, summary: s })),
+      ),
+    );
+    const map: Record<string, ProjectSummary> = {};
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        map[r.value.id] = r.value.summary;
+      }
+    }
+    setSummaries((prev) => ({ ...prev, ...map }));
+  }, []);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      fetchSummaries(projects);
+    }
+  }, [projects, fetchSummaries]);
 
   const handleCreate = (p: Project) => {
     setProjects((prev) => [p, ...prev]);
@@ -209,7 +343,6 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
-      {/* Page header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Projects</h1>
@@ -231,30 +364,30 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="mb-6 bg-red-950/60 border border-red-800/50 text-red-300 text-sm rounded-xl px-4 py-3">
           {error}
         </div>
       )}
 
-      {/* Loading skeleton */}
       {loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 h-40 animate-pulse"
-            >
-              <div className="h-10 w-10 rounded-xl bg-slate-800 mb-4" />
-              <div className="h-3 w-2/3 bg-slate-800 rounded mb-2" />
-              <div className="h-2.5 w-1/2 bg-slate-800 rounded" />
+            <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 animate-pulse">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-9 w-9 rounded-xl bg-slate-800" />
+                <div className="flex-1">
+                  <div className="h-3 w-2/3 bg-slate-800 rounded mb-1.5" />
+                  <div className="h-2.5 w-1/2 bg-slate-800 rounded" />
+                </div>
+              </div>
+              <div className="h-14 bg-slate-800/60 rounded-xl mb-3" />
+              <div className="h-2.5 w-1/3 bg-slate-800 rounded" />
             </div>
           ))}
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && projects.length === 0 && (
         <div className="text-center py-24">
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-slate-900 border border-slate-800 text-indigo-400 mb-4">
@@ -273,20 +406,19 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Project grid */}
       {!loading && projects.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((p) => (
             <ProjectCard
               key={p._id}
               project={p}
+              summary={summaries[p._id] ?? null}
               onClick={() => navigate(`/projects/${p._id}`)}
             />
           ))}
         </div>
       )}
 
-      {/* Modal */}
       {showModal && (
         <NewProjectModal onClose={() => setShowModal(false)} onCreate={handleCreate} />
       )}
