@@ -8,6 +8,7 @@ export interface IUser extends Document {
   role: UserRole;
   companyName: string;
   emailDigestEnabled: boolean;
+  hasCompletedOnboarding: boolean;
   createdAt: Date;
 }
 
@@ -35,6 +36,10 @@ const UserSchema = new Schema<IUser>({
   emailDigestEnabled: {
     type: Boolean,
     default: true,
+  },
+  hasCompletedOnboarding: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,

@@ -124,9 +124,24 @@ export const _closeRedisClient = async (): Promise<void> => {
 
 /** Exposed only for unit tests – clears all rate-limit keys in Redis. */
 export const _clearRateLimitStore = async (): Promise<void> => {
-  const client = getRedisClient();
-  const keys = await client.keys('rl:*');
-  if (keys.length > 0) {
-    await client.del(...keys);
+  // Use a throw-away client with no retry so tests don't hang when Redis is unavailable.
+  const tempClient = new IORedis({
+    ...redisOptions,
+    connectTimeout: 3000,
+    maxRetriesPerRequest: 1,
+    retryStrategy: () => undefined,
+    enableReadyCheck: false,
+    lazyConnect: false,
+  });
+  tempClient.on('error', () => {});
+  try {
+    const keys = await tempClient.keys('rl:*');
+    if (keys.length > 0) {
+      await tempClient.del(...keys);
+    }
+  } catch {
+    // Redis may not be available; silently skip
+  } finally {
+    await tempClient.quit().catch(() => {});
   }
 };

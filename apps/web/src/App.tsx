@@ -30,6 +30,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import OnboardingPage from './pages/OnboardingPage';
 
 const API_BASE = 'http://localhost:3000/api';
 
@@ -134,6 +135,8 @@ export default function App() {
 
             {/* Protected routes — wrapped in Layout (sidebar + header) */}
             <Route element={<ProtectedRoute />}>
+              {/* Onboarding is full-screen, no sidebar */}
+              <Route path="/onboarding" element={<OnboardingPage />} />
               <Route element={<Layout />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
@@ -872,11 +875,9 @@ export function KeywordTracker() {
 
   // Suggested keywords state
   const [suggestedKeywords, setSuggestedKeywords] = useState<{ keyword: string; source: string }[]>([]);
-  const [suggestedLoading, setSuggestedLoading] = useState(false);
   const [trackingKeyword, setTrackingKeyword] = useState<string | null>(null);
 
   const fetchSuggestedKeywords = async () => {
-    setSuggestedLoading(true);
     try {
       const res = await fetch(`${API_BASE}/projects/${id}/suggested-keywords`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -885,8 +886,6 @@ export function KeywordTracker() {
       if (res.ok) setSuggestedKeywords(data);
     } catch {
       // silently ignore
-    } finally {
-      setSuggestedLoading(false);
     }
   };
 

@@ -129,6 +129,25 @@ describe('Projects Management REST API', () => {
     it('should reject requests without authorization token', async () => {
       await request.post('/api/projects').send(projectPayload).expect(401);
     });
+
+    it('should trigger a first audit when triggerFirstAudit is true', async () => {
+      const res = await request
+        .post('/api/projects')
+        .set('Authorization', `Bearer ${userAToken}`)
+        .send({ ...projectPayload, triggerFirstAudit: true })
+        .expect(201);
+
+      expect(res.body._firstCrawlJobId).toEqual(expect.any(String));
+      // Verify a CrawlJob was created in the database
+      const { CrawlJob } = require('../src/models/CrawlJob');
+      const job = await CrawlJob.findById(res.body._firstCrawlJobId);
+      expect(job).not.toBeNull();
+      expect(job.status).toBe('queued');
+
+      // Clean up so other tests aren't affected
+      const { Project } = require('../src/models/Project');
+      await Project.findByIdAndDelete(res.body._id);
+    });
   });
 
   describe('GET /api/projects - List Projects', () => {

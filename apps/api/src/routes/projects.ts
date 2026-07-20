@@ -15,6 +15,7 @@ const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').trim(),
   domain: z.string().min(1, 'Domain is required').trim(),
   stagingDomain: z.string().trim().optional(),
+  triggerFirstAudit: z.boolean().optional(),
 });
 
 // Validation schema for updating a project
@@ -42,7 +43,7 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    const { name, domain, stagingDomain } = validation.data;
+    const { name, domain, stagingDomain, triggerFirstAudit } = validation.data;
 
     const project = new Project({
       name,
@@ -53,7 +54,21 @@ router.post('/', async (req: Request, res: Response) => {
 
     await project.save();
 
-    return res.status(201).json(project);
+    let firstCrawlJobId: string | undefined;
+    if (triggerFirstAudit) {
+      try {
+        const result = await enqueueCrawlJob(project);
+        firstCrawlJobId = result.crawlJobId;
+      } catch (err) {
+        console.error('First audit enqueue error:', err);
+      }
+    }
+
+    const response = project.toObject() as unknown as Record<string, unknown>;
+    if (firstCrawlJobId) {
+      response._firstCrawlJobId = firstCrawlJobId;
+    }
+    return res.status(201).json(response);
   } catch (error) {
     console.error('Create project error:', error);
     return res.status(500).json({ error: 'Internal server error' });

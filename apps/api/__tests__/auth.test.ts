@@ -189,6 +189,7 @@ describe('Authentication Flow', () => {
         role: registerPayload.role,
         companyName: registerPayload.companyName,
         emailDigestEnabled: true,
+        hasCompletedOnboarding: false,
         createdAt: expect.any(String),
       });
     });
@@ -222,6 +223,30 @@ describe('Authentication Flow', () => {
         .set('Authorization', `Bearer ${expiredToken}`)
         .expect(401);
       expect(res.body.error).toBe('Unauthorized: Token expired');
+    });
+  });
+
+  describe('PATCH /api/auth/onboarding-complete', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      const res = await request.post('/api/auth/register').send(registerPayload).expect(201);
+      token = res.body.token;
+    });
+
+    it('should set hasCompletedOnboarding to true', async () => {
+      const res = await request
+        .patch('/api/auth/onboarding-complete')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body.hasCompletedOnboarding).toBe(true);
+    });
+
+    it('should reject unauthenticated requests', async () => {
+      await request
+        .patch('/api/auth/onboarding-complete')
+        .expect(401);
     });
   });
 });

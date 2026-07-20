@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -18,6 +18,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
+      await refreshProfile();
       navigate('/dashboard');
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Login failed. Check your credentials.');

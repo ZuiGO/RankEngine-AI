@@ -12,7 +12,7 @@ const ROLE_OPTIONS = [
 type Role = (typeof ROLE_OPTIONS)[number]['value'];
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -28,6 +28,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(email, password, role, companyName);
+      await refreshProfile();
       navigate('/dashboard');
     } catch (err: any) {
       const details = err?.response?.data?.details;

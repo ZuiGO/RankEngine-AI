@@ -15,9 +15,21 @@ interface AuthUser {
   role: string;
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  role: string;
+  companyName: string;
+  emailDigestEnabled: boolean;
+  hasCompletedOnboarding: boolean;
+  createdAt: string;
+}
+
 interface AuthContextValue {
   token: string | null;
   user: AuthUser | null;
+  profile: UserProfile | null;
+  refreshProfile: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, role: string, companyName: string) => Promise<void>;
   logout: () => void;
@@ -50,6 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const t = localStorage.getItem('re_token');
     return t ? parseJwt(t) : null;
   });
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const { data } = await api.get<UserProfile>('/auth/me');
+      setProfile(data);
+    } catch {
+      // silently ignore
+    }
+  }, []);
 
   const persist = (newToken: string) => {
     localStorage.setItem('re_token', newToken);
@@ -82,10 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('re_token');
     setToken(null);
     setUser(null);
+    setProfile(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ token, user, login, register, logout }}>
+    <AuthContext.Provider value={{ token, user, profile, refreshProfile, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

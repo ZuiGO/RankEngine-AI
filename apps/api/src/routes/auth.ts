@@ -141,10 +141,43 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       role: user.role,
       companyName: user.companyName,
       emailDigestEnabled: user.emailDigestEnabled,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
       createdAt: user.createdAt,
     });
   } catch (error) {
     console.error('Get profile error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /api/auth/onboarding-complete
+router.patch('/onboarding-complete', requireAuth, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { hasCompletedOnboarding: true },
+      { new: true }
+    ).select('-passwordHash');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.json({
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      companyName: user.companyName,
+      emailDigestEnabled: user.emailDigestEnabled,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    console.error('Onboarding complete error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -184,6 +217,7 @@ router.patch('/preferences', requireAuth, async (req: Request, res: Response) =>
       role: user.role,
       companyName: user.companyName,
       emailDigestEnabled: user.emailDigestEnabled,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
       createdAt: user.createdAt,
     });
   } catch (error) {
