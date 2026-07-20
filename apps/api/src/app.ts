@@ -5,7 +5,6 @@ import path from 'path';
 import { HealthCheckResponse, CrawlJob } from '@rankengine/shared-types';
 import config from './config';
 
-import config from './config';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';

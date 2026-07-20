@@ -345,4 +345,108 @@ describe('Organization Team Management', () => {
       await User.findByIdAndUpdate(ownerId, { planId: 'agency' });
     });
   });
+
+  describe('Organization branding', () => {
+    describe('GET /api/organizations', () => {
+      it('should list organizations for the current user', async () => {
+        const res = await request
+          .get('/api/organizations')
+          .set('Authorization', `Bearer ${ownerToken}`)
+          .expect(200);
+
+        expect(res.body).toBeInstanceOf(Array);
+        expect(res.body.length).toBeGreaterThanOrEqual(1);
+        expect(res.body[0].name).toBe('Owner Co');
+      });
+
+      it('should reject without auth', async () => {
+        await request.get('/api/organizations').expect(401);
+      });
+    });
+
+    describe('GET /api/organizations/:orgId', () => {
+      it('should return org details with branding fields', async () => {
+        const res = await request
+          .get(`/api/organizations/${orgId}`)
+          .set('Authorization', `Bearer ${ownerToken}`)
+          .expect(200);
+
+        expect(res.body._id).toBe(orgId);
+        expect(res.body).toHaveProperty('logoUrl');
+        expect(res.body).toHaveProperty('primaryColor');
+        expect(res.body).toHaveProperty('reportFooterText');
+      });
+
+      it('should reject for non-member', async () => {
+        await request
+          .get(`/api/organizations/${orgId}`)
+          .set('Authorization', `Bearer ${outsiderToken}`)
+          .expect(403);
+      });
+    });
+
+    describe('POST /api/organizations/:orgId/branding', () => {
+      it('should update branding fields (primaryColor, reportFooterText)', async () => {
+        const res = await request
+          .post(`/api/organizations/${orgId}/branding`)
+          .set('Authorization', `Bearer ${ownerToken}`)
+          .field('primaryColor', '#ff6600')
+          .field('reportFooterText', 'Powered by My Agency — contact@myagency.com')
+          .expect(200);
+
+        expect(res.body.message).toBe('Branding updated');
+        expect(res.body.organization.primaryColor).toBe('#ff6600');
+        expect(res.body.organization.reportFooterText).toBe('Powered by My Agency — contact@myagency.com');
+
+        // Verify persisted
+        const org = await Organization.findById(orgId);
+        expect(org!.primaryColor).toBe('#ff6600');
+        expect(org!.reportFooterText).toBe('Powered by My Agency — contact@myagency.com');
+      });
+
+      it('should reject invalid hex color', async () => {
+        await request
+          .post(`/api/organizations/${orgId}/branding`)
+          .set('Authorization', `Bearer ${ownerToken}`)
+          .field('primaryColor', 'not-a-color')
+          .expect(400);
+      });
+
+      it('should clear branding fields when empty string sent', async () => {
+        await request
+          .post(`/api/organizations/${orgId}/branding`)
+          .set('Authorization', `Bearer ${ownerToken}`)
+          .field('primaryColor', '')
+          .field('reportFooterText', '')
+          .expect(200);
+
+        const org = await Organization.findById(orgId);
+        expect(org!.primaryColor).toBe('');
+        expect(org!.reportFooterText).toBe('');
+      });
+
+      it('should reject branding update from member on free plan (402)', async () => {
+        await request
+          .post(`/api/organizations/${orgId}/branding`)
+          .set('Authorization', `Bearer ${memberToken}`)
+          .field('primaryColor', '#ff0000')
+          .expect(402);
+      });
+
+      it('should reject branding update from outsider on free plan (402)', async () => {
+        await request
+          .post(`/api/organizations/${orgId}/branding`)
+          .set('Authorization', `Bearer ${outsiderToken}`)
+          .field('primaryColor', '#ff0000')
+          .expect(402);
+      });
+
+      it('should reject branding update without auth', async () => {
+        await request
+          .post(`/api/organizations/${orgId}/branding`)
+          .field('primaryColor', '#ff0000')
+          .expect(401);
+      });
+    });
+  });
 });

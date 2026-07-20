@@ -13,6 +13,7 @@ export interface WhiteLabelConfig {
   agencyName: string;
   agencyLogoUrl?: string;
   primaryColor?: string;
+  reportFooterText?: string;
 }
 
 export interface ReportPayload {
@@ -73,7 +74,7 @@ export function generateReportHtml(payload: ReportPayload): string {
   .body { padding: 0 36px 36px; }
   .generated-date { font-size: 11px; color: #94a3b8; margin-bottom: 28px; }
   .section { margin-bottom: 28px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
-  .section-title { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+  .section-title { font-size: 15px; font-weight: 700; color: ${primaryColor}; margin-bottom: 12px; }
   .score-gauge { text-align: center; padding: 20px 0; }
   .score-number { font-size: 56px; font-weight: 800; line-height: 1; }
   .score-label { font-size: 12px; color: #64748b; margin-top: 4px; }
@@ -108,7 +109,7 @@ export function generateReportHtml(payload: ReportPayload): string {
     <p class="generated-date">Generated ${new Date(payload.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
     ${sectionsHtml}
   </div>
-  <div class="footer">RankEngine AI — Automated SEO Audit Report</div>
+  <div class="footer">${brand?.reportFooterText ? escapeHtml(brand.reportFooterText) : 'RankEngine AI — Automated SEO Audit Report'}</div>
 </div>
 </body>
 </html>`;

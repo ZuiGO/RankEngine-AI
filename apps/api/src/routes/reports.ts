@@ -5,6 +5,7 @@ import { Project } from '../models/Project';
 import { CrawlJob } from '../models/CrawlJob';
 import { AuditIssue } from '../models/AuditIssue';
 import { Report } from '../models/Report';
+import { Organization } from '../models/Organization';
 import { Membership } from '../models/Membership';
 import requireAuth from '../middleware/requireAuth';
 import {
@@ -142,12 +143,24 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
       });
     }
 
+    // Fetch org branding for white-label report
+    const org = await Organization.findById(project.organizationId).select('name logoUrl primaryColor reportFooterText');
+    const whiteLabel = org?.logoUrl || org?.primaryColor || org?.reportFooterText
+      ? {
+          agencyName: org.name,
+          agencyLogoUrl: org.logoUrl ?? undefined,
+          primaryColor: org.primaryColor ?? undefined,
+          reportFooterText: org.reportFooterText ?? undefined,
+        }
+      : undefined;
+
     // Build payload and render PDF
     const payload = buildReportPayload(
       project._id.toString(),
       project.name,
       project.domain,
       sections,
+      whiteLabel,
     );
 
     const html = generateReportHtml(payload);

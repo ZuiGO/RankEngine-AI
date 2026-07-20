@@ -380,7 +380,15 @@ router.get('/:orgId', requireAuth, async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    return res.json(org);
+    return res.json({
+      _id: org._id,
+      name: org.name,
+      ownerId: org.ownerId,
+      createdAt: org.createdAt,
+      logoUrl: org.logoUrl || null,
+      primaryColor: org.primaryColor || null,
+      reportFooterText: org.reportFooterText || null,
+    });
   } catch (error) {
     console.error('[Organizations] Get error:', error);
     return res.status(500).json({ error: 'Internal server error' });
