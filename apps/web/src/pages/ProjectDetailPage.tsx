@@ -9,6 +9,7 @@ interface Project {
   name: string;
   domain: string;
   stagingDomain?: string;
+  auditSchedule: 'manual' | 'daily' | 'weekly';
   createdAt: string;
 }
 
@@ -261,6 +262,22 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [projectLoading, setProjectLoading] = useState(true);
 
+  // Audit schedule state
+  const [scheduleUpdating, setScheduleUpdating] = useState(false);
+
+  const handleScheduleChange = async (auditSchedule: 'manual' | 'daily' | 'weekly') => {
+    if (!id) return;
+    setScheduleUpdating(true);
+    try {
+      const { data } = await api.patch<Project>(`/projects/${id}/schedule`, { auditSchedule });
+      setProject(data);
+    } catch {
+      // silently ignore
+    } finally {
+      setScheduleUpdating(false);
+    }
+  };
+
   // Audit state
   const [activeJob, setActiveJob] = useState<CrawlJob | null>(null);
   const [auditLoading, setAuditLoading] = useState(false);
@@ -440,6 +457,19 @@ export default function ProjectDetailPage() {
               Staging: {project.stagingDomain}
             </span>
           )}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-[11px] text-slate-500 font-medium">Auto-audit:</span>
+            <select
+              value={project.auditSchedule}
+              onChange={(e) => handleScheduleChange(e.target.value as 'manual' | 'daily' | 'weekly')}
+              disabled={scheduleUpdating}
+              className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-300 outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+            >
+              <option value="manual">Off</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
         </div>
 
         {/* Action buttons */}

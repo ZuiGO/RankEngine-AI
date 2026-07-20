@@ -1,10 +1,13 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
+export type AuditSchedule = 'manual' | 'daily' | 'weekly';
+
 export interface IProject extends Document {
   name: string;
   ownerId: Types.ObjectId;
   domain: string;
   stagingDomain?: string;
+  auditSchedule: AuditSchedule;
   createdAt: Date;
   deletedAt?: Date | null;
 }
@@ -28,6 +31,11 @@ const ProjectSchema = new Schema<IProject>({
   stagingDomain: {
     type: String,
     trim: true,
+  },
+  auditSchedule: {
+    type: String,
+    enum: ['manual', 'daily', 'weekly'],
+    default: 'manual',
   },
   createdAt: {
     type: Date,

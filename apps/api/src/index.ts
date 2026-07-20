@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import app from './app';
 import config from './config';
 import { initRankTrackerScheduler } from './services/rankTrackerService';
+import { initAuditScheduler } from './services/auditSchedulerService';
 
 const PORT = config.PORT;
 
@@ -13,6 +14,9 @@ mongoose
 
     // Initialize scheduled rank tracking jobs
     initRankTrackerScheduler();
+
+    // Initialize scheduled auto-audit jobs
+    initAuditScheduler();
 
     app.listen(PORT, () => {
       console.log(`[server]: Server is running at http://localhost:${PORT}`);

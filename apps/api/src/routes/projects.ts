@@ -3,8 +3,7 @@ import { z } from 'zod';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project';
 import requireAuth from '../middleware/requireAuth';
-import { CrawlJob } from '../models/CrawlJob';
-import { crawlQueue } from '../queues/crawlQueue';
+import { enqueueCrawlJob, enqueueMigrationCheck } from '../services/crawlService';
 
 const router = Router();
 
@@ -154,6 +153,50 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Validation schema for audit schedule
+const auditScheduleSchema = z.object({
+  auditSchedule: z.enum(['manual', 'daily', 'weekly']),
+});
+
+// PATCH /api/projects/:id/schedule - Update audit schedule
+router.patch('/:id/schedule', async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
+    const validation = auditScheduleSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: validation.error.flatten().fieldErrors,
+      });
+    }
+
+    const project = await Project.findOne({ _id: id, deletedAt: null });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.ownerId.toString() !== req.user.userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
+    }
+
+    project.auditSchedule = validation.data.auditSchedule;
+    await project.save();
+
+    return res.json(project);
+  } catch (error) {
+    console.error('Update audit schedule error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // DELETE /api/projects/:id - Soft-delete project
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
@@ -210,34 +253,11 @@ router.post('/:id/crawl', async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
-    // 1. Create a CrawlJob document in MongoDB with status "queued"
-    const crawlJob = new CrawlJob({
-      projectId: project._id,
-      status: 'queued',
-      pageCount: 0,
-    });
-    await crawlJob.save();
+    const { crawlJobId } = await enqueueCrawlJob(project);
 
-    const crawlJobIdStr = crawlJob._id.toString();
-
-    // 2. Enqueue the job on BullMQ "crawl-jobs" queue with the crawlJobId as BullMQ jobId
-    // and payload containing crawlJobId and the project domain/stagingDomain
-    await crawlQueue.add(
-      'crawl',
-      {
-        crawlJobId: crawlJobIdStr,
-        domain: project.domain,
-        stagingDomain: project.stagingDomain || null,
-      },
-      {
-        jobId: crawlJobIdStr, // Aligning BullMQ jobId with Mongoose _id for QueueEvents updates
-      }
-    );
-
-    // 3. Return the CrawlJob id immediately (202 Accepted)
     return res.status(202).json({
       message: 'Crawl job queued successfully',
-      crawlJobId: crawlJobIdStr,
+      crawlJobId,
     });
   } catch (error) {
     console.error('Queue crawl job error:', error);
@@ -273,35 +293,11 @@ router.post('/:id/migration-check', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Staging domain is not configured for this project' });
     }
 
-    // 1. Create a CrawlJob document in MongoDB with status "queued"
-    const crawlJob = new CrawlJob({
-      projectId: project._id,
-      status: 'queued',
-      pageCount: 0,
-    });
-    await crawlJob.save();
+    const { crawlJobId } = await enqueueMigrationCheck(project);
 
-    const crawlJobIdStr = crawlJob._id.toString();
-
-    // 2. Enqueue the job on BullMQ "crawl-jobs" queue with the crawlJobId as BullMQ jobId
-    // and payload containing crawlJobId, domains, and job type "migration-check"
-    await crawlQueue.add(
-      'crawl',
-      {
-        crawlJobId: crawlJobIdStr,
-        domain: project.domain,
-        stagingDomain: project.stagingDomain,
-        type: 'migration-check',
-      },
-      {
-        jobId: crawlJobIdStr, // Aligning BullMQ jobId with Mongoose _id for QueueEvents updates
-      }
-    );
-
-    // 3. Return the CrawlJob id immediately (202 Accepted)
     return res.status(202).json({
       message: 'Migration check queued successfully',
-      crawlJobId: crawlJobIdStr,
+      crawlJobId,
     });
   } catch (error) {
     console.error('Queue migration check error:', error);
