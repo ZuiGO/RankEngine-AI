@@ -179,7 +179,7 @@ describe('Caching', () => {
       domain: 'example.com',
       organicTrafficEstimate: 50000,
       organicKeywordCount: 1000,
-      topKeywords: ['example seo', 'example marketing'],
+      topKeywords: [{ keyword: 'example seo', searchVolume: 1200, position: 3 }, { keyword: 'example marketing', searchVolume: 800, position: 5 }],
       cachedAt: new Date(),
     });
 
@@ -263,6 +263,9 @@ describe('Mock provider data shapes', () => {
     expect(result).toHaveProperty('organicKeywordCount');
     expect(result).toHaveProperty('topKeywords');
     expect(Array.isArray(result.topKeywords)).toBe(true);
+    if (result.topKeywords.length > 0) {
+      expect(result.topKeywords[0]).toHaveProperty('keyword');
+    }
     expect(typeof result.organicTrafficEstimate).toBe('number');
   });
 });

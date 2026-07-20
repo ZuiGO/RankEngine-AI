@@ -30,10 +30,16 @@ export interface BacklinkItem {
   spamScore: number;
 }
 
+export interface TopKeyword {
+  keyword: string;
+  searchVolume?: number;
+  position?: number;
+}
+
 export interface DomainOverview {
   organicTrafficEstimate: number;
   organicKeywordCount: number;
-  topKeywords: string[];
+  topKeywords: TopKeyword[];
 }
 
 export class DataProviderQuotaError extends Error {
@@ -64,6 +70,7 @@ export interface IDataProvider {
   fetchKeywordIdeas(keyword: string, locationCode?: string): Promise<KeywordData[]>;
   fetchBacklinkOverview(domain: string): Promise<BacklinkOverview>;
   fetchBacklinkList(domain: string, limit: number, offset: number): Promise<BacklinkItem[]>;
+  fetchReferringDomains(domain: string): Promise<string[]>;
   fetchDomainOverview(domain: string): Promise<DomainOverview>;
 }
 
@@ -162,14 +169,30 @@ export class MockDataProvider implements IDataProvider {
     }));
   }
 
+  async fetchReferringDomains(domain: string): Promise<string[]> {
+    const prefixes = ['blog', 'news', 'forum', 'links', 'resources', 'support', 'community'];
+    const tlds = ['.com', '.org', '.io', '.net', '.co', '.dev'];
+    const count = Math.floor(Math.random() * 15) + 10;
+    const domains = new Set<string>();
+    for (let i = 0; i < count; i++) {
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const tld = tlds[Math.floor(Math.random() * tlds.length)];
+      domains.add(`${prefix}-${Math.random().toString(36).slice(2, 6)}${tld}`);
+    }
+    return Array.from(domains);
+  }
+
   async fetchDomainOverview(domain: string): Promise<DomainOverview> {
+    const base = domain.split('.')[0];
     return {
       organicTrafficEstimate: Math.floor(Math.random() * 100000) + 1000,
       organicKeywordCount: Math.floor(Math.random() * 10000) + 100,
       topKeywords: [
-        `${domain.split('.')[0]} seo`,
-        `${domain.split('.')[0]} marketing`,
-        `best ${domain.split('.')[0]} tools`,
+        { keyword: `${base} seo`, searchVolume: Math.floor(Math.random() * 5000) + 200, position: Math.floor(Math.random() * 20) + 1 },
+        { keyword: `${base} marketing`, searchVolume: Math.floor(Math.random() * 4000) + 150, position: Math.floor(Math.random() * 20) + 1 },
+        { keyword: `best ${base} tools`, searchVolume: Math.floor(Math.random() * 3000) + 100, position: Math.floor(Math.random() * 30) + 1 },
+        { keyword: `${base} pricing`, searchVolume: Math.floor(Math.random() * 2000) + 50, position: Math.floor(Math.random() * 40) + 1 },
+        { keyword: `${base} vs`, searchVolume: Math.floor(Math.random() * 1500) + 30, position: Math.floor(Math.random() * 50) + 1 },
       ],
     };
   }
@@ -343,15 +366,39 @@ export class DataForSEOProvider implements IDataProvider {
     const result = await this.post<{
       organic_traffic_estimate: number;
       organic_keywords_count: number;
-      top_keywords: { keyword: string }[];
+      top_keywords: {
+        keyword: string;
+        keyword_data?: {
+          keyword_info?: { search_volume?: number };
+          avg_position?: number;
+        };
+      }[];
     }>('/v3/dataforseo_labs/google/domain_overview/live', [
       { target: domain, location_code: 2840, language_code: 'en' },
     ]);
     return {
       organicTrafficEstimate: result.organic_traffic_estimate ?? 0,
       organicKeywordCount: result.organic_keywords_count ?? 0,
-      topKeywords: (result.top_keywords ?? []).map((k) => k.keyword),
+      topKeywords: (result.top_keywords ?? []).map((k) => ({
+        keyword: k.keyword,
+        searchVolume: k.keyword_data?.keyword_info?.search_volume,
+        position: k.keyword_data?.avg_position,
+      })),
     };
+  }
+
+  async fetchReferringDomains(domain: string): Promise<string[]> {
+    const response = await axios.post<{
+      tasks: { result: { items: { domain: string }[] }[] }[];
+    }>(`${DATAFORSEO_BASE}/v3/backlinks/referring_domains/live`, [{ target: domain, limit: 1000 }], {
+      headers: {
+        Authorization: this.authHeader,
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000,
+    });
+    const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
+    return items.map((item) => item.domain).filter(Boolean);
   }
 }
 
@@ -371,6 +418,7 @@ const DATAFORSEO_TASK_PRICES: Record<string, number> = {
   ideas: 1,
   backlinkOverview: 1,
   backlinkList: 1,
+  referringDomains: 1,
   domainOverview: 1,
 };
 
@@ -561,6 +609,16 @@ export const getBacklinkList = async (
   const items = await provider.fetchBacklinkList(domain, limit, offset);
 
   return items;
+};
+
+export const getReferringDomains = async (
+  userId: string,
+  domain: string
+): Promise<string[]> => {
+  await checkAndIncrementQuota(userId, 'referringDomains', false);
+
+  const provider = getDataProvider();
+  return provider.fetchReferringDomains(domain);
 };
 
 export const getDomainOverview = async (

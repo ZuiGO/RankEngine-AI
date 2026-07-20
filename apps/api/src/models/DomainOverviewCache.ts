@@ -6,7 +6,7 @@ export interface IDomainOverviewCache extends Document {
   domain: string;
   organicTrafficEstimate: number;
   organicKeywordCount: number;
-  topKeywords: string[];
+  topKeywords: { keyword: string; searchVolume?: number; position?: number }[];
   cachedAt: Date;
 }
 
@@ -34,7 +34,7 @@ const DomainOverviewCacheSchema = new Schema<IDomainOverviewCache>({
     default: 0,
   },
   topKeywords: {
-    type: [String],
+    type: Schema.Types.Mixed,
     default: [],
   },
   cachedAt: {
