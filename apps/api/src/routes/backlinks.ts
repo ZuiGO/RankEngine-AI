@@ -182,4 +182,23 @@ router.get('/:id/backlinks/list', requireAuth, async (req: Request, res: Respons
   }
 });
 
+// GET /api/projects/:id/backlinks/snapshots — history of daily snapshot data for trend charts
+router.get('/:id/backlinks/snapshots', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const project = await resolveProject(req, res);
+    if (!project) return;
+
+    const snapshots = await BacklinkSnapshot
+      .find({ projectId: project._id })
+      .sort({ date: 1 })
+      .select('date totalBacklinks referringDomains authorityScore')
+      .lean();
+
+    return res.json(snapshots);
+  } catch (error) {
+    console.error('[Backlinks Snapshots] Error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
