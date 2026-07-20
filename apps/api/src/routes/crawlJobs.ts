@@ -47,9 +47,25 @@ router.get('/:id', async (req: Request, res: Response) => {
         passedCount: issues.filter((i) => i.severity === 'passed').length,
       };
 
+      // Compute trend vs previous completed crawl for the same project
+      let previousHealthScore: number | null = null;
+      if (crawlJob.healthScore != null) {
+        const previousJob = await CrawlJob.findOne({
+          projectId: crawlJob.projectId,
+          _id: { $ne: crawlJob._id },
+          status: 'completed',
+          healthScore: { $exists: true },
+        }).sort({ completedAt: -1 });
+
+        if (previousJob && previousJob.healthScore != null) {
+          previousHealthScore = previousJob.healthScore;
+        }
+      }
+
       return res.json({
         crawlJob,
         summary,
+        previousHealthScore,
       });
     }
 

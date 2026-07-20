@@ -1,6 +1,7 @@
 import { QueueEvents } from 'bullmq';
 import redisConnection from './redisConnection';
 import { CrawlJob } from '../models/CrawlJob';
+import { computeAndStoreHealthScore } from '../services/healthScoreService';
 
 type CrawlCompletionResult = {
   pageCount: number;
@@ -86,6 +87,13 @@ crawlQueueEvents.on('completed', async ({ jobId, returnvalue }) => {
     }
 
     await CrawlJob.findByIdAndUpdate(jobId, update);
+
+    // Compute and persist the SEO Health Score from the audit issues
+    try {
+      await computeAndStoreHealthScore(jobId);
+    } catch (hsError) {
+      console.error(`Failed to compute health score for Job ${jobId}:`, hsError);
+    }
   } catch (error) {
     console.error(`Failed to update status to completed for Job ${jobId}:`, error);
   }

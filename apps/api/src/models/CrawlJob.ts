@@ -10,6 +10,7 @@ export interface ICrawlJob extends Document {
   pageCount: number;
   rawResultsRef?: string;
   errorMessage?: string;
+  healthScore?: number;
 }
 
 const CrawlJobSchema = new Schema<ICrawlJob>({
@@ -41,6 +42,11 @@ const CrawlJobSchema = new Schema<ICrawlJob>({
   errorMessage: {
     type: String,
     trim: true,
+  },
+  healthScore: {
+    type: Number,
+    min: 0,
+    max: 100,
   },
 });
 

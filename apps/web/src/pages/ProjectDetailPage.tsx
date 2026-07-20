@@ -19,6 +19,7 @@ interface CrawlJob {
   pageCount: number;
   createdAt: string;
   completedAt?: string;
+  healthScore?: number;
 }
 
 interface AuditIssue {
@@ -187,6 +188,85 @@ function ChecklistSection({
   );
 }
 
+/** Large color-coded SEO Health Score gauge */
+const SCORE_CONFIG = {
+  red: { stroke: '#f43f5e', bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400' },
+  yellow: { stroke: '#fbbf24', bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400' },
+  green: { stroke: '#34d399', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400' },
+};
+
+function getScoreConfig(score: number) {
+  if (score < 50) return SCORE_CONFIG.red;
+  if (score < 80) return SCORE_CONFIG.yellow;
+  return SCORE_CONFIG.green;
+}
+
+function HealthScoreGauge({ score, previous }: { score: number; previous: number | null }) {
+  const cfg = getScoreConfig(score);
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - score / 100);
+  const delta = previous !== null ? score - previous : null;
+
+  return (
+    <div className={`flex items-center gap-6 ${cfg.bg} border ${cfg.border} rounded-2xl px-6 py-5`}>
+      {/* Circular gauge */}
+      <div className="relative w-28 h-28 flex-shrink-0">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+          <circle
+            className="stroke-slate-800"
+            strokeWidth="8"
+            fill="transparent"
+            r={radius}
+            cx="60"
+            cy="60"
+          />
+          <circle
+            className={`transition-all duration-700 ease-out ${cfg.text}`}
+            strokeWidth="8"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            fill="transparent"
+            r={radius}
+            cx="60"
+            cy="60"
+            style={{ stroke: cfg.stroke }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-3xl font-extrabold text-white">{score}</span>
+          <span className="text-[10px] text-slate-500 uppercase font-semibold -mt-0.5">Health</span>
+        </div>
+      </div>
+
+      {/* Score info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-base font-bold text-white">SEO Health Score</p>
+        <p className={`text-xs mt-1 ${cfg.text}`}>
+          {score >= 80 && 'Looking good! Minor improvements recommended.'}
+          {score >= 50 && score < 80 && 'Some issues found — review the warnings below.'}
+          {score < 50 && 'Critical issues detected — address these soon.'}
+        </p>
+        {delta !== null && (
+          <p className={`text-xs mt-1.5 font-medium flex items-center gap-1 ${delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+            {delta >= 0 ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            )}
+            {delta > 0 ? '+' : ''}{delta} since last audit
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Crawl progress bar while status is queued/running */
 function CrawlProgressBar({ job }: { job: CrawlJob }) {
   const isRunning = job.status === 'running' || job.status === 'queued';
@@ -300,6 +380,10 @@ export default function ProjectDetailPage() {
     }
   };
 
+  // Health score state
+  const [healthScore, setHealthScore] = useState<number | null>(null);
+  const [previousHealthScore, setPreviousHealthScore] = useState<number | null>(null);
+
   // Audit state
   const [activeJob, setActiveJob] = useState<CrawlJob | null>(null);
   const [auditLoading, setAuditLoading] = useState(false);
@@ -342,12 +426,14 @@ export default function ProjectDetailPage() {
       if (pollRef.current) clearInterval(pollRef.current);
       pollRef.current = setInterval(async () => {
         try {
-          const { data } = await api.get<{ crawlJob: CrawlJob }>(`/crawl-jobs/${jobId}`);
+          const { data } = await api.get<{ crawlJob: CrawlJob; previousHealthScore?: number | null }>(`/crawl-jobs/${jobId}`);
           setActiveJob(data.crawlJob);
           if (data.crawlJob.status === 'completed' || data.crawlJob.status === 'failed') {
             clearInterval(pollRef.current!);
             pollRef.current = null;
             if (data.crawlJob.status === 'completed') {
+              setHealthScore(data.crawlJob.healthScore ?? null);
+              setPreviousHealthScore(data.previousHealthScore ?? null);
               fetchChecklist(jobId);
             }
           }
@@ -638,6 +724,13 @@ export default function ProjectDetailPage() {
           </svg>
           SEO Audit
         </h2>
+
+        {/* Health Score Gauge — shown prominently above everything else */}
+        {healthScore !== null && (
+          <div className="mb-4">
+            <HealthScoreGauge score={healthScore} previous={previousHealthScore} />
+          </div>
+        )}
 
         {/* Live progress bar */}
         {activeJob && (activeJob.status === 'running' || activeJob.status === 'queued') && (
