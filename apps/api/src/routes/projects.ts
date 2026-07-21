@@ -3,6 +3,7 @@ import { z } from 'zod';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project';
 import { Membership } from '../models/Membership';
+import { CrawlJob } from '../models/CrawlJob';
 import requireAuth from '../middleware/requireAuth';
 import { enqueueCrawlJob, enqueueMigrationCheck } from '../services/crawlService';
 
@@ -132,6 +133,44 @@ router.get('/:id', async (req: Request, res: Response) => {
     return res.json(project);
   } catch (error) {
     console.error('Get project error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/projects/:id/latest-crawl - Get the latest crawl job status for a project
+router.get('/:id/latest-crawl', async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
+    const project = await Project.findOne({ _id: id, deletedAt: null });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const membership = await Membership.findOne({
+      organizationId: project.organizationId,
+      userId: req.user.userId,
+    });
+    if (!membership) {
+      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
+    }
+
+    const latestJob = await CrawlJob.findOne({ projectId: id, type: 'crawl' }).sort({ createdAt: -1 });
+    const latestMigrationJob = await CrawlJob.findOne({ projectId: id, type: 'migration-check' }).sort({ createdAt: -1 });
+
+    return res.json({
+      latestJob,
+      latestMigrationJob,
+    });
+  } catch (error) {
+    console.error('Get latest crawl job error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -90,7 +90,7 @@ Return ONLY valid JSON in the following schema. No explanations, no markdown wra
   ]
 }}"""
 
-    model_name = "llama3-8b-8192"
+    model_name = "llama-3.1-8b-instant"
     parsed_response = None
     attempts = 2
 

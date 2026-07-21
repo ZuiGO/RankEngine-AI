@@ -411,14 +411,6 @@ export default function ProjectDetailPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const migPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Load project ───────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!id) return;
-    api.get<Project>(`/projects/${id}`)
-      .then(({ data }) => setProject(data))
-      .catch(() => {})
-      .finally(() => setProjectLoading(false));
-  }, [id]);
 
   // ── Checklist fetcher ──────────────────────────────────────────────────
   const fetchChecklist = useCallback(async (jobId: string) => {
@@ -480,6 +472,47 @@ export default function ProjectDetailPage() {
       }
     }, 3000);
   }, []);
+
+  // ── Load project and latest crawl status ───────────────────────────────
+  useEffect(() => {
+    if (!id) return;
+    setProjectLoading(true);
+    
+    // Load project metadata
+    api.get<Project>(`/projects/${id}`)
+      .then(({ data }) => {
+        setProject(data);
+        
+        // Fetch latest crawl job status for standard crawl and migration
+        return api.get<{ latestJob: CrawlJob | null; latestMigrationJob: CrawlJob | null }>(`/projects/${id}/latest-crawl`);
+      })
+      .then(({ data }) => {
+        const { latestJob, latestMigrationJob } = data;
+        
+        if (latestJob) {
+          setActiveJob(latestJob);
+          if (latestJob.status === 'completed') {
+            setHealthScore(latestJob.healthScore ?? null);
+            fetchChecklist(latestJob._id);
+          } else if (latestJob.status === 'running' || latestJob.status === 'queued') {
+            startPolling(latestJob._id);
+          }
+        }
+        
+        if (latestMigrationJob) {
+          setMigrationJob(latestMigrationJob);
+          if (latestMigrationJob.status === 'completed') {
+            api.get<ChecklistResponse>(`/crawl-jobs/${latestMigrationJob._id}/checklist`)
+              .then(({ data: cl }) => setMigrationChecklist(cl))
+              .catch(() => {});
+          } else if (latestMigrationJob.status === 'running' || latestMigrationJob.status === 'queued') {
+            startMigrationPolling(latestMigrationJob._id);
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setProjectLoading(false));
+  }, [id, fetchChecklist, startPolling, startMigrationPolling]);
 
   // Cleanup on unmount
   useEffect(() => {

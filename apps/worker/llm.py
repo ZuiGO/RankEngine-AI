@@ -123,7 +123,7 @@ JSON Schema format:
 }}
 """
 
-    model_name = "llama3-8b-8192"  # Standard Groq Llama3 model
+    model_name = "llama-3.1-8b-instant"  # Standard Groq Llama3 model
 
     parsed_response = None
     attempts = 2

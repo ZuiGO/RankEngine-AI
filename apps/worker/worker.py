@@ -52,7 +52,7 @@ async def process_crawl_job(job, job_token):
             duration_seconds=round(elapsed, 3)
         )
 
-        return {"status": "completed", "pageCount": page_count, "rawResultsRef": crawl_result_id}
+        return json.dumps({"status": "completed", "pageCount": page_count, "rawResultsRef": crawl_result_id})
 
     except Exception as err:
         log_json(
