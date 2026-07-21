@@ -10,6 +10,12 @@ services:
       MONGO_INITDB_DATABASE: rankengine
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   redis:
     image: redis:alpine
@@ -18,6 +24,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   api:
     build:
@@ -31,16 +42,18 @@ services:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongodb:27017/rankengine
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=development_jwt_secret_must_be_long_enough
-      - JWT_EXPIRY=7d
-      - ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
-      - CORS_ORIGIN=http://localhost:8080,http://localhost:5173
-      - LLM_API_KEY=${LLM_API_KEY:-mock-llm-key}
-      - SERP_API_KEY=mock-serp-key
-      - SERP_API_PROVIDER=mock
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=${JWT_EXPIRY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - SERP_API_KEY=${SERP_API_KEY}
+      - SERP_API_PROVIDER=${SERP_API_PROVIDER}
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   worker:
     build:
@@ -52,13 +65,18 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/rankengine
       - REDIS_URL=redis://redis:6379
-      - LLM_API_KEY=${LLM_API_KEY:-mock-llm-key}
+      - LLM_API_KEY=${LLM_API_KEY}
       - PLAYWRIGHT_HEADLESS=true
       - SCALE_UP_THRESHOLD=10
       - SCALE_CHECK_INTERVAL=30
+      - SERP_API_KEY=${SERP_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   web:
     build:
