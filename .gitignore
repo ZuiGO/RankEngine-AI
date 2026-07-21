@@ -14,13 +14,14 @@ out/
 .turbo/
 *.tsbuildinfo
 
-# Env files
+# Env files — keep the gitignore broad, but allow committed defaults for web
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 *.env
+!/apps/web/.env
 # Python files
 __pycache__/
 *.py[cod]

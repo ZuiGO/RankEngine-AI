@@ -118,17 +118,17 @@ export default function PricingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <p className="text-slate-400 text-sm">Loading plans…</p>
+      <div className="min-h-screen bg-app-base flex items-center justify-center">
+        <p className="text-app-text-muted text-sm">Loading plans…</p>
       </div>
     );
   }
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-app-base text-white">
       {/* ── Navbar ──────────────────────────────────────── */}
-      <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-app-border/60 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <div className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/30">
@@ -145,7 +145,7 @@ export default function PricingPage() {
               <>
                 <Link
                   to="/login"
-                  className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:inline"
+                  className="text-sm text-app-text-muted hover:text-white transition-colors hidden sm:inline"
                 >
                   Sign in
                 </Link>
@@ -163,7 +163,7 @@ export default function PricingPage() {
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
           Simple, transparent pricing
         </h1>
-        <p className="text-slate-400 mt-4 max-w-xl mx-auto">
+        <p className="text-app-text-muted mt-4 max-w-xl mx-auto">
           Start free. Upgrade when you need more projects, keywords, or team members.
         </p>
       </div>
@@ -187,10 +187,10 @@ export default function PricingPage() {
 
             const border =
               isPreselected
-                ? 'border-indigo-500 ring-1 ring-indigo-500'
+                ? 'border-app-signal ring-1 ring-app-signal'
                 : plan.id === 'agency'
-                  ? 'border-violet-600/50'
-                  : 'border-slate-800';
+                  ? 'border-app-signal/50'
+                  : 'border-app-border';
 
             const ctaAction = isFree
               ? () => handleCta('free')
@@ -214,7 +214,7 @@ export default function PricingPage() {
             return (
               <div
                 key={plan.id}
-                className={`relative bg-slate-900/70 border rounded-2xl p-6 flex flex-col transition-all ${border} ${isFree ? '' : 'md:scale-105'} ${isPreselected ? 'ring-1 ring-indigo-500' : ''}`}
+                className={`relative bg-app-surface/70 border rounded-2xl p-6 flex flex-col transition-all ${border} ${isFree ? '' : 'md:scale-105'} ${isPreselected ? 'ring-1 ring-app-signal' : ''}`}
               >
                 {/* Badges */}
                 <div className="flex items-center gap-2 mb-4">
@@ -233,7 +233,7 @@ export default function PricingPage() {
                 <h2 className="text-xl font-bold">{plan.name}</h2>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold">${plan.price}</span>
-                  <span className="text-slate-500 text-sm">/ month</span>
+                  <span className="text-app-text-muted text-sm">/ month</span>
                 </div>
 
                 {/* Quota stats */}
@@ -241,11 +241,11 @@ export default function PricingPage() {
                   {QUOTA_FIELDS.map(({ key, label }) => {
                     const val = plan[key] as number;
                     return (
-                      <div key={key} className="bg-slate-950 rounded-lg p-2.5 text-center">
+                      <div key={key} className="bg-app-base rounded-lg p-2.5 text-center">
                         <p className="text-base font-bold text-white">
                           {val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}
                         </p>
-                        <p className="text-2xs text-slate-500 leading-tight">{label}</p>
+                        <p className="text-2xs text-app-text-muted leading-tight">{label}</p>
                       </div>
                     );
                   })}
@@ -259,10 +259,10 @@ export default function PricingPage() {
                     return (
                       <li
                         key={key}
-                        className={`text-xs flex items-start gap-2 ${enabled ? 'text-slate-300' : 'text-slate-600 line-through'}`}
+                        className={`text-xs flex items-start gap-2 ${enabled ? 'text-app-text' : 'text-app-text-muted line-through'}`}
                       >
                         <svg
-                          className={`h-4 w-4 mt-0.5 flex-shrink-0 ${enabled ? 'text-emerald-400' : 'text-slate-700'}`}
+                          className={`h-4 w-4 mt-0.5 flex-shrink-0 ${enabled ? 'text-emerald-400' : 'text-app-text-muted'}`}
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -282,7 +282,7 @@ export default function PricingPage() {
                   disabled={ctaDisabled}
                   loading={upgrading === plan.id}
                   onClick={ctaAction}
-                  className={`w-full mt-8 ${plan.id === 'agency' ? 'shadow-xl shadow-violet-600/30' : ''}`}
+                  className={`w-full mt-8 ${plan.id === 'agency' ? 'shadow-xl shadow-app-signal/30' : ''}`}
                 >
                   {upgrading === plan.id ? 'Redirecting…' : ctaLabel}
                 </Button>
@@ -293,18 +293,18 @@ export default function PricingPage() {
       </div>
 
       {/* ── Footer ──────────────────────────────────────── */}
-      <footer className="border-t border-slate-800/60">
+      <footer className="border-t border-app-border/60">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-app-text-muted">
             <div className="inline-flex items-center justify-center h-6 w-6 rounded bg-gradient-to-tr from-indigo-600 to-indigo-500">
               <span className="text-white font-bold text-[10px]">RE</span>
             </div>
             RankEngine AI
           </div>
-          <div className="flex items-center gap-6 text-xs text-slate-600">
+          <div className="flex items-center gap-6 text-xs text-app-text-muted">
             <span>&copy; {new Date().getFullYear()} RankEngine AI</span>
-            <Link to="/" className="hover:text-slate-400 transition-colors">Home</Link>
-            <Link to="/login" className="hover:text-slate-400 transition-colors">Sign in</Link>
+            <Link to="/" className="hover:text-app-text transition-colors">Home</Link>
+            <Link to="/login" className="hover:text-app-text transition-colors">Sign in</Link>
           </div>
         </div>
       </footer>

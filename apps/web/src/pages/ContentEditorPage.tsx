@@ -160,7 +160,7 @@ export default function ContentEditorPage() {
           <label className="block text-xs font-semibold text-app-text-muted mb-1.5">Target Keyword</label>
           <input
             type="text"
-            className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg px-3.5 py-2 text-sm text-white placeholder-app-text-muted outline-none transition-all duration-150 font-semibold"
+            className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg px-3.5 py-2 text-sm text-white placeholder-app-text-muted outline-none transition-all duration-150 font-semibold"
             placeholder="e.g. rankengine optimization"
             value={targetKeyword}
             onChange={(e) => setTargetKeyword(e.target.value)}

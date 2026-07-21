@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, Button } from '../components/ui';
-import api from '../lib/api';
+import api, { API_BASE } from '../lib/api';
 
 interface OrgBranding {
   _id: string;
@@ -47,7 +47,7 @@ export default function BrandingPage() {
       setPrimaryColor(branding.primaryColor || DEFAULT_COLOR);
       setReportFooterText(branding.reportFooterText || '');
       if (branding.logoUrl) {
-        const url = branding.logoUrl.startsWith('http') ? branding.logoUrl : `http://localhost:3000${branding.logoUrl}`;
+        const url = branding.logoUrl.startsWith('http') ? branding.logoUrl : `${API_BASE}${branding.logoUrl}`;
         setLogoPreview(url);
       }
     } catch (err: any) {
@@ -240,7 +240,7 @@ export default function BrandingPage() {
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
                 placeholder="#4f46e5"
-                className="bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white font-mono w-28 outline-none transition-all duration-150"
+                className="bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-2 text-white font-mono w-28 outline-none transition-all duration-150"
               />
             </div>
           </CardBody>
@@ -259,7 +259,7 @@ export default function BrandingPage() {
               maxLength={500}
               rows={3}
               placeholder="Powered by My Agency — hello@myagency.com"
-              className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150 resize-none"
+              className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150 resize-none"
             />
             <p className="text-2xs text-app-text-muted mt-1 text-right">{reportFooterText.length}/500</p>
           </CardBody>

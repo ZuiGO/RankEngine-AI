@@ -21,23 +21,23 @@ export function UpgradeBanner() {
   if (!visible) return null;
 
   return (
-    <div className="bg-indigo-950/80 border-b border-indigo-800/30 px-4 py-2.5">
+    <div className="bg-app-signal/10 border-b border-app-signal/20 px-4 py-2.5">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <p className="text-xs text-slate-300">
-          <span className="text-indigo-300 font-semibold">Feature locked.</span>{' '}
+        <p className="text-xs text-app-text">
+          <span className="text-app-signal font-semibold">Feature locked.</span>{' '}
           Upgrade to <span className="font-bold text-white capitalize">{requiredPlan}</span> to unlock{' '}
-          <span className="text-indigo-200 font-medium">{feature}</span>.
+          <span className="text-app-signal/80 font-medium">{feature}</span>.
         </p>
         <div className="flex items-center gap-3">
           <Link
             to={`/pricing`}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            className="bg-app-signal hover:bg-app-signal/90 text-app-base text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
           >
             View Plans
           </Link>
           <button
             onClick={() => setVisible(false)}
-            className="text-slate-500 hover:text-slate-300 text-xs transition-colors"
+            className="text-app-text-muted hover:text-app-text text-xs transition-colors"
           >
             Dismiss
           </button>

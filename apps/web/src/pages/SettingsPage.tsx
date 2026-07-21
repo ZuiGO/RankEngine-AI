@@ -177,7 +177,7 @@ export default function SettingsPage() {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="colleague@agency.com"
-                className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150"
+                className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150"
               />
             </div>
             <Button type="submit" variant="primary" loading={inviting}>

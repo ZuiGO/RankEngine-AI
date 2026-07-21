@@ -48,7 +48,7 @@ export function StatGauge({
     <div className={`flex items-center gap-5 ${cfg.bg} border ${cfg.border} rounded-2xl px-5 py-4`}>
       <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
         <svg className="w-full h-full transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
-          <circle className="stroke-slate-800" strokeWidth={strokeWidth} fill="transparent" r={r} cx={cx} cy={cy} />
+          <circle className="stroke-app-border" strokeWidth={strokeWidth} fill="transparent" r={r} cx={cx} cy={cy} />
           <circle
             className="transition-all duration-1000 ease-out"
             strokeWidth={strokeWidth}
@@ -64,7 +64,7 @@ export function StatGauge({
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-3xl font-extrabold text-white">{score}</span>
-          {label && <span className="text-[10px] text-slate-500 uppercase font-semibold -mt-0.5">{label}</span>}
+          {label && <span className="text-[10px] text-app-text-muted uppercase font-semibold -mt-0.5">{label}</span>}
         </div>
       </div>
       {children && (
@@ -101,7 +101,7 @@ export function MiniStatGauge({ score, size = 40 }: { score: number; size?: numb
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg className="w-full h-full transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
-        <circle className="stroke-slate-800" strokeWidth="3" fill="transparent" r={r} cx={cx} cy={cy} />
+        <circle className="stroke-app-border" strokeWidth="3" fill="transparent" r={r} cx={cx} cy={cy} />
         <circle
           className="transition-all duration-700 ease-out"
           strokeWidth="3"

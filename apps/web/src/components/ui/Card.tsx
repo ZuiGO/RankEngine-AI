@@ -14,7 +14,7 @@ export function Card({ children, className = '', ...props }: CardProps) {
       whileHover="hover"
       animate="rest"
       variants={cardHover}
-      className={`bg-slate-900 border border-slate-800 rounded-2xl shadow-xl ${className}`}
+      className={`bg-app-surface border border-app-border rounded-2xl shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal/70 ${className}`}
       {...props}
     >
       {children}
@@ -26,7 +26,7 @@ export function Card({ children, className = '', ...props }: CardProps) {
 
 export function CardHeader({ children, className = '', ...props }: CardProps) {
   return (
-    <div className={`px-5 py-4 border-b border-slate-800/60 ${className}`} {...props}>
+    <div className={`px-5 py-4 border-b border-app-border ${className}`} {...props}>
       {children}
     </div>
   );

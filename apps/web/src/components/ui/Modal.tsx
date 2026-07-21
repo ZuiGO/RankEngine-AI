@@ -41,13 +41,13 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             exit="exit"
             transition={m.modals}
           >
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
+            <div className="bg-app-surface border border-app-border rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
               {title && (
-                <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-app-border flex items-center justify-between">
                   <h2 className="text-base font-semibold text-white">{title}</h2>
                   <button
                     onClick={onClose}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+                    className="p-1.5 rounded-lg text-app-text-muted hover:text-white hover:bg-app-surface transition-colors"
                     aria-label="Close"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>

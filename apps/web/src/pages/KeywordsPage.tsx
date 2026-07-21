@@ -156,7 +156,7 @@ export default function KeywordsPage() {
   const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
     if (trend === 'up') return <span className="text-emerald-400 font-bold">↑ Up</span>;
     if (trend === 'down') return <span className="text-rose-500 font-bold">↓ Down</span>;
-    return <span className="text-slate-500">→ Stable</span>;
+    return <span className="text-app-text-muted">→ Stable</span>;
   };
 
   return (
@@ -188,22 +188,22 @@ export default function KeywordsPage() {
             )}
             <form onSubmit={handleAddKeyword} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
               <div>
-                <label className="block text-2xs font-semibold text-slate-400 mb-1">Keyword</label>
+                <label className="block text-2xs font-semibold text-app-text-muted mb-1">Keyword</label>
                 <input
                   type="text"
                   required
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-1.5 text-white placeholder-slate-700 outline-none transition-all font-semibold"
+                  className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-1.5 text-white placeholder-app-text-muted outline-none transition-all font-semibold"
                   placeholder="e.g. best seo tools"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-2xs font-semibold text-slate-400 mb-1">Target Page URL</label>
+                <label className="block text-2xs font-semibold text-app-text-muted mb-1">Target Page URL</label>
                 <input
                   type="url"
                   required
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-1.5 text-white placeholder-slate-700 outline-none transition-all font-semibold"
+                  className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-1.5 text-white placeholder-app-text-muted outline-none transition-all font-semibold"
                   placeholder="e.g. https://site.com/blog"
                   value={targetUrl}
                   onChange={(e) => setTargetUrl(e.target.value)}
@@ -211,10 +211,10 @@ export default function KeywordsPage() {
               </div>
               <div className="flex space-x-2">
                 <div className="flex-1">
-                  <label className="block text-2xs font-semibold text-slate-400 mb-1">Competitors (CSV)</label>
+                  <label className="block text-2xs font-semibold text-app-text-muted mb-1">Competitors (CSV)</label>
                   <input
                     type="text"
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-1.5 text-white placeholder-slate-700 outline-none transition-all"
+                    className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-1.5 text-white placeholder-app-text-muted outline-none transition-all"
                     placeholder="comp1.com, comp2.com"
                     value={competitors}
                     onChange={(e) => setCompetitors(e.target.value)}
@@ -233,10 +233,10 @@ export default function KeywordsPage() {
           </Card>
 
           {suggestedKeywords.length > 0 && (
-            <Card className="border-indigo-800/30">
+            <Card className="border-app-signal/30">
             <CardBody>
               <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-app-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
                 Suggested for you
@@ -245,13 +245,13 @@ export default function KeywordsPage() {
                 {suggestedKeywords.map((sk, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs"
+                    className="flex items-center gap-2 bg-app-base border border-app-border rounded-lg px-3 py-2 text-xs"
                   >
-                    <span className="text-slate-200 font-medium">{sk.keyword}</span>
+                    <span className="text-app-text font-medium">{sk.keyword}</span>
                     <button
                       onClick={() => handleTrackSuggested(sk.keyword)}
                       disabled={trackingKeyword === sk.keyword}
-                      className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-[10px] font-semibold px-2 py-1 rounded-md transition-colors"
+                      className="bg-app-signal hover:bg-app-signal/80 disabled:opacity-50 text-white text-[10px] font-semibold px-2 py-1 rounded-md transition-colors"
                     >
                       {trackingKeyword === sk.keyword ? 'Adding…' : 'Track'}
                     </button>
@@ -397,7 +397,7 @@ export default function KeywordsPage() {
                     />
                   </LineChart>
                 </ResponsiveContainer>
-                <div className="flex justify-between items-center text-2xs text-slate-500 mt-4 px-2">
+                <div className="flex justify-between items-center text-2xs text-app-text-muted mt-4 px-2">
                   <span>Note: Y-axis is inverted (lower numbers = higher rank).</span>
                   <span>UR = Unranked (101)</span>
                 </div>

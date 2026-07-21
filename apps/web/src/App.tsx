@@ -27,6 +27,7 @@ import PricingPage from './pages/PricingPage';
 import BillingPage from './pages/BillingPage';
 import TeamPage from './pages/TeamPage';
 import BrandingPage from './pages/BrandingPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 import DevScoreRevealPage from './pages/DevScoreRevealPage';
 
@@ -67,6 +68,7 @@ export default function App() {
                 <Route path="/settings/team" element={<TeamPage />} />
                 <Route path="/settings/branding" element={<BrandingPage />} />
                 <Route path="/settings/billing" element={<BillingPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

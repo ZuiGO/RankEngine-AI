@@ -17,7 +17,7 @@ export default function ProtectedRoute() {
   }
 
   if (!profile) {
-    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm">Loading…</div>;
+    return <div className="min-h-screen bg-app-base flex items-center justify-center text-app-text-muted text-sm">Loading…</div>;
   }
 
   // Don't redirect if already on onboarding — let the child route render

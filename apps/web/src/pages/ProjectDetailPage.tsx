@@ -138,7 +138,7 @@ function ChecklistSection({
 
       {/* Items */}
       {open && (
-        <div className="divide-y divide-slate-800/50">
+        <div className="divide-y divide-app-border">
           {items.length === 0 ? (
             <p className="px-5 py-4 text-xs text-app-text-muted">No issues in this category.</p>
           ) : (
@@ -170,7 +170,7 @@ function ChecklistSection({
                     )}
                     {issue.affectedUrls && issue.affectedUrls.length > 0 && (
                       <details className="group">
-                        <summary className="text-[11px] text-app-signal hover:text-indigo-300 cursor-pointer select-none">
+                        <summary className="text-[11px] text-app-signal hover:text-app-signal cursor-pointer select-none">
                           {issue.affectedUrls.length} affected URL
                           {issue.affectedUrls.length !== 1 ? 's' : ''}
                         </summary>
@@ -300,7 +300,7 @@ function CrawlProgressBar({ job }: { job: CrawlJob }) {
           </div>
           <span className="text-app-text-muted font-mono">{Math.round(pct)}%</span>
         </div>
-        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-app-surface-raised h-1.5 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-700 ${
               job.status === 'failed'
@@ -330,7 +330,7 @@ function AuditSummaryBar({
   pageCount: number;
 }) {
   const pills = [
-    { label: 'Pages', value: pageCount, color: 'text-app-text', bg: 'bg-slate-800' },
+    { label: 'Pages', value: pageCount, color: 'text-app-text', bg: 'bg-app-surface-raised' },
     { label: 'Critical', value: critical, color: 'text-rose-300', bg: 'bg-rose-950/60 border border-rose-800/40' },
     { label: 'Warnings', value: warning, color: 'text-amber-300', bg: 'bg-amber-950/60 border border-amber-800/40' },
     { label: 'Passed', value: passed, color: 'text-emerald-300', bg: 'bg-emerald-950/60 border border-emerald-800/40' },
@@ -529,9 +529,9 @@ export default function ProjectDetailPage() {
   if (projectLoading) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-4 animate-pulse">
-        <div className="h-6 w-48 bg-slate-800 rounded" />
-        <div className="h-4 w-32 bg-slate-800 rounded" />
-        <div className="h-32 bg-slate-900 border border-slate-800 rounded-2xl mt-6" />
+        <div className="h-6 w-48 bg-app-surface-raised rounded" />
+        <div className="h-4 w-32 bg-app-surface-raised rounded" />
+        <div className="h-32 bg-app-surface border border-app-border rounded-2xl mt-6" />
       </div>
     );
   }
@@ -606,7 +606,7 @@ export default function ProjectDetailPage() {
                 type="text"
                 value={stagingInput}
                 onChange={(e) => setStagingInput(e.target.value)}
-                className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-app-text outline-none focus:border-app-signal transition-colors w-64"
+                className="text-[11px] bg-app-base border border-app-border rounded-lg px-2 py-1 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors w-64"
                 placeholder="https://staging.example.com"
               />
               <Button
@@ -638,7 +638,7 @@ export default function ProjectDetailPage() {
           ) : (
             <button
               onClick={() => { setStagingInput(''); setStagingEditing(true); }}
-              className="mt-2 text-[11px] text-app-signal hover:text-indigo-300 font-medium transition-colors"
+              className="mt-2 text-[11px] text-app-signal hover:text-app-signal font-medium transition-colors"
             >
               + Add staging domain
             </button>
@@ -649,7 +649,7 @@ export default function ProjectDetailPage() {
               value={project.auditSchedule}
               onChange={(e) => handleScheduleChange(e.target.value as 'manual' | 'daily' | 'weekly')}
               disabled={scheduleUpdating}
-              className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-app-text outline-none focus:border-app-signal transition-colors disabled:opacity-50"
+              className="text-[11px] bg-app-base border border-app-border rounded-lg px-2 py-1 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors disabled:opacity-50"
             >
               <option value="manual">Off</option>
               <option value="daily">Daily</option>
@@ -759,7 +759,7 @@ export default function ProjectDetailPage() {
         {checklistLoading && (
           <div className="space-y-3 animate-pulse">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-12 bg-slate-900 border border-slate-800 rounded-xl" />
+              <div key={i} className="h-12 bg-app-surface border border-app-border rounded-xl" />
             ))}
           </div>
         )}
@@ -787,21 +787,21 @@ export default function ProjectDetailPage() {
 
             {/* Schema section */}
             {schemaIssues.length > 0 && (
-              <div className="border border-violet-800/30 rounded-xl overflow-hidden">
+              <div className="border border-app-signal/30 rounded-xl overflow-hidden">
                 <button
                   onClick={() => {}}
-                  className="w-full flex items-center justify-between px-5 py-3.5 bg-violet-950/20 hover:brightness-110 transition-all"
+                  className="w-full flex items-center justify-between px-5 py-3.5 bg-app-signal/5 hover:brightness-110 transition-all"
                   id="schema-section-toggle"
                 >
                   <div className="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-app-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
                     <span className="text-sm font-semibold text-white">JSON-LD Schema</span>
-                    <span className="text-sm font-bold text-violet-400">{schemaIssues.length}</span>
+                    <span className="text-sm font-bold text-app-signal">{schemaIssues.length}</span>
                   </div>
                 </button>
-                <div className="divide-y divide-slate-800/50">
+                <div className="divide-y divide-app-border">
                   {schemaIssues.map((issue) => {
                     const sev = issue.severity as keyof typeof SEV_CONFIG;
                     const cfg = SEV_CONFIG[sev] ?? SEV_CONFIG.warning;

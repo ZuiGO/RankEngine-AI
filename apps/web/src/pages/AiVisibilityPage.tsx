@@ -203,7 +203,7 @@ export default function AiVisibilityPage() {
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
               placeholder='e.g. "best project management software for small teams"'
-              className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted/50 outline-none transition-all"
+              className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted/50 outline-none transition-all"
             />
           </div>
           <div className="w-full sm:w-48">
@@ -213,7 +213,7 @@ export default function AiVisibilityPage() {
               required
               value={brandTerm}
               onChange={(e) => setBrandTerm(e.target.value)}
-              className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted/50 outline-none transition-all"
+              className="w-full bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted/50 outline-none transition-all"
             />
           </div>
           <Button

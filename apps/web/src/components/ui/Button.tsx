@@ -14,11 +14,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold shadow-lg shadow-indigo-600/20',
+    'bg-app-signal hover:bg-app-signal/90 disabled:opacity-50 disabled:cursor-not-allowed text-app-base font-semibold shadow-lg shadow-app-signal/20',
   secondary:
-    'bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed',
+    'bg-app-base hover:bg-app-surface border border-app-border hover:border-app-border text-app-text hover:text-white disabled:opacity-50 disabled:cursor-not-allowed',
   ghost:
-    'text-indigo-400 hover:text-indigo-300 hover:bg-slate-800/50 disabled:opacity-50 disabled:cursor-not-allowed',
+    'text-app-signal hover:text-app-signal/80 hover:bg-app-surface/50 disabled:opacity-50 disabled:cursor-not-allowed',
   danger:
     'bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold',
 };
@@ -42,7 +42,7 @@ export function Button({
           ? `0 0 14px color-mix(in srgb, var(--color-app-${glow}), 0.25)`
           : undefined,
       }}
-      className={`inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal/80 ${variantStyles[variant]} ${className}`}
       {...props}
     >
       {loading && (

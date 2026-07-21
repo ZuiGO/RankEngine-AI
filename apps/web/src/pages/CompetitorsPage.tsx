@@ -310,7 +310,7 @@ export default function CompetitorsPage() {
                 onChange={(e) => setCompetitorInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="e.g. competitor.com"
-                className="flex-1 bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150"
+                className="flex-1 bg-app-base border border-app-border focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150"
               />
               <Button
                 onClick={handleAddCompetitor}
@@ -534,8 +534,8 @@ export default function CompetitorsPage() {
                     <div>
                       <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                         Gap Opportunities
-                        <span className="text-2xs font-normal text-slate-500">({keywordGap.gapOpportunityCount})</span>
-                        <span className="text-2xs text-slate-500 font-normal ml-1">
+                        <span className="text-2xs font-normal text-app-text-muted">({keywordGap.gapOpportunityCount})</span>
+                        <span className="text-2xs text-app-text-muted font-normal ml-1">
                           — keywords all competitors rank for that you don't
                         </span>
                       </h3>
@@ -591,8 +591,8 @@ export default function CompetitorsPage() {
                     <div>
                       <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                         Partial Overlap
-                        <span className="text-2xs font-normal text-slate-500">({keywordGap.partialOverlap.length})</span>
-                        <span className="text-2xs text-slate-500 font-normal ml-1">
+                        <span className="text-2xs font-normal text-app-text-muted">({keywordGap.partialOverlap.length})</span>
+                        <span className="text-2xs text-app-text-muted font-normal ml-1">
                           — keywords some competitors rank for that you don't
                         </span>
                       </h3>
@@ -648,8 +648,8 @@ export default function CompetitorsPage() {
                     <div>
                       <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                         Your Advantage
-                        <span className="text-2xs font-normal text-slate-500">({keywordGap.yourAdvantage.length})</span>
-                        <span className="text-2xs text-slate-500 font-normal ml-1">
+                        <span className="text-2xs font-normal text-app-text-muted">({keywordGap.yourAdvantage.length})</span>
+                        <span className="text-2xs text-app-text-muted font-normal ml-1">
                           — keywords you rank for that no competitor does
                         </span>
                       </h3>
@@ -699,8 +699,8 @@ export default function CompetitorsPage() {
                 <div>
                   <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                     Link Opportunities
-                    <span className="text-2xs font-normal text-slate-500">({backlinkGap.linkOpportunityCount})</span>
-                    <span className="text-2xs text-slate-500 font-normal ml-1">
+                    <span className="text-2xs font-normal text-app-text-muted">({backlinkGap.linkOpportunityCount})</span>
+                    <span className="text-2xs text-app-text-muted font-normal ml-1">
                       — domains linking to competitors but not to you
                     </span>
                   </h3>
@@ -739,10 +739,10 @@ export default function CompetitorsPage() {
                                     {entry.linkedBy.length}/{backlinkGap.competitors.length}
                                   </Badge>
                                 </td>
-                                <td className="p-4 text-xs text-slate-400">
+                                <td className="p-4 text-xs text-app-text-muted">
                                   <div className="flex flex-wrap gap-1">
                                     {entry.linkedBy.map((d, di) => (
-                                      <Badge key={di} variant="default" className="bg-slate-950 text-slate-500 border-slate-800 rounded px-1.5">
+                                      <Badge key={di} variant="default" className="bg-app-base text-slate-500 border-app-border rounded px-1.5">
                                         {d}
                                       </Badge>
                                     ))}
