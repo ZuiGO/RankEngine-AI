@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 import api from '../lib/api';
-import { Card, CardBody, Badge, Button } from '../components/ui';
+import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 
 interface BacklinkItem {
   sourceUrl: string;
@@ -123,20 +123,20 @@ export default function BacklinksPage() {
       <div className="flex items-center justify-between mb-6">
         <Link
           to={`/projects/${id}`}
-          className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors"
+          className="text-xs text-app-signal hover:text-app-signal/80 font-semibold flex items-center gap-1 transition-all duration-150"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Back to Project
         </Link>
-        <span className="text-slate-500 text-xs">Backlink Analysis</span>
+        <span className="text-app-text-muted text-xs">Backlink Analysis</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>
           <CardBody>
-            <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+            <p className="text-2xs text-app-text-muted uppercase font-semibold tracking-wider mb-1">
               Total Backlinks
             </p>
             <p className="text-2xl font-bold text-white tabular-nums">
@@ -146,7 +146,7 @@ export default function BacklinksPage() {
         </Card>
         <Card>
           <CardBody>
-            <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+            <p className="text-2xs text-app-text-muted uppercase font-semibold tracking-wider mb-1">
               Referring Domains
             </p>
             <p className="text-2xl font-bold text-white tabular-nums">
@@ -156,7 +156,7 @@ export default function BacklinksPage() {
         </Card>
         <Card>
           <CardBody>
-            <p className="text-2xs text-slate-400 uppercase font-semibold tracking-wider mb-1">
+            <p className="text-2xs text-app-text-muted uppercase font-semibold tracking-wider mb-1">
               Authority Score
             </p>
             <p className="text-2xl font-bold text-white tabular-nums">
@@ -185,24 +185,24 @@ export default function BacklinksPage() {
                   data={snapshots}
                   margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-app-border)" />
+                  <XAxis dataKey="date" stroke="var(--color-app-text-muted)" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="var(--color-app-text-muted)" tick={{ fontSize: 10 }} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#1e293b',
-                      border: '1px solid #334155',
+                      backgroundColor: 'var(--color-app-surface)',
+                      border: '1px solid var(--color-app-border)',
                       borderRadius: '8px',
                       fontSize: '12px',
                     }}
-                    labelStyle={{ color: '#94a3b8' }}
+                    labelStyle={{ color: 'var(--color-app-text-muted)' }}
                   />
                   <Line
                     type="monotone"
                     dataKey="totalBacklinks"
-                    stroke="#818cf8"
+                    stroke="var(--color-app-citation)"
                     strokeWidth={2}
-                    dot={{ r: 3, fill: '#818cf8' }}
+                    dot={{ r: 3, fill: 'var(--color-app-citation)' }}
                     name="Total Backlinks"
                   />
                 </LineChart>
@@ -212,9 +212,9 @@ export default function BacklinksPage() {
         </Card>
       )}
 
-      <div className="bg-indigo-950/30 border border-indigo-800/20 rounded-2xl p-4 mb-6">
-        <p className="text-xs text-slate-400 leading-relaxed">
-          <span className="text-indigo-400 font-semibold">Backlinks</span> are
+      <div className="bg-app-signal/5 border border-app-signal/10 rounded-2xl p-4 mb-6">
+        <p className="text-xs text-app-text leading-relaxed">
+          <span className="text-app-signal font-semibold">Backlinks</span> are
           links from other sites to yours — search engines treat them as trust
           signals, but spammy ones can hurt more than help.
         </p>
@@ -225,12 +225,12 @@ export default function BacklinksPage() {
           {showToxicOnly ? 'Toxic Backlinks' : 'All Backlinks'}
         </h3>
         <label className="flex items-center gap-2 cursor-pointer select-none">
-          <span className="text-2xs text-slate-400 font-medium">
+          <span className="text-2xs text-app-text-muted font-medium">
             Show toxic links only
           </span>
           <div
-            className={`relative w-8 h-4 rounded-full transition-colors ${
-              showToxicOnly ? 'bg-rose-500' : 'bg-slate-700'
+            className={`relative w-8 h-4 rounded-full transition-all duration-150 ${
+              showToxicOnly ? 'bg-rose-500' : 'bg-app-border'
             }`}
             onClick={() => setShowToxicOnly((v) => !v)}
           >
@@ -251,8 +251,8 @@ export default function BacklinksPage() {
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
+          <table className="w-full text-left text-sm text-app-text">
+            <thead className="bg-app-base/80 text-app-text-muted uppercase font-semibold text-2xs border-b border-app-border">
               <tr>
                 <th className="p-4">Source</th>
                 <th className="p-4">Anchor Text</th>
@@ -260,38 +260,47 @@ export default function BacklinksPage() {
                 <th className="p-4 text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-app-border">
               {listLoading && items.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-500 text-xs">
-                    Loading backlinks…
+                  <td colSpan={4} className="p-8">
+                    <div className="space-y-3 py-4">
+                      <div className="h-4 w-64 bg-app-surface-raised rounded animate-pulse mx-auto" />
+                      <div className="h-4 w-48 bg-app-surface-raised rounded animate-pulse mx-auto" />
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-500 text-xs">
-                    {showToxicOnly
-                      ? 'No toxic backlinks found.'
-                      : 'No backlinks found for this project.'}
+                  <td colSpan={4} className="p-8">
+                    <EmptyState
+                      compact
+                      icon={
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      }
+                      title={showToxicOnly ? 'No toxic backlinks found.' : 'No backlinks found for this project.'}
+                    />
                   </td>
                 </tr>
               ) : (
                 filtered.map((item, i) => (
-                  <tr key={i} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={i} className="hover:bg-app-surface-raised transition-all duration-150">
                     <td className="p-4 max-w-xs">
                       <a
                         href={item.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-400 hover:text-indigo-300 font-medium text-xs truncate block hover:underline"
+                        className="text-app-signal hover:text-app-signal/80 font-medium text-xs truncate block hover:underline"
                       >
                         {item.sourceUrl}
                       </a>
                     </td>
-                    <td className="p-4 text-xs text-slate-400 max-w-[200px] truncate">
+                    <td className="p-4 text-xs text-app-text-muted max-w-[200px] truncate">
                       {item.anchorText}
                     </td>
-                    <td className="p-4 text-xs text-slate-500 font-mono tabular-nums">
+                    <td className="p-4 text-xs text-app-text-muted font-mono tabular-nums">
                       {item.firstSeen || '—'}
                     </td>
                     <td className="p-4 text-center">
@@ -311,7 +320,7 @@ export default function BacklinksPage() {
 
       {!showToxicOnly && (
         <div className="flex items-center justify-between mt-4">
-          <p className="text-2xs text-slate-500">
+          <p className="text-2xs text-app-text-muted">
             Page {page}
           </p>
           <div className="flex items-center gap-2">
@@ -323,7 +332,7 @@ export default function BacklinksPage() {
             >
               Previous
             </Button>
-            <span className="text-2xs text-slate-600 tabular-nums">{page}</span>
+            <span className="text-2xs text-app-text-muted tabular-nums">{page}</span>
             <Button
               disabled={!hasMore}
               onClick={() => handlePageChange(page + 1)}

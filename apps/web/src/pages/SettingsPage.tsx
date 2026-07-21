@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../lib/api';
-import { Card, CardBody, Badge, Button } from '../components/ui';
+import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 
 interface SubscriptionInfo {
   plan: string;
@@ -83,8 +83,8 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8 space-y-4 animate-pulse">
-        <div className="h-6 w-48 bg-slate-800 rounded" />
-        <div className="h-32 bg-slate-900 border border-slate-800 rounded-2xl" />
+        <div className="h-6 w-48 bg-app-surface-raised rounded" />
+        <div className="h-32 bg-app-surface border border-app-border rounded-2xl" />
       </div>
     );
   }
@@ -102,21 +102,21 @@ export default function SettingsPage() {
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Account Settings</h1>
-        <p className="text-slate-400 text-sm mt-1">Manage your plan, team, and preferences.</p>
+        <p className="text-app-text-muted text-sm mt-1">Manage your plan, team, and preferences.</p>
       </div>
 
       {/* Sub-navigation */}
-      <div className="flex gap-1 border-b border-slate-800 pb-0">
+      <div className="flex gap-1 border-b border-app-border pb-0">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
           return (
             <Link
               key={tab.path}
               to={tab.path}
-              className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors ${
+              className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-all duration-150 ${
                 isActive
-                  ? 'bg-slate-900 text-white border border-slate-800 border-b-slate-900 -mb-px'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+                  ? 'bg-app-surface text-white border border-app-border border-b-app-surface -mb-px'
+                  : 'text-app-text-muted hover:text-app-text hover:bg-app-surface-raised/50'
               }`}
             >
               {tab.label}
@@ -142,19 +142,19 @@ export default function SettingsPage() {
                 { label: 'Team Seats', value: subscription.seats },
                 { label: 'API Calls', value: subscription.dataProviderMonthlyLimit.toLocaleString() },
               ].map((stat) => (
-                <div key={stat.label} className="bg-slate-950 rounded-lg p-3 text-center">
+                <div key={stat.label} className="bg-app-base rounded-lg p-3 text-center">
                   <p className="text-lg font-bold text-white">{stat.value}</p>
-                  <p className="text-2xs text-slate-500">{stat.label}</p>
+                  <p className="text-2xs text-app-text-muted">{stat.label}</p>
                 </div>
               ))}
             </div>
             <div className="mt-4 flex items-center justify-between">
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-app-text-muted">
                 Renews {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
               </span>
               <Link
                 to="/pricing"
-                className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+                className="text-xs text-app-signal hover:text-app-signal/80 font-semibold transition-all duration-150"
               >
                 Change Plan →
               </Link>
@@ -170,14 +170,14 @@ export default function SettingsPage() {
 
           <form onSubmit={handleInvite} className="flex gap-3 items-end mb-4">
             <div className="flex-1">
-              <label className="block text-2xs font-semibold text-slate-400 mb-1">Invite by email</label>
+              <label className="block text-2xs font-semibold text-app-text-muted mb-1">Invite by email</label>
               <input
                 type="email"
                 required
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="colleague@agency.com"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all"
+                className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150"
               />
             </div>
             <Button type="submit" variant="primary" loading={inviting}>
@@ -190,17 +190,17 @@ export default function SettingsPage() {
           )}
 
           {team.length === 0 ? (
-            <p className="text-xs text-slate-500">No team invites sent yet.</p>
+            <EmptyState compact title="No team invites sent yet" />
           ) : (
             <div className="space-y-2">
               {team.map((invite) => (
                 <div
                   key={invite._id}
-                  className="flex items-center justify-between bg-slate-950 rounded-lg px-3 py-2"
+                  className="flex items-center justify-between bg-app-base rounded-lg px-3 py-2"
                 >
                   <div>
-                    <p className="text-xs text-slate-200 font-medium">{invite.email}</p>
-                    <p className="text-2xs text-slate-500 capitalize">{invite.role}</p>
+                    <p className="text-xs text-app-text font-medium">{invite.email}</p>
+                    <p className="text-2xs text-app-text-muted capitalize">{invite.role}</p>
                   </div>
                   <Badge
                     variant={
@@ -226,16 +226,16 @@ export default function SettingsPage() {
           <h2 className="text-sm font-bold text-white mb-4">Email Preferences</h2>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-200">Weekly email digest</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-sm font-medium text-app-text">Weekly email digest</p>
+              <p className="text-xs text-app-text-muted mt-0.5">
                 Receive a Monday morning summary of audits, rankings, and alerts.
               </p>
             </div>
             <button
               onClick={() => handleToggle(!digestEnabled)}
               disabled={saving}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                digestEnabled ? 'bg-indigo-600' : 'bg-slate-700'
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-150 ${
+                digestEnabled ? 'bg-app-signal' : 'bg-app-border'
               } disabled:opacity-50`}
             >
               <span

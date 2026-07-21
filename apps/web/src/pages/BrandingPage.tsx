@@ -116,8 +116,8 @@ export default function BrandingPage() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-4 animate-pulse">
-        <div className="h-6 w-48 bg-slate-800 rounded" />
-        <div className="h-40 bg-slate-900 border border-slate-800 rounded-2xl" />
+        <div className="h-6 w-48 bg-app-surface-raised rounded" />
+        <div className="h-40 bg-app-surface border border-app-border rounded-2xl" />
       </div>
     );
   }
@@ -125,16 +125,16 @@ export default function BrandingPage() {
   if (upgradeRequired) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
-          <Link to="/settings" className="hover:text-indigo-400">Settings</Link>
+        <div className="flex items-center gap-2 text-xs text-app-text-muted mb-4">
+          <Link to="/settings" className="hover:text-app-signal transition-all duration-150">Settings</Link>
           <span>/</span>
-          <span className="text-slate-300">Branding</span>
+          <span className="text-app-text">Branding</span>
         </div>
         <Card>
           <CardBody className="text-center py-12">
             <h2 className="text-lg font-bold text-white mb-2">White-Label Branding</h2>
-            <p className="text-sm text-slate-400 mb-6">
-              Custom branding is available on the <span className="text-violet-400 font-semibold">Agency</span> plan.
+            <p className="text-sm text-app-text-muted mb-6">
+              Custom branding is available on the <span className="text-app-citation font-semibold">Agency</span> plan.
               Upgrade to add your logo, brand colors, and custom footer to exported PDF reports.
             </p>
             <Link to="/settings/billing">
@@ -149,15 +149,15 @@ export default function BrandingPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
       <div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-          <Link to="/settings" className="hover:text-indigo-400 transition-colors">
+        <div className="flex items-center gap-2 text-xs text-app-text-muted mb-1">
+          <Link to="/settings" className="hover:text-app-signal transition-all duration-150">
             Settings
           </Link>
           <span>/</span>
-          <span className="text-slate-300">Branding</span>
+          <span className="text-app-text">Branding</span>
         </div>
         <h1 className="text-2xl font-bold text-white">White-Label Branding</h1>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-app-text-muted text-sm mt-1">
           Customize the look of exported PDF audit reports with your agency's branding.
         </p>
       </div>
@@ -182,7 +182,7 @@ export default function BrandingPage() {
         <Card>
           <CardBody>
             <h2 className="text-sm font-bold text-white mb-3">Agency Logo</h2>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-xs text-app-text-muted mb-4">
               PNG, JPEG, WebP, or SVG. Max 2 MB. Recommended: transparent PNG at least 200 px wide.
             </p>
             <div className="flex items-center gap-4 flex-wrap">
@@ -191,7 +191,7 @@ export default function BrandingPage() {
                   <img
                     src={logoPreview}
                     alt="Logo preview"
-                    className="h-10 rounded object-contain border border-slate-700 bg-white px-2"
+                    className="h-10 rounded object-contain border border-app-border bg-white px-2"
                   />
                   <button
                     type="button"
@@ -202,12 +202,12 @@ export default function BrandingPage() {
                   </button>
                 </div>
               ) : (
-                <div className="h-10 w-32 rounded border border-dashed border-slate-700 flex items-center justify-center text-2xs text-slate-600">
+                <div className="h-10 w-32 rounded border border-dashed border-app-border flex items-center justify-center text-2xs text-app-text-muted">
                   No logo
                 </div>
               )}
               <label className="cursor-pointer">
-                <span className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all">
+                <span className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-app-base hover:bg-app-surface border border-app-border text-app-text-muted hover:text-white transition-all duration-150">
                   Choose File
                 </span>
                 <input
@@ -225,7 +225,7 @@ export default function BrandingPage() {
         <Card>
           <CardBody>
             <h2 className="text-sm font-bold text-white mb-3">Brand Color</h2>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-xs text-app-text-muted mb-4">
               Used as the accent color in report headers and section titles.
             </p>
             <div className="flex items-center gap-3">
@@ -233,14 +233,14 @@ export default function BrandingPage() {
                 type="color"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                className="w-10 h-10 rounded cursor-pointer border border-slate-700 bg-transparent"
+                className="w-10 h-10 rounded cursor-pointer border border-app-border bg-transparent"
               />
               <input
                 type="text"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
                 placeholder="#4f46e5"
-                className="bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white font-mono w-28 outline-none transition-all"
+                className="bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white font-mono w-28 outline-none transition-all duration-150"
               />
             </div>
           </CardBody>
@@ -250,7 +250,7 @@ export default function BrandingPage() {
         <Card>
           <CardBody>
             <h2 className="text-sm font-bold text-white mb-3">Report Footer</h2>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-xs text-app-text-muted mb-4">
               Custom text shown at the bottom of every exported PDF report (e.g. your agency's contact info).
             </p>
             <textarea
@@ -259,9 +259,9 @@ export default function BrandingPage() {
               maxLength={500}
               rows={3}
               placeholder="Powered by My Agency — hello@myagency.com"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all resize-none"
+              className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150 resize-none"
             />
-            <p className="text-2xs text-slate-600 mt-1 text-right">{reportFooterText.length}/500</p>
+            <p className="text-2xs text-app-text-muted mt-1 text-right">{reportFooterText.length}/500</p>
           </CardBody>
         </Card>
 
@@ -270,7 +270,7 @@ export default function BrandingPage() {
           <CardBody>
             <h2 className="text-sm font-bold text-white mb-3">Report Header Preview</h2>
             <div
-              className="rounded-lg overflow-hidden border border-slate-700"
+              className="rounded-lg overflow-hidden border border-app-border"
               style={{ borderTop: `4px solid ${primaryColor}` }}
             >
               <div className="flex items-center justify-between px-6 py-4" style={{ background: primaryColor }}>
@@ -286,17 +286,17 @@ export default function BrandingPage() {
                   <p className="text-2xs text-white/70">https://example.com</p>
                 </div>
               </div>
-              <div className="p-6 bg-slate-950">
+              <div className="p-6 bg-app-base">
                 <div className="text-center py-6">
                   <div className="text-5xl font-extrabold" style={{ color: primaryColor }}>72</div>
-                  <p className="text-2xs text-slate-500 mt-1">SEO Health Score</p>
-                  <div className="max-w-xs mx-auto mt-3 h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <p className="text-2xs text-app-text-muted mt-1">SEO Health Score</p>
+                  <div className="max-w-xs mx-auto mt-3 h-2 bg-app-border rounded-full overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: '72%', background: primaryColor }} />
                   </div>
                 </div>
                 {reportFooterText && (
-                  <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-                    <p className="text-2xs text-slate-600">{reportFooterText}</p>
+                  <div className="mt-6 pt-4 border-t border-app-border text-center">
+                    <p className="text-2xs text-app-text-muted">{reportFooterText}</p>
                   </div>
                 )}
               </div>

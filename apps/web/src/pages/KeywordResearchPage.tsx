@@ -157,11 +157,11 @@ export default function KeywordResearchPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Quota bar */}
       <div className="flex items-center justify-end mb-4">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <span className="font-medium text-slate-400">Quota</span>
-          <div className="h-1.5 w-24 bg-slate-800 rounded-full overflow-hidden">
+        <div className="flex items-center gap-2 text-xs text-app-text-muted">
+          <span className="font-medium text-app-text">Quota</span>
+          <div className="h-1.5 w-24 bg-app-border rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${
+              className={`h-full rounded-full transition-all duration-150 ${
                 quotaPct >= 90
                   ? 'bg-rose-500'
                   : quotaPct >= 70
@@ -172,9 +172,9 @@ export default function KeywordResearchPage() {
             />
           </div>
           <span className="font-mono tabular-nums">
-            <span className="text-slate-300">{quotaUsed}</span>
+            <span className="text-app-text">{quotaUsed}</span>
             {' / '}
-            <span className="text-slate-500">{quotaLimit}</span>
+            <span className="text-app-text-muted">{quotaLimit}</span>
           </span>
         </div>
       </div>
@@ -184,17 +184,17 @@ export default function KeywordResearchPage() {
         <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
           Keyword Research
         </h1>
-        <p className="text-slate-400 text-sm mb-6">
+        <p className="text-app-text-muted text-sm mb-6">
           Discover high-value keywords with search volume, difficulty, and CPC data.
         </p>
-        <div className="max-w-2xl mx-auto flex items-center gap-2 bg-slate-900 border border-slate-700 focus-within:border-indigo-500 rounded-xl p-1.5 shadow-xl transition-all">
+        <div className="max-w-2xl mx-auto flex items-center gap-2 bg-app-surface border border-app-border focus-within:border-app-signal rounded-xl p-1.5 shadow-xl transition-all duration-150">
           <input
             type="text"
             value={seedKeyword}
             onChange={(e) => setSeedKeyword(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter a seed keyword, e.g. SEO tools..."
-            className="flex-1 bg-transparent px-4 py-3 text-base text-white placeholder-slate-600 outline-none"
+            className="flex-1 bg-transparent px-4 py-3 text-base text-white placeholder-app-text-muted outline-none"
           />
           <Button
             onClick={handleSearch}
@@ -218,8 +218,8 @@ export default function KeywordResearchPage() {
           {sorted.length > 0 && (
             <Card className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-300">
-                  <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
+                <table className="w-full text-left text-sm text-app-text">
+                  <thead className="bg-app-base/80 text-app-text-muted uppercase font-semibold text-2xs border-b border-app-border">
                     <tr>
                       <th className="p-4 text-left">Keyword</th>
                       <th
@@ -239,14 +239,14 @@ export default function KeywordResearchPage() {
                       <th className="p-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-app-border">
                     {sorted.map((row, i) => (
                       <tr
                         key={i}
-                        className="hover:bg-slate-800/30 transition-colors"
+                        className="hover:bg-app-surface-raised transition-all duration-150"
                       >
                         <td className="p-4 font-medium text-white">{row.keyword}</td>
-                        <td className="p-4 text-right font-mono tabular-nums text-slate-300">
+                        <td className="p-4 text-right font-mono tabular-nums text-app-text">
                           {formatNumber(row.searchVolume)}
                         </td>
                         <td className="p-4 text-right">
@@ -254,7 +254,7 @@ export default function KeywordResearchPage() {
                             {row.difficulty}
                           </Badge>
                         </td>
-                        <td className="p-4 text-right font-mono tabular-nums text-slate-300">
+                        <td className="p-4 text-right font-mono tabular-nums text-app-text">
                           ${row.cpc.toFixed(2)}
                         </td>
                         <td className="p-4 text-center">
@@ -266,7 +266,7 @@ export default function KeywordResearchPage() {
                               {row.intent}
                             </Badge>
                           ) : (
-                            <span className="text-slate-600">—</span>
+                            <span className="text-app-text-muted">—</span>
                           )}
                         </td>
                         <td className="p-4 text-right">
@@ -275,7 +275,7 @@ export default function KeywordResearchPage() {
                               <select
                                 value={pickerProject}
                                 onChange={(e) => setPickerProject(e.target.value)}
-                                className="bg-slate-950 border border-slate-700 rounded-lg text-2xs px-2 py-1 text-slate-300 outline-none"
+                                className="bg-app-base border border-app-border rounded-lg text-2xs px-2 py-1 text-app-text outline-none"
                               >
                                 {projects.map((p) => (
                                   <option key={p._id} value={p._id}>
@@ -319,7 +319,7 @@ export default function KeywordResearchPage() {
             <Card>
               <CardBody>
                 <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-app-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Recent Searches
@@ -329,10 +329,10 @@ export default function KeywordResearchPage() {
                     <li key={q._id}>
                       <button
                         onClick={() => handleClickRecent(q.seedKeyword)}
-                        className="w-full text-left text-xs text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg px-3 py-2 transition-colors flex items-center justify-between gap-2"
+                        className="w-full text-left text-xs text-app-text-muted hover:text-white hover:bg-app-surface-raised rounded-lg px-3 py-2 transition-all duration-150 flex items-center justify-between gap-2"
                       >
                         <span className="truncate font-medium">{q.seedKeyword}</span>
-                        <span className="text-2xs text-slate-600 tabular-nums flex-shrink-0">
+                        <span className="text-2xs text-app-text-muted tabular-nums flex-shrink-0">
                           {new Date(q.timestamp).toLocaleDateString()}
                         </span>
                       </button>
@@ -344,12 +344,12 @@ export default function KeywordResearchPage() {
           )}
 
           {/* Quick tip */}
-          <Card className="bg-slate-900/50 border-slate-800/60 mt-6">
+          <Card className="bg-app-surface/50 mt-6">
             <CardBody>
-              <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-bold text-app-signal uppercase tracking-wider mb-2">
                 About the data
               </h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-app-text-muted leading-relaxed">
                 Search volume reflects monthly averages. Difficulty is a 0–100 score estimating how hard it is to rank in the top 10. CPC is the average cost-per-click for Google Ads.
               </p>
             </CardBody>

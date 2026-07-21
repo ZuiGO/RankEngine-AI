@@ -72,28 +72,28 @@ export default function RegisterPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-app-base flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/30 mb-4">
+            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-app-signal shadow-lg shadow-app-signal/30 mb-4">
               <span className="text-white font-bold text-lg">RE</span>
             </div>
             <h1 className="text-2xl font-bold text-white">Create your account</h1>
-            <p className="text-slate-400 text-sm mt-1">{subText}</p>
+            <p className="text-app-text-muted text-sm mt-1">{subText}</p>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-2xl shadow-black/40"
+            className="bg-app-surface border border-app-border rounded-2xl p-6 space-y-4 shadow-2xl shadow-black/40"
           >
             {error && (
-              <div className="bg-red-950/60 border border-red-800/50 text-red-300 text-sm rounded-lg px-4 py-2.5">
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-lg px-4 py-2.5">
                 {error}
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="reg-company">
+              <label className="block text-xs font-medium text-app-text-muted mb-1.5" htmlFor="reg-company">
                 Company name
               </label>
               <input
@@ -103,13 +103,13 @@ export default function RegisterPage() {
                 autoComplete="organization"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
+                className="w-full bg-app-base border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-all duration-150"
                 placeholder="Acme Agency"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="reg-email">
+              <label className="block text-xs font-medium text-app-text-muted mb-1.5" htmlFor="reg-email">
                 Email address
               </label>
               <input
@@ -119,13 +119,13 @@ export default function RegisterPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
+                className="w-full bg-app-base border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-all duration-150"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="reg-password">
+              <label className="block text-xs font-medium text-app-text-muted mb-1.5" htmlFor="reg-password">
                 Password
               </label>
               <input
@@ -136,13 +136,13 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
+                className="w-full bg-app-base border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-all duration-150"
                 placeholder="Min. 8 characters"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="reg-role">
+              <label className="block text-xs font-medium text-app-text-muted mb-1.5" htmlFor="reg-role">
                 Your role
               </label>
               <select
@@ -150,7 +150,7 @@ export default function RegisterPage() {
                 required
                 value={role}
                 onChange={(e) => setRole(e.target.value as Role)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors appearance-none cursor-pointer"
+                className="w-full bg-app-base border border-app-border rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-all duration-150 appearance-none cursor-pointer"
               >
                 {ROLE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -171,15 +171,15 @@ export default function RegisterPage() {
             </Button>
 
             {planName && (
-              <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs p-3 rounded-lg text-center">
+              <div className="bg-app-signal/10 border border-app-signal/20 text-app-signal text-xs p-3 rounded-lg text-center">
                 After creating your account, you'll be redirected to set up your{' '}
-                <span className="font-semibold text-indigo-200">{planName}</span> subscription.
+                <span className="font-semibold text-app-signal">{planName}</span> subscription.
               </div>
             )}
 
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-center text-xs text-app-text-muted">
               Already have an account?{' '}
-              <Link to="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+              <Link to="/login" className="text-app-signal hover:text-app-signal/80 transition-all duration-150">
                 Sign in
               </Link>
             </p>

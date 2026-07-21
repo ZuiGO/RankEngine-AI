@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../lib/api';
-import { Card, CardBody, StatGauge, Button } from '../components/ui';
+import { Card, CardBody, StatGauge, Button, ScoreReveal } from '../components/ui';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -95,7 +95,7 @@ export default function AiVisibilityPage() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p className="text-slate-400 text-sm">Loading AI visibility data…</p>
+        <p className="text-app-text-muted text-sm">Loading AI visibility data…</p>
       </div>
     );
   }
@@ -128,20 +128,20 @@ export default function AiVisibilityPage() {
       <div className="flex items-center justify-between mb-6">
         <Link
           to={`/projects/${id}`}
-          className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors"
+          className="text-xs text-app-signal hover:text-app-signal/80 font-semibold flex items-center gap-1 transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Back to Project
         </Link>
-        <span className="text-slate-500 text-xs">AI Visibility</span>
+        <span className="text-app-text-muted text-xs">AI Visibility</span>
       </div>
 
       {/* Explainer */}
-      <div className="bg-indigo-950/30 border border-indigo-800/20 rounded-2xl p-4 mb-8">
-        <p className="text-xs text-slate-400 leading-relaxed">
-          <span className="text-indigo-400 font-semibold">AI Visibility</span> tracks
+      <div className="bg-app-signal/5 border border-app-signal/15 rounded-2xl p-4 mb-8">
+        <p className="text-xs text-app-text-muted leading-relaxed">
+          <span className="text-app-signal font-semibold">AI Visibility</span> tracks
           whether AI assistants mention your brand when people ask relevant questions —
           the new frontier beyond traditional search rankings.
         </p>
@@ -155,34 +155,36 @@ export default function AiVisibilityPage() {
 
       {/* Score + engine breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <StatGauge score={score} size={112} label="Visibility">
-          <p className="text-base font-bold text-white">AI Visibility Score</p>
-          <p className="text-xs mt-1">
-            {score >= 80 ? 'Your brand is well represented across AI platforms.' :
-             score >= 50 ? 'Moderate AI presence — opportunities to improve.' :
-             'Low AI visibility — consider adding more content that AI assistants can reference.'}
-          </p>
-        </StatGauge>
+        <ScoreReveal score={data?.visibilityScore ?? null}>
+          <StatGauge score={score} size={112} label="Visibility">
+            <p className="text-base font-bold text-white">AI Visibility Score</p>
+            <p className="text-xs mt-1">
+              {score >= 80 ? 'Your brand is well represented across AI platforms.' :
+               score >= 50 ? 'Moderate AI presence — opportunities to improve.' :
+               'Low AI visibility — consider adding more content that AI assistants can reference.'}
+            </p>
+          </StatGauge>
+        </ScoreReveal>
 
         {engineStats.map((eng) => {
           const pct = eng.total > 0 ? Math.round((eng.mentioned / eng.total) * 100) : 0;
           return (
             <Card key={eng.key} className="p-5">
               <CardBody>
-                <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-2">
+                <p className="text-xs text-app-text-muted uppercase font-semibold tracking-wider mb-2">
                   {eng.label}
                 </p>
-                <p className="text-2xl font-bold tabular-nums text-white">
+                <p className="text-2xl font-bold tabular-nums text-white font-mono">
                   {eng.mentioned}
-                  <span className="text-slate-500 text-base font-normal"> / {eng.total}</span>
+                  <span className="text-app-text-muted text-base font-normal"> / {eng.total}</span>
                 </p>
-                <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                <div className="mt-2 h-1.5 w-full bg-app-border rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${pct >= 80 ? 'bg-emerald-400' : pct >= 50 ? 'bg-amber-400' : pct === 0 ? 'bg-slate-700' : 'bg-rose-500'}`}
+                    className={`h-full rounded-full transition-all ${pct >= 80 ? 'bg-emerald-400' : pct >= 50 ? 'bg-amber-400' : pct === 0 ? 'bg-app-border' : 'bg-rose-500'}`}
                     style={{ width: `${eng.total > 0 ? pct : 0}%` }}
                   />
                 </div>
-                <p className="text-2xs text-slate-500 mt-1">{pct}% mention rate</p>
+                <p className="text-2xs text-app-text-muted mt-1">{pct}% mention rate</p>
               </CardBody>
             </Card>
           );
@@ -191,27 +193,27 @@ export default function AiVisibilityPage() {
 
       {/* Add prompt form */}
       <Card className="p-5 mb-8">
-        <h3 className="text-sm font-bold text-white mb-4">Track a New Prompt</h3>
+        <h3 className="text-sm font-bold font-display text-white mb-4">Track a New Prompt</h3>
         <form onSubmit={handleAddPrompt} className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex-1 w-full">
-            <label className="block text-2xs font-semibold text-slate-400 mb-1">Prompt</label>
+            <label className="block text-2xs font-semibold text-app-text-muted mb-1">Prompt</label>
             <input
               type="text"
               required
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
               placeholder='e.g. "best project management software for small teams"'
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all"
+              className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted/50 outline-none transition-all"
             />
           </div>
           <div className="w-full sm:w-48">
-            <label className="block text-2xs font-semibold text-slate-400 mb-1">Brand Term</label>
+            <label className="block text-2xs font-semibold text-app-text-muted mb-1">Brand Term</label>
             <input
               type="text"
               required
               value={brandTerm}
               onChange={(e) => setBrandTerm(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all"
+              className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted/50 outline-none transition-all"
             />
           </div>
           <Button
@@ -226,21 +228,21 @@ export default function AiVisibilityPage() {
       </Card>
 
       {/* Tracked prompts table */}
-      <h3 className="text-sm font-bold text-white mb-4">
-        Tracked Prompts {prompts.length > 0 && <span className="text-slate-500 font-normal">({prompts.length})</span>}
+      <h3 className="text-sm font-bold font-display text-white mb-4">
+        Tracked Prompts {prompts.length > 0 && <span className="text-app-text-muted font-normal">({prompts.length})</span>}
       </h3>
 
       {prompts.length === 0 ? (
         <Card className="p-8">
           <CardBody className="text-center">
-            <p className="text-slate-500 text-sm">No prompts tracked yet. Add one above to start monitoring AI visibility.</p>
+            <p className="text-app-text-muted text-sm">No prompts tracked yet. Add one above to start monitoring AI visibility.</p>
           </CardBody>
         </Card>
       ) : (
         <Card className="shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-800">
+            <table className="w-full text-left text-sm text-app-text">
+              <thead className="bg-app-base/80 text-app-text-muted uppercase font-semibold text-2xs border-b border-app-border">
                 <tr>
                   <th className="p-4">Prompt</th>
                   <th className="p-4">Brand Term</th>
@@ -250,7 +252,7 @@ export default function AiVisibilityPage() {
                   <th className="p-4 text-center">Context</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-app-border/80">
                 {prompts.map((prompt) => {
                   const isExpanded = expandedRow === prompt._id;
                   return (
@@ -259,11 +261,11 @@ export default function AiVisibilityPage() {
                         <p className="text-xs text-white font-medium truncate" title={prompt.promptText}>
                           {prompt.promptText}
                         </p>
-                        <p className="text-2xs text-slate-600 mt-0.5">
+                        <p className="text-2xs text-app-text-muted mt-0.5">
                           {new Date(prompt.createdAt).toLocaleDateString()}
                         </p>
                       </td>
-                      <td className="p-4 text-xs text-slate-400 font-mono">{prompt.brandTerm}</td>
+                      <td className="p-4 text-xs text-app-text-muted font-mono">{prompt.brandTerm}</td>
                       {ENGINES.map((eng) => {
                         const snap = prompt.latestSnapshots[eng.key];
                         const hasCheck = !!snap;
@@ -284,7 +286,7 @@ export default function AiVisibilityPage() {
                                 </span>
                               )
                             ) : (
-                              <span className="text-slate-600 text-2xs">—</span>
+                              <span className="text-app-text-muted text-2xs">—</span>
                             )}
                           </td>
                         );
@@ -313,8 +315,8 @@ export default function AiVisibilityPage() {
               if (!hasAnyContext) {
                 return (
                   <div key={`ctx-${prompt._id}`} className="px-4 pb-4">
-                    <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                      <p className="text-xs text-slate-500 italic">No mention context available for this prompt.</p>
+                      <div className="bg-app-base border border-app-border rounded-lg p-4">
+                      <p className="text-xs text-app-text-muted italic">No mention context available for this prompt.</p>
                     </div>
                   </div>
                 );
@@ -325,9 +327,9 @@ export default function AiVisibilityPage() {
                     const snap = prompt.latestSnapshots[eng.key];
                     if (!snap?.mentioned || !snap.mentionContext) return null;
                     return (
-                      <div key={eng.key} className="bg-slate-950 border border-slate-800 rounded-lg p-3">
-                        <p className="text-2xs font-semibold text-indigo-400 mb-1 uppercase tracking-wider">{eng.label}</p>
-                        <p className="text-xs text-slate-300 leading-relaxed">{snap.mentionContext}</p>
+                      <div key={eng.key} className="bg-app-base border border-app-border rounded-lg p-3">
+                        <p className="text-2xs font-semibold text-app-signal mb-1 uppercase tracking-wider">{eng.label}</p>
+                        <p className="text-xs text-app-text leading-relaxed">{snap.mentionContext}</p>
                       </div>
                     );
                   })}

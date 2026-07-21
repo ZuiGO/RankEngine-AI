@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SearchCheck } from 'lucide-react';
 import api from '../lib/api';
-import { Card, CardBody, Badge, Button } from '../components/ui';
+import { Card, CardBody, Badge, Button, ScoreReveal, EmptyState } from '../components/ui';
 
 // ─────────────────────────────────────── TYPES ──────────────────────────────
 
@@ -126,7 +126,7 @@ function ChecklistSection({
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`h-4 w-4 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 text-app-text-muted transition-transform ${open ? 'rotate-180' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -140,7 +140,7 @@ function ChecklistSection({
       {open && (
         <div className="divide-y divide-slate-800/50">
           {items.length === 0 ? (
-            <p className="px-5 py-4 text-xs text-slate-500">No issues in this category.</p>
+            <p className="px-5 py-4 text-xs text-app-text-muted">No issues in this category.</p>
           ) : (
             items.map((issue) => (
               <div key={issue._id} className="px-5 py-4">
@@ -155,33 +155,33 @@ function ChecklistSection({
                         {issue.category}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed mb-2">
+                    <p className="text-xs text-app-text leading-relaxed mb-2">
                       {issue.whyItMatters || issue.recommendation}
                     </p>
                     {issue.recommendation && issue.recommendation !== 'No action needed' && (
                       <details className="group mb-1.5">
-                        <summary className="text-[11px] text-indigo-400 hover:text-indigo-300 cursor-pointer select-none">
-                          Technical details
+          <summary className="text-[11px] text-app-signal hover:text-app-signal/80 cursor-pointer select-none">
+                            Technical details
                         </summary>
-                        <p className="mt-1.5 text-[11px] text-slate-400 leading-relaxed pl-2">
+                        <p className="mt-1.5 text-[11px] text-app-text-muted leading-relaxed pl-2">
                           {issue.recommendation}
                         </p>
                       </details>
                     )}
                     {issue.affectedUrls && issue.affectedUrls.length > 0 && (
                       <details className="group">
-                        <summary className="text-[11px] text-indigo-400 hover:text-indigo-300 cursor-pointer select-none">
+                        <summary className="text-[11px] text-app-signal hover:text-indigo-300 cursor-pointer select-none">
                           {issue.affectedUrls.length} affected URL
                           {issue.affectedUrls.length !== 1 ? 's' : ''}
                         </summary>
                         <ul className="mt-1.5 space-y-0.5 pl-2">
                           {issue.affectedUrls.slice(0, 10).map((url, i) => (
-                            <li key={i} className="text-[11px] text-slate-500 truncate font-mono">
+                            <li key={i} className="text-[11px] text-app-text-muted truncate font-mono">
                               {url}
                             </li>
                           ))}
                           {issue.affectedUrls.length > 10 && (
-                            <li className="text-[11px] text-slate-600">
+                            <li className="text-[11px] text-app-text-muted">
                               …and {issue.affectedUrls.length - 10} more
                             </li>
                           )}
@@ -247,7 +247,7 @@ function HealthScoreGauge({ score, previous }: { score: number; previous: number
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-3xl font-extrabold text-white">{score}</span>
-          <span className="text-[10px] text-slate-500 uppercase font-semibold -mt-0.5">Health</span>
+          <span className="text-[10px] text-app-text-muted uppercase font-semibold -mt-0.5">Health</span>
         </div>
       </div>
 
@@ -289,16 +289,16 @@ function CrawlProgressBar({ job }: { job: CrawlJob }) {
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             {isRunning && (
-              <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-app-signal animate-pulse" />
             )}
-            <span className="font-medium text-slate-300">
+            <span className="font-medium text-app-text">
               {job.status === 'queued' && 'Audit queued…'}
               {job.status === 'running' && `Crawling — ${job.pageCount} pages scanned`}
               {job.status === 'completed' && `Completed — ${job.pageCount} pages scanned`}
               {job.status === 'failed' && 'Audit failed'}
             </span>
           </div>
-          <span className="text-slate-500 font-mono">{Math.round(pct)}%</span>
+          <span className="text-app-text-muted font-mono">{Math.round(pct)}%</span>
         </div>
         <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
           <div
@@ -307,7 +307,7 @@ function CrawlProgressBar({ job }: { job: CrawlJob }) {
                 ? 'bg-rose-500'
                 : job.status === 'completed'
                 ? 'bg-emerald-500'
-                : 'bg-indigo-500'
+                : 'bg-app-signal'
             }`}
             style={{ width: `${pct}%` }}
           />
@@ -330,7 +330,7 @@ function AuditSummaryBar({
   pageCount: number;
 }) {
   const pills = [
-    { label: 'Pages', value: pageCount, color: 'text-slate-300', bg: 'bg-slate-800' },
+    { label: 'Pages', value: pageCount, color: 'text-app-text', bg: 'bg-slate-800' },
     { label: 'Critical', value: critical, color: 'text-rose-300', bg: 'bg-rose-950/60 border border-rose-800/40' },
     { label: 'Warnings', value: warning, color: 'text-amber-300', bg: 'bg-amber-950/60 border border-amber-800/40' },
     { label: 'Passed', value: passed, color: 'text-emerald-300', bg: 'bg-emerald-950/60 border border-emerald-800/40' },
@@ -340,7 +340,7 @@ function AuditSummaryBar({
       {pills.map((p) => (
         <div key={p.label} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium ${p.bg} ${p.color}`}>
           <span className="font-bold text-sm">{p.value}</span>
-          <span className="text-slate-400">{p.label}</span>
+          <span className="text-app-text-muted">{p.label}</span>
         </div>
       ))}
     </div>
@@ -538,7 +538,7 @@ export default function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-8 text-slate-400 text-sm">
+      <div className="max-w-5xl mx-auto px-6 py-8 text-app-text-muted text-sm">
         Project not found.
       </div>
     );
@@ -560,12 +560,12 @@ export default function ProjectDetailPage() {
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
 
       {/* ── Breadcrumb ── */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <Link to="/dashboard" className="hover:text-slate-300 transition-colors">
+      <div className="flex items-center gap-2 text-xs text-app-text-muted">
+        <Link to="/dashboard" className="hover:text-app-text transition-colors">
           Projects
         </Link>
         <span>/</span>
-        <span className="text-slate-300">{project.name}</span>
+        <span className="text-app-text">{project.name}</span>
       </div>
 
       {/* ── Auto Migration Banner ── */}
@@ -598,15 +598,15 @@ export default function ProjectDetailPage() {
       {/* ── Project Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">{project.name}</h1>
-          <p className="text-slate-400 text-sm mt-1">{project.domain}</p>
+          <h1 className="text-2xl font-bold font-display text-white">{project.name}</h1>
+          <p className="text-app-text-muted text-sm mt-1 font-mono">{project.domain}</p>
           {stagingEditing ? (
             <div className="mt-2 flex items-center gap-2">
               <input
                 type="text"
                 value={stagingInput}
                 onChange={(e) => setStagingInput(e.target.value)}
-                className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-300 outline-none focus:border-indigo-500 transition-colors w-64"
+                className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-app-text outline-none focus:border-app-signal transition-colors w-64"
                 placeholder="https://staging.example.com"
               />
               <Button
@@ -618,7 +618,7 @@ export default function ProjectDetailPage() {
               </Button>
               <button
                 onClick={() => setStagingEditing(false)}
-                className="text-[11px] text-slate-500 hover:text-slate-300 px-2 py-1 transition-colors"
+                className="text-[11px] text-app-text-muted hover:text-app-text px-2 py-1 transition-colors"
               >
                 Cancel
               </button>
@@ -630,7 +630,7 @@ export default function ProjectDetailPage() {
               </Badge>
               <button
                 onClick={() => { setStagingInput(project.stagingDomain!); setStagingEditing(true); }}
-                className="text-[10px] text-slate-500 hover:text-slate-300 underline transition-colors"
+                className="text-[10px] text-app-text-muted hover:text-app-text underline transition-colors"
               >
                 Edit
               </button>
@@ -638,18 +638,18 @@ export default function ProjectDetailPage() {
           ) : (
             <button
               onClick={() => { setStagingInput(''); setStagingEditing(true); }}
-              className="mt-2 text-[11px] text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+              className="mt-2 text-[11px] text-app-signal hover:text-indigo-300 font-medium transition-colors"
             >
               + Add staging domain
             </button>
           )}
           <div className="mt-3 flex items-center gap-2">
-            <span className="text-[11px] text-slate-500 font-medium">Auto-audit:</span>
+            <span className="text-[11px] text-app-text-muted font-medium">Auto-audit:</span>
             <select
               value={project.auditSchedule}
               onChange={(e) => handleScheduleChange(e.target.value as 'manual' | 'daily' | 'weekly')}
               disabled={scheduleUpdating}
-              className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-300 outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+              className="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-app-text outline-none focus:border-app-signal transition-colors disabled:opacity-50"
             >
               <option value="manual">Off</option>
               <option value="daily">Daily</option>
@@ -681,7 +681,7 @@ export default function ProjectDetailPage() {
               activeJob?.status === 'running' ||
               activeJob?.status === 'queued'
             }
-            className="rounded-xl py-2.5 shadow-lg shadow-indigo-600/25"
+            className="rounded-xl py-2.5 shadow-lg shadow-app-signal/25"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -700,9 +700,9 @@ export default function ProjectDetailPage() {
             desc: 'Write and grade content with AI-powered real-time scoring.',
             to: `/projects/${id}/content-editor`,
             icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
-            grad: 'from-indigo-700/30 to-violet-700/30',
-            border: 'border-indigo-700/20',
-            iconColor: 'text-indigo-300',
+            grad: 'from-app-signal/20 to-app-signal/5',
+            border: 'border-app-signal/20',
+            iconColor: 'text-app-signal',
           },
           {
             label: 'Keyword Tracking',
@@ -722,8 +722,8 @@ export default function ProjectDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
                   </svg>
                 </div>
-                <h3 className="text-sm font-semibold text-white group-hover:text-indigo-200 transition-colors mb-1">{f.label}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+                <h3 className="text-sm font-semibold text-white group-hover:text-app-signal transition-colors mb-1">{f.label}</h3>
+                <p className="text-xs text-app-text-muted leading-relaxed">{f.desc}</p>
               </CardBody>
             </Card>
           </Link>
@@ -732,8 +732,8 @@ export default function ProjectDetailPage() {
 
       {/* ─────────────────── AUDIT SECTION ─────────────────── */}
       <div>
-        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+        <h2 className="text-base font-bold font-display text-white mb-4 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-app-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
           SEO Audit
@@ -742,7 +742,9 @@ export default function ProjectDetailPage() {
         {/* Health Score Gauge — shown prominently above everything else */}
         {healthScore !== null && (
           <div className="mb-4">
-            <HealthScoreGauge score={healthScore} previous={previousHealthScore} />
+            <ScoreReveal score={healthScore}>
+              <HealthScoreGauge score={healthScore} previous={previousHealthScore} />
+            </ScoreReveal>
           </div>
         )}
 
@@ -814,7 +816,7 @@ export default function ProjectDetailPage() {
                                 schema · {sev}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed">{issue.recommendation}</p>
+                            <p className="text-xs text-app-text-muted leading-relaxed">{issue.recommendation}</p>
                           </div>
                         </div>
                       </div>
@@ -828,29 +830,23 @@ export default function ProjectDetailPage() {
 
         {/* Empty state — no audit yet */}
         {!activeJob && !checklistData && !checklistLoading && !auditLoading && (
-          <Card>
-            <CardBody className="py-16 flex flex-col items-center text-center">
-              <div className="h-14 w-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400 mb-4">
-                <SearchCheck className="h-7 w-7" />
-              </div>
-              <h3 className="text-sm font-semibold text-white mb-1">No audits run yet</h3>
-              <p className="text-xs text-slate-400 max-w-sm">
-                An audit checks your pages for technical SEO issues that affect AI&nbsp;Overview visibility — from missing meta tags and slow load times to redirect chains and broken schema markup.
-              </p>
-            </CardBody>
-          </Card>
+          <EmptyState
+            icon={<SearchCheck className="h-7 w-7" />}
+            title="No audits run yet"
+            description="An audit checks your pages for technical SEO issues that affect AI Overview visibility — from missing meta tags and slow load times to redirect chains and broken schema markup."
+          />
         )}
       </div>
 
       {/* ─────────────────── MIGRATION SECTION ─────────────────── */}
       {project.stagingDomain && (migrationJob || migrationChecklist) && (
         <div>
-          <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+          <h2 className="text-base font-bold font-display text-white mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             Migration Safety Check
-            <span className="text-[11px] text-slate-500 font-normal">
+            <span className="text-[11px] text-app-text-muted font-normal">
               {project.domain} → {project.stagingDomain}
             </span>
           </h2>

@@ -62,7 +62,7 @@ const PLAN_FEATURES: Record<string, string[]> = {
 };
 
 const PLAN_COLORS: Record<string, string> = {
-  free: 'border-slate-700',
+  free: 'border-app-border',
   pro: 'border-indigo-600/50',
   agency: 'border-violet-600/50',
 };
@@ -148,9 +148,9 @@ export default function BillingPage() {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-4 animate-pulse">
-        <div className="h-6 w-36 bg-slate-800 rounded" />
-        <div className="h-40 bg-slate-900 border border-slate-800 rounded-2xl" />
-        <div className="h-20 bg-slate-900 border border-slate-800 rounded-2xl" />
+        <div className="h-6 w-36 bg-app-surface-raised rounded" />
+        <div className="h-40 bg-app-surface border border-app-border rounded-2xl" />
+        <div className="h-20 bg-app-surface border border-app-border rounded-2xl" />
       </div>
     );
   }
@@ -159,15 +159,15 @@ export default function BillingPage() {
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-          <Link to="/settings" className="hover:text-indigo-400 transition-colors">
+        <div className="flex items-center gap-2 text-xs text-app-text-muted mb-1">
+          <Link to="/settings" className="hover:text-app-signal transition-all duration-150">
             Settings
           </Link>
           <span>/</span>
-          <span className="text-slate-300">Billing</span>
+          <span className="text-app-text">Billing</span>
         </div>
         <h1 className="text-2xl font-bold text-white">Billing</h1>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-app-text-muted text-sm mt-1">
           Manage your subscription, view usage, and upgrade your plan.
         </p>
       </div>
@@ -215,7 +215,7 @@ export default function BillingPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-white">Current Plan</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-app-text-muted mt-0.5">
                 {isFree
                   ? 'You are on the Free plan.'
                   : `You are on the ${subscription?.planName ?? planId} plan.`}
@@ -241,16 +241,16 @@ export default function BillingPage() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-slate-950 rounded-lg p-3 text-center"
+                className="bg-app-base rounded-lg p-3 text-center"
               >
                 <p className="text-lg font-bold text-white">{stat.value}</p>
-                <p className="text-2xs text-slate-500">{stat.label}</p>
+                <p className="text-2xs text-app-text-muted">{stat.label}</p>
               </div>
             ))}
           </div>
 
           {subscription?.currentPeriodEnd && (
-            <p className="text-xs text-slate-500 mb-3">
+            <p className="text-xs text-app-text-muted mb-3">
               Current period ends{' '}
               {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
             </p>
@@ -273,25 +273,25 @@ export default function BillingPage() {
         <CardBody>
           <h2 className="text-sm font-bold text-white mb-3">Monthly API Usage</h2>
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  quotaPct >= 90
-                    ? 'bg-rose-500'
-                    : quotaPct >= 70
-                      ? 'bg-amber-400'
-                      : 'bg-emerald-400'
-                }`}
-                style={{ width: `${Math.min(quotaPct, 100)}%` }}
-              />
-            </div>
-            <span className="text-xs font-mono tabular-nums text-slate-400 flex-shrink-0">
-              <span className="text-slate-200 font-semibold">{quotaUsed}</span>
-              {' / '}
-              <span className="text-slate-500">{quotaLimit}</span>
-            </span>
+          <div className="flex-1 h-2 bg-app-border rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-150 ${
+                quotaPct >= 90
+                  ? 'bg-rose-500'
+                  : quotaPct >= 70
+                    ? 'bg-amber-400'
+                    : 'bg-emerald-400'
+              }`}
+              style={{ width: `${Math.min(quotaPct, 100)}%` }}
+            />
           </div>
-          <p className="text-2xs text-slate-600 mt-1.5">
+          <span className="text-xs font-mono tabular-nums text-app-text-muted flex-shrink-0">
+            <span className="text-app-text font-semibold">{quotaUsed}</span>
+            {' / '}
+            <span className="text-app-text-muted">{quotaLimit}</span>
+          </span>
+        </div>
+          <p className="text-2xs text-app-text-muted mt-1.5">
             Data API calls reset on the 1st of each month.
           </p>
         </CardBody>
@@ -306,7 +306,7 @@ export default function BillingPage() {
             </h2>
             <Link
               to="/pricing"
-              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+              className="text-xs text-app-signal hover:text-app-signal/80 transition-all duration-150"
             >
               Compare all plans →
             </Link>
@@ -327,7 +327,7 @@ export default function BillingPage() {
                         {features.map((f) => (
                           <li
                             key={f}
-                            className="text-xs text-slate-400 flex items-start gap-2"
+                            className="text-xs text-app-text-muted flex items-start gap-2"
                           >
                             <svg
                               className="h-4 w-4 text-emerald-400 mt-0.5 flex-shrink-0"

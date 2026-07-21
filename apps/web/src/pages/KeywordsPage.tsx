@@ -9,8 +9,9 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
+import { Search } from 'lucide-react';
 import api from '../lib/api';
-import { Card, CardBody, Badge, Button } from '../components/ui';
+import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 
 interface TrackedKeywordData {
   _id: string;
@@ -163,11 +164,11 @@ export default function KeywordsPage() {
       <div className="flex items-center justify-between mb-6">
         <Link
           to="/"
-          className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center space-x-1 transition-colors"
+          className="text-xs text-app-signal hover:text-app-signal/80 font-semibold flex items-center space-x-1 transition-all duration-150"
         >
           <span>← Back to Dashboard</span>
         </Link>
-        <span className="text-slate-500 text-xs">Keyword Rank Monitor</span>
+        <span className="text-app-text-muted text-xs">Keyword Rank Monitor</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -265,18 +266,20 @@ export default function KeywordsPage() {
             <CardBody>
             <h3 className="text-sm font-bold text-white mb-4">Tracked Search Keywords</h3>
             {loading ? (
-              <p className="text-slate-500 text-xs">Loading tracked keywords...</p>
+                <div className="space-y-3 py-8">
+                  <div className="h-4 w-48 bg-app-surface-raised rounded animate-pulse mx-auto" />
+                  <div className="h-4 w-64 bg-app-surface-raised rounded animate-pulse mx-auto" />
+                </div>
             ) : keywords.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-slate-400 text-sm mb-2">No keywords tracked yet</p>
-                <p className="text-slate-500 text-xs max-w-sm mx-auto">
-                  Add keywords above to monitor your daily ranking positions. You can also check the <span className="text-indigo-400">Suggested for you</span> section — these are terms pulled from your latest audit that your pages already mention.
-                </p>
-              </div>
+              <EmptyState
+                icon={<Search size={20} />}
+                title="No keywords tracked yet"
+                description='Add keywords above to monitor your daily ranking positions. You can also check the "Suggested for you" section — these are terms pulled from your latest audit that your pages already mention.'
+              />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-2xs border-b border-slate-850">
+                <table className="w-full text-left text-xs text-app-text">
+                  <thead className="bg-app-base/80 text-app-text-muted uppercase font-semibold text-2xs border-b border-app-border">
                     <tr>
                       <th className="p-3">Keyword</th>
                       <th className="p-3">Position</th>
@@ -285,12 +288,12 @@ export default function KeywordsPage() {
                       <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-850">
+                  <tbody className="divide-y divide-app-border">
                     {keywords.map((kw) => (
                       <tr
                         key={kw._id}
-                        className={`hover:bg-slate-850/40 transition-colors cursor-pointer ${
-                          selectedKeywordId === kw._id ? 'bg-indigo-600/5 text-white font-bold' : ''
+                        className={`hover:bg-app-surface-raised transition-all duration-150 cursor-pointer ${
+                          selectedKeywordId === kw._id ? 'bg-app-signal/5 text-white font-bold' : ''
                         }`}
                         onClick={() => {
                           setSelectedKeywordId(kw._id);
@@ -306,14 +309,14 @@ export default function KeywordsPage() {
                               In AI Overview
                             </Badge>
                           ) : (
-                            <span className="bg-slate-950 border border-slate-850 text-slate-500 text-2xs px-2 py-0.5 rounded-full">
+                            <Badge variant="default">
                               No AIO Links
-                            </span>
+                            </Badge>
                           )}
                         </td>
                         <td className="p-3 text-right">
                           <button
-                            className="text-xs text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer"
+                            className="text-xs text-app-signal hover:text-app-signal/80 font-bold cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedKeywordId(kw._id);
@@ -340,16 +343,19 @@ export default function KeywordsPage() {
             </h3>
 
             {loadingHistory ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 rounded-2xl">
-                <span className="text-slate-400 text-xs">Loading chart snapshots...</span>
+              <div className="absolute inset-0 flex items-center justify-center bg-app-base/80 rounded-2xl">
+                <div className="space-y-2">
+                  <div className="h-3 w-32 bg-app-surface-raised rounded animate-pulse mx-auto" />
+                  <div className="h-3 w-24 bg-app-surface-raised rounded animate-pulse mx-auto" />
+                </div>
               </div>
             ) : !selectedKeywordId ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-slate-500 text-xs">Select a keyword to view rank history</span>
+                <span className="text-app-text-muted text-xs">Select a keyword to view rank history</span>
               </div>
             ) : history.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-slate-500 text-xs">No historical snaps found for this keyword yet.</span>
+                <span className="text-app-text-muted text-xs">No historical snaps found for this keyword yet.</span>
               </div>
             ) : (
               <div className="h-64 mt-4">

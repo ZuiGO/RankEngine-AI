@@ -64,96 +64,78 @@ function NewProjectModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <Card className="w-full max-w-md shadow-2xl shadow-black/60 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white">New Project</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
-            aria-label="Close"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <Modal open onClose={onClose} title="New Project">
+      <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+        {error && (
+          <div className="bg-rose-950/40 border border-rose-800/30 text-rose-300 text-sm rounded-lg px-4 py-2.5">
+            {error}
+          </div>
+        )}
+
+        <div>
+          <label className="block text-xs font-medium text-app-text-muted mb-1.5" htmlFor="project-name">
+            Project name <span className="text-red-400">*</span>
+          </label>
+          <input
+            id="project-name"
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/30 transition-colors"
+            placeholder="My Website SEO"
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          {error && (
-            <div className="bg-red-950/60 border border-red-800/50 text-red-300 text-sm rounded-lg px-4 py-2.5">
-              {error}
-            </div>
-          )}
+        <div>
+          <label className="block text-xs font-medium text-app-text-muted mb-1.5" htmlFor="project-domain">
+            Live domain <span className="text-red-400">*</span>
+          </label>
+          <input
+            id="project-domain"
+            type="text"
+            required
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/30 transition-colors"
+            placeholder="example.com"
+          />
+        </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="project-name">
-              Project name <span className="text-red-400">*</span>
-            </label>
-            <input
-              id="project-name"
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
-              placeholder="My Website SEO"
-            />
-          </div>
+        <div>
+          <label className="block text-xs font-medium text-app-text-muted mb-1.5" htmlFor="project-staging">
+            Staging domain <span className="text-app-text-muted/60 font-normal">(optional)</span>
+          </label>
+          <input
+            id="project-staging"
+            type="text"
+            value={stagingDomain}
+            onChange={(e) => setStagingDomain(e.target.value)}
+            className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/30 transition-colors"
+            placeholder="staging.example.com"
+          />
+        </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="project-domain">
-              Live domain <span className="text-red-400">*</span>
-            </label>
-            <input
-              id="project-domain"
-              type="text"
-              required
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
-              placeholder="example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5" htmlFor="project-staging">
-              Staging domain <span className="text-slate-600 font-normal">(optional)</span>
-            </label>
-            <input
-              id="project-staging"
-              type="text"
-              value={stagingDomain}
-              onChange={(e) => setStagingDomain(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
-              placeholder="staging.example.com"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-1">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              className="flex-1 py-2.5"
-            >
-              Cancel
-            </Button>
-            <Button
-              id="create-project-submit-btn"
-              type="submit"
-              loading={loading}
-              className="flex-1 py-2.5 disabled:opacity-60 shadow-indigo-600/30"
-            >
-              {loading ? 'Creating…' : 'Create project'}
-            </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+        <div className="flex gap-3 pt-1">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            className="flex-1 py-2.5"
+          >
+            Cancel
+          </Button>
+          <Button
+            id="create-project-submit-btn"
+            type="submit"
+            loading={loading}
+            className="flex-1 py-2.5 disabled:opacity-60 shadow-app-signal/30"
+          >
+            {loading ? 'Creating…' : 'Create project'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -190,7 +172,7 @@ function fetchProjectSummary(id: string): Promise<ProjectSummary> {
 }
 
 function HealthBadge({ score }: { score: number | null }) {
-  if (score === null) return <span className="text-slate-600 text-2xs">—</span>;
+  if (score === null) return <span className="text-app-text-muted text-2xs">—</span>;
   let color: string;
   if (score >= 70) color = 'text-emerald-400';
   else if (score >= 40) color = 'text-amber-400';
@@ -212,7 +194,7 @@ function ProjectCard({
 
   return (
     <Card
-      className="group hover:border-indigo-700/50 cursor-pointer transition-all hover:shadow-xl hover:shadow-indigo-950/30 hover:-translate-y-0.5"
+      className="group hover:border-app-signal/30 cursor-pointer"
       onClick={onClick}
     >
       <CardBody>
@@ -223,10 +205,10 @@ function ProjectCard({
             {project.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-white group-hover:text-indigo-200 transition-colors truncate">
+            <h3 className="text-sm font-semibold text-white group-hover:text-app-signal transition-colors truncate">
               {project.name}
             </h3>
-            <p className="text-xs text-slate-500 truncate">{project.domain}</p>
+            <p className="text-xs text-app-text-muted truncate">{project.domain}</p>
           </div>
         </div>
         {project.stagingDomain && (
@@ -235,9 +217,9 @@ function ProjectCard({
       </div>
 
       {/* Summary strip */}
-      <div className="grid grid-cols-4 gap-3 mb-3 py-2.5 px-3 bg-slate-950/60 rounded-xl border border-slate-800/50">
+      <div className="grid grid-cols-4 gap-3 mb-3 py-2.5 px-3 bg-app-base/60 rounded-xl border border-app-border">
         <div className="text-center">
-          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">Health</p>
+          <p className="text-2xs text-app-text-muted uppercase font-semibold tracking-wider mb-0.5">Health</p>
           <HealthBadge
             score={
               summary && !summary.loading
@@ -253,7 +235,7 @@ function ProjectCard({
           />
         </div>
         <div className="text-center">
-          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">Rank</p>
+          <p className="text-2xs text-app-text-muted uppercase font-semibold tracking-wider mb-0.5">Rank</p>
           <p className="text-xs font-bold text-white tabular-nums">
             {summary && !summary.loading
               ? summary.bestKeywordPosition != null
@@ -265,7 +247,7 @@ function ProjectCard({
           </p>
         </div>
         <div className="text-center">
-          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">AI Vis.</p>
+          <p className="text-2xs text-app-text-muted uppercase font-semibold tracking-wider mb-0.5">AI Vis.</p>
           <p className="text-xs font-bold text-white tabular-nums">
             {summary && !summary.loading
               ? summary.aiVisibility != null
@@ -275,7 +257,7 @@ function ProjectCard({
           </p>
         </div>
         <div className="text-center">
-          <p className="text-2xs text-slate-600 uppercase font-semibold tracking-wider mb-0.5">Backlinks</p>
+          <p className="text-2xs text-app-text-muted uppercase font-semibold tracking-wider mb-0.5">Backlinks</p>
           <p className="text-xs font-bold text-white tabular-nums">
             {summary && !summary.loading
               ? formatNumber(summary.backlinks)
@@ -285,8 +267,8 @@ function ProjectCard({
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-slate-600">{timeAgo(project.createdAt)}</span>
-        <span className="text-[10px] text-indigo-400 group-hover:text-indigo-300 font-medium transition-colors">
+        <span className="text-[10px] text-app-text-muted">{timeAgo(project.createdAt)}</span>
+        <span className="text-[10px] text-app-signal group-hover:text-app-signal/80 font-medium transition-colors">
           Open →
         </span>
       </div>
@@ -349,8 +331,8 @@ export default function DashboardPage() {
     <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Projects</h1>
-          <p className="text-slate-500 text-sm mt-0.5">
+          <h1 className="text-2xl font-bold font-display text-white">Projects</h1>
+          <p className="text-app-text-muted text-sm mt-0.5">
             {projects.length === 0 && !loading
               ? 'Your projects will appear here'
               : `${projects.length} project${projects.length !== 1 ? 's' : ''}`}
@@ -359,7 +341,7 @@ export default function DashboardPage() {
         <Button
           id="new-project-btn"
           onClick={() => setShowModal(true)}
-          className="rounded-xl py-2.5 shadow-indigo-600/30"
+          className="rounded-xl py-2.5 shadow-app-signal/15"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -369,7 +351,7 @@ export default function DashboardPage() {
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-950/60 border border-red-800/50 text-red-300 text-sm rounded-xl px-4 py-3">
+        <div className="mb-6 bg-rose-950/40 border border-rose-800/30 text-rose-300 text-sm rounded-xl px-4 py-3">
           {error}
         </div>
       )}
@@ -402,7 +384,7 @@ export default function DashboardPage() {
           action={
             <Button
               onClick={() => setShowModal(true)}
-              className="rounded-xl py-2.5 px-5 shadow-indigo-600/30"
+              className="rounded-xl py-2.5 px-5 shadow-app-signal/30"
             >
               Add your first site
             </Button>
@@ -411,16 +393,22 @@ export default function DashboardPage() {
       )}
 
       {!loading && projects.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+        >
           {projects.map((p) => (
-            <ProjectCard
-              key={p._id}
-              project={p}
-              summary={summaries[p._id] ?? null}
-              onClick={() => navigate(`/projects/${p._id}`)}
-            />
+            <motion.div key={p._id} variants={listItem}>
+              <ProjectCard
+                project={p}
+                summary={summaries[p._id] ?? null}
+                onClick={() => navigate(`/projects/${p._id}`)}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {showModal && (

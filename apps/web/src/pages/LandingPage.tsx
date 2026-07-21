@@ -58,6 +58,12 @@ const PLACEHOLDER_TESTIMONIALS = [
   },
 ];
 
+const NAV_ITEMS = [
+  { label: 'Features', href: '#features' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Testimonials', href: '#testimonials' },
+];
+
 export default function LandingPage() {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -65,90 +71,170 @@ export default function LandingPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-app-base text-app-text">
       {/* ── Navbar ─────────────────────────────────────────── */}
-      <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-app-border/60 bg-app-base/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/30">
-              <span className="text-white font-bold text-sm">RE</span>
+          <Link to="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
+            <div className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-gradient-to-br from-app-signal/30 to-app-signal/10 border border-app-signal/20">
+              <span className="text-app-signal font-bold text-sm">RE</span>
             </div>
-            <span className="font-bold text-lg tracking-tight">RankEngine AI</span>
-          </div>
-          <nav className="hidden sm:flex items-center gap-6 text-sm text-slate-400">
-            <button onClick={() => scrollTo('features')} className="hover:text-white transition-colors">
-              Features
-            </button>
-            <Link to="/pricing" className="hover:text-white transition-colors">
-              Pricing
-            </Link>
-            <button onClick={() => scrollTo('testimonials')} className="hover:text-white transition-colors">
-              Testimonials
-            </button>
+            <span className="font-bold text-lg tracking-tight font-display text-white">RankEngine <span className="text-app-signal">AI</span></span>
+          </Link>
+          <nav className="hidden sm:flex items-center gap-6 text-sm text-app-text-muted">
+            {NAV_ITEMS.map((item) =>
+              item.href.startsWith('#') ? (
+                <button
+                  key={item.label}
+                  onClick={() => scrollTo(item.href.slice(1))}
+                  className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1"
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1"
+                >
+                  {item.label}
+                </Link>
+              ),
+            )}
           </nav>
           <div className="flex items-center gap-3">
             <Link
               to="/login"
-              className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:inline"
+              className="text-sm text-app-text-muted hover:text-white transition-colors hidden sm:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-2 py-1"
             >
               Sign in
             </Link>
-            <Link to="/register">
-              <Button>Start Free</Button>
+            <Link to="/register" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
+              <Button glow="signal">Start Free</Button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* ── Hero ───────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-6 pt-24 pb-32 md:pt-32 md:pb-40 text-center">
-        <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-300 mb-8">
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-          Built for the AI-search era
+      <section className="max-w-6xl mx-auto px-6 pt-16 pb-24 md:pt-24 md:pb-32">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+
+          {/* Text side */}
+          <div className="flex-1 min-w-0 text-center lg:text-left">
+            <div className="hero-stagger-1 inline-flex items-center gap-2 bg-app-signal/10 border border-app-signal/20 rounded-full px-4 py-1.5 text-xs font-semibold text-app-signal mb-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-app-signal" />
+              Built for the AI-search era
+            </div>
+            <h1 className="hero-stagger-2 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.1] tracking-tight font-display text-white max-w-2xl">
+              Rank in AI Overviews<span className="text-app-text-muted">, </span>not just traditional search
+            </h1>
+            <p className="hero-stagger-3 text-base md:text-lg text-app-text-muted max-w-lg mx-auto lg:mx-0 mt-5 leading-relaxed">
+              The first SEO platform built for generative search. Site audits, AI Visibility
+              tracking, and content scoring — tuned for how AI engines discover and rank content.
+            </p>
+            <div className="hero-stagger-4 flex flex-col sm:flex-row items-center gap-4 mt-8">
+              <Link to="/register" className="w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
+                <Button glow="citation" className="w-full sm:w-auto px-8 py-3 text-base shadow-xl shadow-app-citation/15">
+                  Start Free
+                </Button>
+              </Link>
+              <Link to="/pricing" className="w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
+                <Button variant="secondary" className="w-full sm:w-auto px-8 py-3 text-base">
+                  See Pricing
+                </Button>
+              </Link>
+            </div>
+            <p className="hero-stagger-4 text-xs text-app-text-muted/60 mt-4">No credit card required &middot; Free tier includes 3 projects</p>
+          </div>
+
+          {/* Scan visual card */}
+          <div className="hero-stagger-5 w-full max-w-lg lg:max-w-[480px] shrink-0">
+            <div className="relative bg-app-surface border border-app-border rounded-2xl overflow-hidden shadow-2xl shadow-black/60">
+              <div className="hero-scan-beam" aria-hidden="true" />
+
+              {/* Card header — browser chrome mock */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-app-border bg-app-base/40">
+                <div className="flex gap-1.5" aria-hidden="true">
+                  <div className="h-2.5 w-2.5 rounded-full bg-rose-500/50" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500/50" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/50" />
+                </div>
+                <div className="flex-1 text-center text-[11px] text-app-text-muted font-mono truncate select-none">
+                  example.com &rsaquo; blog &rsaquo; ai-seo-strategy
+                </div>
+                <div className="h-2 w-2 rounded-full bg-app-signal/40" aria-hidden="true" />
+              </div>
+
+              {/* Scan preview content */}
+              <div className="relative p-5 pb-4 space-y-3">
+                <div className="flex items-center gap-2 text-xs text-app-text-muted mb-3">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span className="font-medium uppercase tracking-wider text-[10px]">AI Visibility Scan</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="h-2.5 w-full bg-app-text-muted/10 rounded" />
+                  <div className="h-2.5 w-3/4 bg-app-text-muted/10 rounded" />
+                  <div className="h-2.5 w-5/6 bg-app-text-muted/10 rounded" />
+                  <div className="h-2.5 w-2/3 bg-app-text-muted/10 rounded" />
+                </div>
+
+                {/* Highlighted phrase */}
+                <div className="flex flex-wrap items-baseline gap-x-1.5 py-2 px-2.5 -mx-2.5 rounded-lg bg-app-surface-raised/60 border border-app-border/40 text-sm">
+                  <span className="text-app-text-muted text-xs">Content that</span>
+                  <span className="hero-phrase-glow font-semibold text-app-signal">&ldquo;ranks in AI Overviews&rdquo;</span>
+                  <span className="text-app-text-muted text-xs">requires structured data and citation-ready formatting.</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="h-2.5 w-full bg-app-text-muted/10 rounded" />
+                  <div className="h-2.5 w-4/5 bg-app-text-muted/10 rounded" />
+                  <div className="h-2.5 w-3/5 bg-app-text-muted/10 rounded" />
+                </div>
+
+                {/* Score bar */}
+                <div className="mt-4 pt-3 border-t border-app-border flex items-center justify-between">
+                  <span className="text-[11px] text-app-text-muted font-medium">AI Visibility Score</span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-[3px]">
+                      {[...Array(10)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-2 w-2 rounded-sm ${i < 8 ? 'bg-app-signal' : 'bg-app-border'}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-base font-bold font-display text-app-signal tabular-nums">84</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight max-w-4xl mx-auto">
-          Rank in AI Overviews — not just traditional search
-        </h1>
-        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mt-6 leading-relaxed">
-          The first SEO platform built for generative search. Site audits, content scoring, keyword
-          research, and competitor analysis — all tuned for how AI engines discover and rank content.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-          <Link to="/register" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto px-8 py-3 text-base shadow-xl shadow-indigo-600/30">
-              Start Free
-            </Button>
-          </Link>
-          <Link to="/pricing" className="w-full sm:w-auto">
-            <Button variant="secondary" className="w-full sm:w-auto px-8 py-3 text-base">
-              See Pricing
-            </Button>
-          </Link>
-        </div>
-        <p className="text-xs text-slate-500 mt-6">No credit card required · Free tier includes 3 projects</p>
       </section>
 
       {/* ── Features ───────────────────────────────────────── */}
-      <section id="features" className="max-w-6xl mx-auto px-6 pb-32">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold">Everything you need to win in AI search</h2>
-          <p className="text-slate-400 mt-4 max-w-xl mx-auto">
+      <section id="features" className="max-w-6xl mx-auto px-6 pb-28">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold font-display text-white">Everything you need to win in AI search</h2>
+          <p className="text-app-text-muted mt-4 max-w-xl mx-auto text-base">
             Six integrated toolkits that work together — because modern SEO isn't just about links and keywords anymore.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map((f) => (
             <div
               key={f.title}
-              className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-colors"
+              className="bg-app-surface border border-app-border rounded-2xl p-6 hover:border-app-signal/20 transition-colors"
             >
-              <div className="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-indigo-500/10 text-indigo-400 mb-4">
+              <div className="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-app-signal/10 text-app-signal mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
                   <path d={f.icon} />
                 </svg>
               </div>
-              <h3 className="font-semibold text-base mb-2">{f.title}</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">{f.benefit}</p>
+              <h3 className="font-semibold text-base text-white mb-2">{f.title}</h3>
+              <p className="text-sm text-app-text-muted leading-relaxed">{f.benefit}</p>
             </div>
           ))}
         </div>
@@ -161,10 +247,10 @@ export default function LandingPage() {
         before public launch. The structure is ready — just swap the
         PLACEHOLDER_TESTIMONIALS array data.
       */}
-      <section id="testimonials" className="max-w-6xl mx-auto px-6 pb-32">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold">Trusted by SEO teams switching to AI-native tools</h2>
-          <p className="text-slate-400 mt-4 max-w-xl mx-auto">
+      <section id="testimonials" className="max-w-6xl mx-auto px-6 pb-28">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold font-display text-white">Trusted by SEO teams switching to AI-native tools</h2>
+          <p className="text-app-text-muted mt-4 max-w-xl mx-auto text-base">
             Early adopters are already seeing measurable improvements across organic and generative search channels.
           </p>
         </div>
@@ -172,18 +258,17 @@ export default function LandingPage() {
           {PLACEHOLDER_TESTIMONIALS.map((t, i) => (
             <div
               key={i}
-              className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col"
+              className="bg-app-surface border border-app-border rounded-2xl p-6 flex flex-col"
             >
-              {/* Quote icon */}
-              <svg className="h-6 w-6 text-indigo-500/40 mb-3" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="h-6 w-6 text-app-signal/30 mb-3" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.69 11 13.166 11 15c0 1.967-1.574 3.5-3.5 3.5-1.255 0-2.402-.64-2.917-1.179zM14.583 17.321C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C19.591 11.69 21 13.166 21 15c0 1.967-1.574 3.5-3.5 3.5-1.255 0-2.402-.64-2.917-1.179z" />
               </svg>
-              <blockquote className="text-sm text-slate-300 leading-relaxed flex-1">
+              <blockquote className="text-sm text-app-text leading-relaxed flex-1">
                 {t.quote}
               </blockquote>
-              <div className="mt-4 pt-4 border-t border-slate-800">
+              <div className="mt-4 pt-4 border-t border-app-border">
                 <div className="text-xs font-semibold text-white">{t.name}</div>
-                <div className="text-xs text-slate-500">{t.company}</div>
+                <div className="text-xs text-app-text-muted">{t.company}</div>
               </div>
             </div>
           ))}
@@ -191,17 +276,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA strip ──────────────────────────────────────── */}
-      <section className="border-t border-slate-800">
+      <section className="border-t border-app-border">
         <div className="max-w-6xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold font-display text-white max-w-2xl mx-auto">
             Ready to see where you stand in AI search?
           </h2>
-          <p className="text-slate-400 mt-4 max-w-lg mx-auto">
+          <p className="text-app-text-muted mt-4 max-w-lg mx-auto text-base">
             Get your first 3 projects free, including full Site Audit and AI Visibility reports.
           </p>
           <div className="mt-8">
-            <Link to="/register">
-              <Button className="px-8 py-3 text-base shadow-xl shadow-indigo-600/30">
+            <Link to="/register" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg inline-block">
+              <Button glow="citation" className="px-8 py-3 text-base shadow-xl shadow-app-citation/15">
                 Start Free — No Credit Card
               </Button>
             </Link>
@@ -210,20 +295,20 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────── */}
-      <footer className="border-t border-slate-800/60">
+      <footer className="border-t border-app-border/60">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <div className="inline-flex items-center justify-center h-6 w-6 rounded bg-gradient-to-tr from-indigo-600 to-indigo-500">
-              <span className="text-white font-bold text-[10px]">RE</span>
+          <div className="flex items-center gap-2 text-sm text-app-text-muted">
+            <div className="inline-flex items-center justify-center h-6 w-6 rounded bg-app-signal/20">
+              <span className="text-app-signal font-bold text-[10px]">RE</span>
             </div>
             RankEngine AI
           </div>
-          <div className="flex items-center gap-6 text-xs text-slate-600">
+          <div className="flex items-center gap-6 text-xs text-app-text-muted/60">
             <span>&copy; {new Date().getFullYear()} RankEngine AI</span>
-            <Link to="/pricing" className="hover:text-slate-400 transition-colors">
+            <Link to="/pricing" className="hover:text-app-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1">
               Pricing
             </Link>
-            <Link to="/login" className="hover:text-slate-400 transition-colors">
+            <Link to="/login" className="hover:text-app-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1">
               Sign in
             </Link>
           </div>

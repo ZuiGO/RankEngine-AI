@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui';
 import { PageTransition } from '../components/PageTransition';
+import { pageTransition, slideUp } from '../lib/motion';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -135,17 +137,17 @@ export default function OnboardingPage() {
       {[1, 2, 3].map((s) => (
         <div key={s} className="flex items-center gap-2">
           <div
-            className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+            className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-150 ${
               s === step
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-app-signal text-white'
                 : s < step
                 ? 'bg-emerald-600 text-white'
-                : 'bg-slate-800 text-slate-500'
+                : 'bg-app-border text-app-text-muted'
             }`}
           >
             {s < step ? '✓' : s}
           </div>
-          {s < 3 && <div className={`h-0.5 w-8 ${s < step ? 'bg-emerald-600' : 'bg-slate-800'}`} />}
+          {s < 3 && <div className={`h-0.5 w-8 ${s < step ? 'bg-emerald-600' : 'bg-app-border'}`} />}
         </div>
       ))}
     </div>
@@ -153,19 +155,21 @@ export default function OnboardingPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-app-base flex flex-col items-center justify-center px-4 py-12">
       {/* Logo */}
-      <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-500/30 mb-6">
+      <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-app-signal shadow-lg shadow-app-signal/30 mb-6">
         <span className="text-white font-bold text-lg">RE</span>
       </div>
 
       {renderStepIndicator()}
 
-      {/* ── Step 1: Add your first site ─────────────────────────────────── */}
-      {step === 1 && (
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
+      <AnimatePresence mode="wait">
+        {/* ── Step 1: Add your first site ─────────────────────────────────── */}
+        {step === 1 && (
+          <motion.div key="step-1" {...pageTransition} className="w-full max-w-md">
+        <div className="bg-app-surface border border-app-border rounded-2xl p-6 shadow-2xl shadow-black/40">
           <h2 className="text-lg font-bold text-white mb-1">Add your first site</h2>
-          <p className="text-sm text-slate-400 mb-5">
+          <p className="text-sm text-app-text-muted mb-5">
             We'll scan up to 5,000 pages and tell you what's holding back your AI Overview visibility.
           </p>
 
@@ -177,36 +181,36 @@ export default function OnboardingPage() {
 
           <form onSubmit={handleCreateProject} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Project name</label>
+              <label className="block text-xs font-medium text-app-text-muted mb-1.5">Project name</label>
               <input
                 type="text"
                 required
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
+                className="w-full bg-app-base border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-all duration-150"
                 placeholder="My Website"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Live domain</label>
+              <label className="block text-xs font-medium text-app-text-muted mb-1.5">Live domain</label>
               <input
                 type="text"
                 required
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
+                className="w-full bg-app-base border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-all duration-150"
                 placeholder="example.com"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                Staging domain <span className="text-slate-600 font-normal">(optional)</span>
+              <label className="block text-xs font-medium text-app-text-muted mb-1.5">
+                Staging domain <span className="text-app-text-muted font-normal">(optional)</span>
               </label>
               <input
                 type="text"
                 value={stagingDomain}
                 onChange={(e) => setStagingDomain(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
+                className="w-full bg-app-base border border-app-border rounded-lg px-3 py-2.5 text-sm text-white placeholder-app-text-muted focus:outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-all duration-150"
                 placeholder="staging.example.com"
               />
             </div>
@@ -220,54 +224,60 @@ export default function OnboardingPage() {
             </Button>
           </form>
         </div>
-      )}
+          </motion.div>
+        )}
 
-      {/* ── Step 2: Audit running ────────────────────────────────────────── */}
-      {step === 2 && (
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl shadow-black/40 text-center">
+        {/* ── Step 2: Audit running ────────────────────────────────────────── */}
+        {step === 2 && (
+          <motion.div key="step-2" {...pageTransition} className="w-full max-w-md">
+        <div className="bg-app-surface border border-app-border rounded-2xl p-6 shadow-2xl shadow-black/40 text-center">
           <div className="flex items-center justify-center mb-6">
-            <div className="relative">
-              <div className="h-16 w-16 rounded-full border-4 border-slate-800 border-t-indigo-500 animate-spin" />
+            <div className="relative h-16 w-16">
+              <div className="absolute inset-0 rounded-full bg-app-signal/20 animate-ping" />
+              <div className="absolute inset-2 rounded-full bg-app-signal/40" />
+              <div className="absolute inset-4 rounded-full bg-app-signal" />
             </div>
           </div>
 
           <h2 className="text-lg font-bold text-white mb-1">We're scanning your site</h2>
-          <p className="text-sm text-slate-400 mb-6">
+          <p className="text-sm text-app-text-muted mb-6">
             {crawlJob?.status === 'queued'
               ? 'Your audit has been queued and will start shortly.'
               : 'Crawling pages and analyzing issues…'}
           </p>
 
           {crawlJob && (
-            <div className="bg-slate-800/50 rounded-xl px-4 py-3 space-y-2">
+            <div className="bg-app-surface-raised/50 rounded-xl px-4 py-3 space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 font-medium">
+                <span className="text-app-text font-medium">
                   {crawlJob.status === 'queued' && 'Queued'}
                   {crawlJob.status === 'running' && `Crawling — ${crawlJob.pageCount} pages`}
                 </span>
-                <span className="text-slate-500 font-mono">
+                <span className="text-app-text-muted font-mono">
                   {crawlJob.status === 'queued' ? '—' : `${Math.min(Math.round((crawlJob.pageCount / 50) * 100), 95)}%`}
                 </span>
               </div>
-              <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-app-border h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-indigo-500 transition-all duration-700"
+                  className="h-full rounded-full bg-app-signal transition-all duration-700"
                   style={{ width: crawlJob.status === 'queued' ? '5%' : `${Math.min((crawlJob.pageCount / 50) * 100, 95)}%` }}
                 />
               </div>
             </div>
           )}
         </div>
-      )}
+          </motion.div>
+        )}
 
-      {/* ── Step 3: Health Score ─────────────────────────────────────────── */}
-      {step === 3 && (
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
+        {/* ── Step 3: Health Score ─────────────────────────────────────────── */}
+        {step === 3 && (
+          <motion.div key="step-3" {...pageTransition} className="w-full max-w-md">
+        <div className="bg-app-surface border border-app-border rounded-2xl p-6 shadow-2xl shadow-black/40">
           {healthScore !== null ? (
             <>
               <div className="text-center mb-6">
                 <h2 className="text-lg font-bold text-white mb-1">Your SEO Health Score</h2>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-app-text-muted">
                   This measures how well your site is optimized for AI Overview visibility.
                 </p>
               </div>
@@ -292,13 +302,13 @@ export default function OnboardingPage() {
                   {finishing ? 'Loading…' : 'Explore full results'}
                 </Button>
               )}
-              <p className="text-xs text-slate-500 text-center">
+              <p className="text-xs text-app-text-muted text-center">
                 You can run new audits and manage settings from the dashboard.
               </p>
             </>
           ) : (
             <div className="text-center py-8">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-app-text-muted">
                 {crawlJob?.status === 'failed'
                   ? 'The audit encountered an error. You can retry from the project page.'
                   : 'Audit complete! Loading your results…'}
@@ -314,7 +324,9 @@ export default function OnboardingPage() {
             </div>
           )}
         </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
     </PageTransition>
   );
@@ -332,7 +344,7 @@ function GaugeCircle({ score }: { score: number }) {
     <div className="relative w-36 h-36">
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
         <circle
-          className="stroke-slate-800"
+          className="stroke-app-border"
           strokeWidth="8"
           fill="transparent"
           r={radius}
@@ -354,7 +366,7 @@ function GaugeCircle({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-4xl font-extrabold text-white">{score}</span>
-        <span className="text-xs text-slate-500 uppercase font-semibold -mt-0.5">Health</span>
+        <span className="text-xs text-app-text-muted uppercase font-semibold -mt-0.5">Health</span>
       </div>
     </div>
   );

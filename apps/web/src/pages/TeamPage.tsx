@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Card, CardBody, Badge, Button } from '../components/ui';
+import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 import api from '../lib/api';
 
 interface OrgMember {
@@ -110,8 +110,8 @@ export default function TeamPage() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-4 animate-pulse">
-        <div className="h-6 w-36 bg-slate-800 rounded" />
-        <div className="h-40 bg-slate-900 border border-slate-800 rounded-2xl" />
+        <div className="h-6 w-36 bg-app-surface-raised rounded" />
+        <div className="h-40 bg-app-surface border border-app-border rounded-2xl" />
       </div>
     );
   }
@@ -119,15 +119,15 @@ export default function TeamPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
       <div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-          <Link to="/settings" className="hover:text-indigo-400 transition-colors">
+        <div className="flex items-center gap-2 text-xs text-app-text-muted mb-1">
+          <Link to="/settings" className="hover:text-app-signal transition-all duration-150">
             Settings
           </Link>
           <span>/</span>
-          <span className="text-slate-300">Team</span>
+          <span className="text-app-text">Team</span>
         </div>
         <h1 className="text-2xl font-bold text-white">Team Management</h1>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-app-text-muted text-sm mt-1">
           {org ? `Manage members for ${org.name}` : 'Invite and manage your team members.'}
         </p>
       </div>
@@ -144,7 +144,7 @@ export default function TeamPage() {
             <h2 className="text-sm font-bold text-white mb-4">Invite Member</h2>
             <form onSubmit={handleInvite} className="flex gap-3 items-end flex-wrap">
               <div className="flex-1 min-w-[200px]">
-                <label className="block text-2xs font-semibold text-slate-400 mb-1">
+                <label className="block text-2xs font-semibold text-app-text-muted mb-1">
                   Email address
                 </label>
                 <input
@@ -153,15 +153,15 @@ export default function TeamPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@agency.com"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white placeholder-slate-700 outline-none transition-all"
+                  className="w-full bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white placeholder-app-text-muted outline-none transition-all duration-150"
                 />
               </div>
               <div>
-                <label className="block text-2xs font-semibold text-slate-400 mb-1">Role</label>
+                <label className="block text-2xs font-semibold text-app-text-muted mb-1">Role</label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as 'member' | 'admin')}
-                  className="bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg text-xs px-3 py-2 text-white outline-none transition-all"
+                  className="bg-app-base border border-app-border focus:border-app-signal rounded-lg text-xs px-3 py-2 text-white outline-none transition-all duration-150"
                 >
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
@@ -185,23 +185,23 @@ export default function TeamPage() {
             Members ({members.length})
           </h2>
           {members.length === 0 ? (
-            <p className="text-xs text-slate-500">No members found.</p>
+            <EmptyState compact title="No members found." />
           ) : (
             <div className="space-y-2">
               {members.map((m) => (
                 <div
                   key={m.userId}
-                  className="flex items-center justify-between bg-slate-950 rounded-lg px-4 py-3"
+                  className="flex items-center justify-between bg-app-base rounded-lg px-4 py-3"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-indigo-600/20 border border-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400 flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-app-signal/20 border border-app-signal/10 flex items-center justify-center text-xs font-bold text-app-signal flex-shrink-0">
                       {m.email.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs text-slate-200 font-medium truncate">
+                      <p className="text-xs text-app-text font-medium truncate">
                         {m.email}
                       </p>
-                      <p className="text-2xs text-slate-500">
+                      <p className="text-2xs text-app-text-muted">
                         Joined {new Date(m.joinedAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -247,11 +247,11 @@ export default function TeamPage() {
               {invites.map((inv) => (
                 <div
                   key={inv._id}
-                  className="flex items-center justify-between bg-slate-950 rounded-lg px-4 py-3"
+                  className="flex items-center justify-between bg-app-base rounded-lg px-4 py-3"
                 >
                   <div>
-                    <p className="text-xs text-slate-200 font-medium">{inv.email}</p>
-                    <p className="text-2xs text-slate-500">
+                    <p className="text-xs text-app-text font-medium">{inv.email}</p>
+                    <p className="text-2xs text-app-text-muted">
                       Sent {new Date(inv.createdAt).toLocaleDateString()}
                     </p>
                   </div>
