@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:latest
@@ -42,10 +40,7 @@ services:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongodb:27017/rankengine
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRY=${JWT_EXPIRY}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - CORS_ORIGIN=${CORS_ORIGIN}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:8080}
       - LLM_API_KEY=${LLM_API_KEY}
       - SERP_API_KEY=${SERP_API_KEY}
       - SERP_API_PROVIDER=${SERP_API_PROVIDER}

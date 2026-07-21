@@ -10,7 +10,7 @@ async function createProject(page: any, name: string, domain: string) {
     const body = await r.text();
     throw new Error(`Create project failed (${r.status()}): ${body.slice(0, 200)}`);
   }
-  return (await r.json()).project;
+  return r.json();
 }
 
 // ────────────────────────────── Flow 1: Landing page ─────────────────────────
