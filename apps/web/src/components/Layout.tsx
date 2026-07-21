@@ -30,7 +30,7 @@ interface Project {
 
 const STORAGE_KEY = 're_selected_project';
 
-type NavItemDef = { label: string; to: string | null; icon: string };
+export type NavItemDef = { label: string; to: string | null; icon: any };
 
 type NavGroup =
   | { label: string; items: NavItemDef[] };

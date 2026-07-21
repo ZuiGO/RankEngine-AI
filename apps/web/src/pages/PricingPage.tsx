@@ -53,7 +53,7 @@ const QUOTA_FIELDS: { key: keyof PlanData; label: string }[] = [
 ];
 
 export default function PricingPage() {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselected = searchParams.get('plan');
@@ -180,7 +180,7 @@ export default function PricingPage() {
       {/* ── Plan cards ──────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-6 pb-24">
         <div className="grid md:grid-cols-3 gap-6 items-start">
-          {plans.map((plan, idx) => {
+          {plans.map((plan, _idx) => {
             const isCurrent = currentPlan === plan.id;
             const isPreselected = preselected === plan.id;
             const isFree = plan.id === 'free';
@@ -279,7 +279,7 @@ export default function PricingPage() {
                 {/* CTA */}
                 <Button
                   variant={ctaVariant as 'primary' | 'secondary'}
-                  disabled={ctaDisabled}
+                  disabled={!!ctaDisabled}
                   loading={upgrading === plan.id}
                   onClick={ctaAction}
                   className={`w-full mt-8 ${plan.id === 'agency' ? 'shadow-xl shadow-app-signal/30' : ''}`}

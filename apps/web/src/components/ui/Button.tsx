@@ -1,12 +1,11 @@
-import type { ReactNode, ButtonHTMLAttributes } from 'react';
+import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
+import type { HTMLMotionProps } from 'framer-motion';
 import { hoverLift } from '../../lib/motion';
-import { duration, easing } from '../../lib/tokens';
-
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode;
+interface ButtonProps extends HTMLMotionProps<'button'> {
+  children?: ReactNode;
   variant?: ButtonVariant;
   loading?: boolean;
   glow?: 'citation' | 'signal';

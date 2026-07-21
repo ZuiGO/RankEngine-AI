@@ -26,7 +26,7 @@ export default function DevScoreRevealPage() {
             reload to replay each.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
-            <Button variant="secondary" size="sm" onClick={() => setKey((k) => k + 1)}>
+            <Button variant="secondary" onClick={() => setKey((k) => k + 1)}>
               ↻ Re-trigger all
             </Button>
             <span className="text-xs text-app-text-muted">

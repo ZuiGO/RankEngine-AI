@@ -5,7 +5,7 @@ import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui';
 import { PageTransition } from '../components/PageTransition';
-import { pageTransition, slideUp } from '../lib/motion';
+import { pageTransition } from '../lib/motion';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

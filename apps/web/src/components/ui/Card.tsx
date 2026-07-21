@@ -1,5 +1,6 @@
 import type { ReactNode, HTMLAttributes } from 'react';
 import { motion } from 'framer-motion';
+import type { HTMLMotionProps } from 'framer-motion';
 import { cardHover } from '../../lib/motion';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -15,7 +16,7 @@ export function Card({ children, className = '', ...props }: CardProps) {
       animate="rest"
       variants={cardHover}
       className={`bg-app-surface border border-app-border rounded-2xl shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal/70 ${className}`}
-      {...props}
+      {...(props as HTMLMotionProps<'div'>)}
     >
       {children}
     </motion.div>

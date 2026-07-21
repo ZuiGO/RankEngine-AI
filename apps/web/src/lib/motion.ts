@@ -1,4 +1,4 @@
-import type { Variants, Transition } from 'framer-motion';
+import type { Variants, Transition, TargetAndTransition } from 'framer-motion';
 import { duration, easing, motion as m } from './tokens';
 
 export const fadeIn: Variants = {
@@ -45,7 +45,12 @@ export const cardHover = {
   transition: { duration: duration.fast, ease: easing.out },
 };
 
-export const pageTransition: { initial: Record<string, unknown>; animate: Record<string, unknown>; exit: Record<string, unknown>; transition: Transition } = {
+export const pageTransition: {
+  initial: TargetAndTransition;
+  animate: TargetAndTransition;
+  exit: TargetAndTransition;
+  transition: Transition;
+} = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },

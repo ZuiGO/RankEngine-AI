@@ -38,7 +38,7 @@ export default function SettingsPage() {
     Promise.all([
       api.get<any>('/auth/me'),
       api.get<SubscriptionInfo>('/billing/subscription').catch(() => null),
-      api.get<TeamInvite[]>('/billing/team').catch(() => []),
+      api.get<TeamInvite[]>('/billing/team').then((res) => res.data).catch(() => []),
     ])
       .then(([me, sub, teamData]) => {
         setDigestEnabled(me.data.emailDigestEnabled ?? true);

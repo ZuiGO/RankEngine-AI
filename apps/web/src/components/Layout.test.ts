@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { resolveNavRoute, NAV_GROUPS } from './Layout';
+import { resolveNavRoute, NAV_GROUPS, type NavItemDef } from './Layout';
 
 const PROJECT_ID = '507f1f77bcf86cd799439011';
 
 function flattenItems() {
-  const items: { label: string; to: string | null }[] = [];
+  const items: NavItemDef[] = [];
   for (const group of NAV_GROUPS) {
     for (const item of group.items) {
       items.push(item);
@@ -39,7 +39,7 @@ describe('resolveNavRoute', () => {
 
   it('routes "Audit / Checklist" to the project detail page root', () => {
     const route = resolveNavRoute(
-      { label: 'Audit / Checklist', to: null, icon: '' },
+      { label: 'Audit / Checklist', to: null, icon: () => null },
       PROJECT_ID,
     );
     expect(route).toBe(`/projects/${PROJECT_ID}`);
@@ -47,7 +47,7 @@ describe('resolveNavRoute', () => {
 
   it('routes "Migration Check" to the project detail page root', () => {
     const route = resolveNavRoute(
-      { label: 'Migration Check', to: null, icon: '' },
+      { label: 'Migration Check', to: null, icon: () => null },
       PROJECT_ID,
     );
     expect(route).toBe(`/projects/${PROJECT_ID}`);
@@ -55,7 +55,7 @@ describe('resolveNavRoute', () => {
 
   it('routes "Keyword Research" globally regardless of project selection', () => {
     const route = resolveNavRoute(
-      { label: 'Keyword Research', to: '/keyword-research', icon: '' },
+      { label: 'Keyword Research', to: '/keyword-research', icon: () => null },
       null,
     );
     expect(route).toBe('/keyword-research');

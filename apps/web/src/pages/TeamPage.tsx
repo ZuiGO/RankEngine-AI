@@ -46,8 +46,7 @@ export default function TeamPage() {
     setLoading(true);
     setError('');
     try {
-      const meRes = await api.get<{ id: string }>('/auth/me');
-      const userId = meRes.data.id;
+      await api.get<{ id: string }>('/auth/me');
 
       const orgsRes = await api.get<OrgInfo[]>('/organizations');
       const myOrg = orgsRes.data[0];
