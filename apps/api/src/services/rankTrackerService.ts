@@ -3,10 +3,8 @@ import cron from 'node-cron';
 import { TrackedKeyword } from '../models/TrackedKeyword';
 import { RankSnapshot } from '../models/RankSnapshot';
 import { Project } from '../models/Project';
-import { Organization } from '../models/Organization';
 import { Notification } from '../models/Notification';
 import { getSerpProvider } from './serpService';
-import { getEmailService } from './emailService';
 import config from '../config';
 
 export const collectRankSnapshotForKeyword = async (
@@ -18,20 +16,18 @@ export const collectRankSnapshotForKeyword = async (
 ): Promise<void> => {
   try {
     const serpProvider = getSerpProvider();
-    let position = 101; // Default to unranked
+    let position = 101;
     let aioPresence = false;
 
     const results = await serpProvider.fetchTop10(keyword);
 
-    // Resolve targetUrl position
     if (
       config.SERP_API_PROVIDER === 'mock' ||
       !config.SERP_API_KEY ||
       config.SERP_API_KEY === 'mock-serp-key'
     ) {
-      // Create a deterministic rank position based on string values for mock purposes
       const hash = keyword.length + targetUrl.length;
-      position = (hash % 15) + 1; // Positions between 1 and 15
+      position = (hash % 15) + 1;
       aioPresence = hash % 2 === 0;
     } else {
       const index = results.findIndex((r) => r.url.toLowerCase().includes(targetUrl.toLowerCase()));
@@ -44,7 +40,6 @@ export const collectRankSnapshotForKeyword = async (
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    // Get the most recent preceding rank snapshot for comparison
     const latestSnapshotBeforeToday = await RankSnapshot.findOne({
       keywordId: new mongoose.Types.ObjectId(keywordId),
       date: { $lt: today },
@@ -52,7 +47,6 @@ export const collectRankSnapshotForKeyword = async (
 
     const competitorRanks: { domain: string; position: number }[] = [];
 
-    // Parse and evaluate competitor position movements
     if (competitorDomains && competitorDomains.length > 0) {
       for (const comp of competitorDomains) {
         const compLower = comp.toLowerCase().trim();
@@ -63,7 +57,6 @@ export const collectRankSnapshotForKeyword = async (
           !config.SERP_API_KEY ||
           config.SERP_API_KEY === 'mock-serp-key'
         ) {
-          // Semi-deterministic positioning for mock testing:
           const index = results.findIndex((r) => r.url.toLowerCase().includes(compLower));
           compPos = index !== -1 ? index + 1 : 101;
         } else {
@@ -75,45 +68,25 @@ export const collectRankSnapshotForKeyword = async (
 
         competitorRanks.push({ domain: comp, position: compPos });
 
-        // Compare position with previous snapshot
         if (latestSnapshotBeforeToday) {
           const prevComp = latestSnapshotBeforeToday.competitors.find(
             (c) => c.domain.toLowerCase().trim() === compLower
           );
           if (prevComp) {
             const prevPos = prevComp.position;
-            const improvement = prevPos - compPos; // Decrease in index = improvement
+            const improvement = prevPos - compPos;
 
-            // If competitor improves by more than 3 positions (i.e. climbed 4 or more spots)
             if (improvement > 3 && compPos !== 101 && prevPos !== 101) {
               const project = await Project.findById(projectId);
               if (project) {
                 const message = `Competitor "${comp}" jumped ${improvement} positions from #${prevPos} to #${compPos} for keyword "${keyword}"`;
 
-                // Determine org owner for notifications
-                const org = await Organization.findById(project.organizationId);
-                const ownerUserId = org ? org.ownerId : project.organizationId;
-
-                // Write Notification Document
                 const notification = new Notification({
-                  userId: ownerUserId,
                   projectId: project._id,
                   keywordId: new mongoose.Types.ObjectId(keywordId),
                   message,
                 });
                 await notification.save();
-
-                // Send email alert
-                const User = mongoose.model('User');
-                const owner = await User.findById(ownerUserId);
-                if (owner && owner.email) {
-                  const emailService = getEmailService();
-                  await emailService.sendEmail(
-                    owner.email,
-                    `SEO Alert: Competitor Jumped Ranks for "${keyword}"`,
-                    `Hello,\n\nYour competitor "${comp}" improved their rankings by ${improvement} spots (from #${prevPos} to #${compPos}) for tracked keyword "${keyword}".\n\nProject: ${project.name}\nTarget URL: ${targetUrl}\n\nBest,\nRankEngine AI Team`
-                  );
-                }
               }
             }
           }
@@ -121,7 +94,6 @@ export const collectRankSnapshotForKeyword = async (
       }
     }
 
-    // Save rank snapshot
     await RankSnapshot.findOneAndUpdate(
       { keywordId, date: today },
       {
@@ -153,9 +125,6 @@ export const collectAllRankSnapshots = async (): Promise<void> => {
   console.log('[RankTracker]: Completed snapshots collection.');
 };
 
-/**
- * Initializes the Daily Rank Tracker cron job at midnight.
- */
 export const initRankTrackerScheduler = () => {
   if (process.env.NODE_ENV === 'test') {
     return;

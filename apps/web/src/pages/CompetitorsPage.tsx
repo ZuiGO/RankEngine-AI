@@ -11,7 +11,6 @@ import {
   Cell,
 } from 'recharts';
 import api from '../lib/api';
-import { useAuth } from '../context/AuthContext';
 import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 
 interface TopKeyword {
@@ -76,7 +75,6 @@ const BAR_COLORS = ['#6366f1', '#34d399', '#fbbf24', '#f97316', '#ec4899', '#8b5
 
 export default function CompetitorsPage() {
   const { id } = useParams<{ id: string }>();
-  const { profile } = useAuth();
 
   const [tab, setTab] = useState<Tab>('overview');
   const [projectInfo, setProjectInfo] = useState<ProjectInfo | null>(null);
@@ -91,9 +89,9 @@ export default function CompetitorsPage() {
   const [error, setError] = useState('');
   const [trackingKeyword, setTrackingKeyword] = useState<string | null>(null);
 
-  const quotaUsed = profile?.dataProviderCallsThisMonth ?? 0;
-  const quotaLimit = profile?.dataProviderMonthlyLimit ?? 500;
-  const quotaPct = quotaLimit > 0 ? Math.round((quotaUsed / quotaLimit) * 100) : 0;
+  const quotaUsed = 0;
+  const quotaLimit = 0;
+  const quotaPct = 0;
 
   const fetchOverview = useCallback(async () => {
     if (!id) return;

@@ -10,7 +10,7 @@ monitoring container standard output.
 import asyncio
 import os
 import sys
-import redis
+import redis.asyncio as redis_async
 from config import settings
 import json
 import datetime
@@ -24,7 +24,7 @@ def log_json(level: str, event: str, **kwargs):
     }
     print(json.dumps(log_data), flush=True)
 
-async def check_queue_depth(r: redis.Redis, queue_name: str = "crawl-jobs") -> int:
+async def check_queue_depth(r: redis_async.Redis, queue_name: str = "crawl-jobs") -> int:
     """
     Checks the waiting job count in Redis for the specified BullMQ queue.
     Compatible with list-based and zset-based wait structures in different BullMQ versions.
@@ -33,13 +33,13 @@ async def check_queue_depth(r: redis.Redis, queue_name: str = "crawl-jobs") -> i
     
     # Try LLEN first (list-based queues)
     try:
-        count = r.llen(wait_key)
+        count = await r.llen(wait_key)
         if count is not None:
             return count
-    except redis.exceptions.ResponseError:
+    except redis_async.ResponseError:
         # If it is not a list, it is likely a zset (modern BullMQ wait key format)
         try:
-            count = r.zcard(wait_key)
+            count = await r.zcard(wait_key)
             if count is not None:
                 return count
         except Exception:
@@ -48,12 +48,12 @@ async def check_queue_depth(r: redis.Redis, queue_name: str = "crawl-jobs") -> i
     # Fallback to alternate key name "waiting"
     waiting_key = f"bull:{queue_name}:waiting"
     try:
-        count = r.llen(waiting_key)
+        count = await r.llen(waiting_key)
         if count is not None:
             return count
-    except redis.exceptions.ResponseError:
+    except redis_async.ResponseError:
         try:
-            count = r.zcard(waiting_key)
+            count = await r.zcard(waiting_key)
             if count is not None:
                 return count
         except Exception:
@@ -69,7 +69,7 @@ async def monitor_queue_loop():
     log_json("INFO", "queue_monitor_started", queue=queue_name, threshold=threshold, interval_check=check_interval)
 
     try:
-        r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+        r = redis_async.from_url(settings.REDIS_URL, decode_responses=True)
     except Exception as e:
         log_json("ERROR", "queue_monitor_redis_connection_failed", error=str(e))
         return

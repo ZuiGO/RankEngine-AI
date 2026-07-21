@@ -2,17 +2,11 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project';
-import { Membership } from '../models/Membership';
 import { CrawlJob } from '../models/CrawlJob';
-import requireAuth from '../middleware/requireAuth';
 import { enqueueCrawlJob, enqueueMigrationCheck } from '../services/crawlService';
 
 const router = Router();
 
-// Protect all routes under this router
-router.use(requireAuth);
-
-// Validation schema for creating a project
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').trim(),
   domain: z.string().min(1, 'Domain is required').trim(),
@@ -20,23 +14,17 @@ const createProjectSchema = z.object({
   triggerFirstAudit: z.boolean().optional(),
 });
 
-// Validation schema for updating a project
 const updateProjectSchema = z.object({
   name: z.string().min(1, 'Project name cannot be empty').trim().optional(),
   domain: z.string().min(1, 'Domain cannot be empty').trim().optional(),
   stagingDomain: z.string().trim().optional(),
 });
 
-// Helper to validate MongoDB ObjectId
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
 // POST /api/projects - Create a new project
 router.post('/', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const validation = createProjectSchema.safeParse(req.body);
     if (!validation.success) {
       return res.status(400).json({
@@ -47,16 +35,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     const { name, domain, stagingDomain, triggerFirstAudit } = validation.data;
 
-    const membership = await Membership.findOne({ userId: req.user.userId }).sort({ createdAt: 1 });
-    if (!membership) {
-      return res.status(400).json({ error: 'No organization found for user' });
-    }
-
     const project = new Project({
       name,
       domain,
       stagingDomain,
-      organizationId: membership.organizationId,
     });
 
     await project.save();
@@ -82,21 +64,10 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/projects - List all active projects owned by current user
-router.get('/', async (req: Request, res: Response) => {
+// GET /api/projects - List all active projects
+router.get('/', async (_req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const memberships = await Membership.find({ userId: req.user.userId });
-    const orgIds = memberships.map((m) => m.organizationId);
-
-    const projects = await Project.find({
-      organizationId: { $in: orgIds },
-      deletedAt: null,
-    });
-
+    const projects = await Project.find({ deletedAt: null });
     return res.json(projects);
   } catch (error) {
     console.error('List projects error:', error);
@@ -107,10 +78,6 @@ router.get('/', async (req: Request, res: Response) => {
 // GET /api/projects/:id - Get one project by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: 'Invalid project ID format' });
@@ -119,15 +86,6 @@ router.get('/:id', async (req: Request, res: Response) => {
     const project = await Project.findOne({ _id: id, deletedAt: null });
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
-    }
-
-    // Verify ownership
-    const membership = await Membership.findOne({
-      organizationId: project.organizationId,
-      userId: req.user.userId,
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
     return res.json(project);
@@ -140,10 +98,6 @@ router.get('/:id', async (req: Request, res: Response) => {
 // GET /api/projects/:id/latest-crawl - Get the latest crawl job status for a project
 router.get('/:id/latest-crawl', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: 'Invalid project ID format' });
@@ -154,20 +108,11 @@ router.get('/:id/latest-crawl', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const membership = await Membership.findOne({
-      organizationId: project.organizationId,
-      userId: req.user.userId,
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
-    }
-
-    const latestJob = await CrawlJob.findOne({ projectId: id, type: 'crawl' }).sort({
+    const latestJob = await CrawlJob.findOne({ projectId: id }).sort({
       createdAt: -1,
     });
     const latestMigrationJob = await CrawlJob.findOne({
       projectId: id,
-      type: 'migration-check',
     }).sort({ createdAt: -1 });
 
     return res.json({
@@ -183,10 +128,6 @@ router.get('/:id/latest-crawl', async (req: Request, res: Response) => {
 // PATCH /api/projects/:id - Update project metadata
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: 'Invalid project ID format' });
@@ -205,19 +146,8 @@ router.patch('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    // Verify ownership
-    const membership = await Membership.findOne({
-      organizationId: project.organizationId,
-      userId: req.user.userId,
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
-    }
-
-    // Capture old stagingDomain before applying update
     const oldStagingDomain = project.stagingDomain;
 
-    // Apply updates
     const updates = validation.data;
     if (updates.name !== undefined) project.name = updates.name;
     if (updates.domain !== undefined) project.domain = updates.domain;
@@ -225,7 +155,6 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
     await project.save();
 
-    // Auto-trigger migration check if stagingDomain was set or changed to a non-empty value
     let migrationCheckJobId: string | undefined;
     if (
       updates.stagingDomain !== undefined &&
@@ -251,7 +180,6 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Validation schema for audit schedule
 const auditScheduleSchema = z.object({
   auditSchedule: z.enum(['manual', 'daily', 'weekly']),
 });
@@ -259,10 +187,6 @@ const auditScheduleSchema = z.object({
 // PATCH /api/projects/:id/schedule - Update audit schedule
 router.patch('/:id/schedule', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: 'Invalid project ID format' });
@@ -281,14 +205,6 @@ router.patch('/:id/schedule', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const membership = await Membership.findOne({
-      organizationId: project.organizationId,
-      userId: req.user.userId,
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
-    }
-
     project.auditSchedule = validation.data.auditSchedule;
     await project.save();
 
@@ -302,10 +218,6 @@ router.patch('/:id/schedule', async (req: Request, res: Response) => {
 // DELETE /api/projects/:id - Soft-delete project
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: 'Invalid project ID format' });
@@ -316,16 +228,6 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    // Verify ownership
-    const membership = await Membership.findOne({
-      organizationId: project.organizationId,
-      userId: req.user.userId,
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
-    }
-
-    // Soft delete
     project.deletedAt = new Date();
     await project.save();
 
@@ -339,28 +241,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // POST /api/projects/:id/crawl - Enqueue a crawl job for a project
 router.post('/:id/crawl', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: 'Invalid project ID format' });
     }
 
-    // Verify project exists and is active (not soft-deleted)
     const project = await Project.findOne({ _id: id, deletedAt: null });
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
-    }
-
-    // Validate ownership
-    const membership = await Membership.findOne({
-      organizationId: project.organizationId,
-      userId: req.user.userId,
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
     const { crawlJobId } = await enqueueCrawlJob(project);
@@ -378,31 +266,16 @@ router.post('/:id/crawl', async (req: Request, res: Response) => {
 // POST /api/projects/:id/migration-check - Trigger a migration redirect audit
 router.post('/:id/migration-check', async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: 'Invalid project ID format' });
     }
 
-    // Verify project exists and is active (not soft-deleted)
     const project = await Project.findOne({ _id: id, deletedAt: null });
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    // Validate ownership
-    const membership = await Membership.findOne({
-      organizationId: project.organizationId,
-      userId: req.user.userId,
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this project' });
-    }
-
-    // Check if staging domain is set
     if (!project.stagingDomain) {
       return res.status(400).json({ error: 'Staging domain is not configured for this project' });
     }

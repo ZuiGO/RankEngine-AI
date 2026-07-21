@@ -124,15 +124,18 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
     # Concurrency control
     semaphore = asyncio.Semaphore(max_concurrency)
 
+    # Shared event to signal workers to stop
+    stop_event = asyncio.Event()
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         
-        # Load Robots.txt using browser context
+        # Load Robots.txt using browser context (single page, closed after use)
         try:
             robots_url = urljoin(start_url, '/robots.txt')
-            context = await browser.new_context()
-            page = await context.new_page()
-            response = await page.goto(robots_url, timeout=10000)
+            ctx = await browser.new_context()
+            pg = await ctx.new_page()
+            response = await pg.goto(robots_url, timeout=10000)
             if response and response.status < 400:
                 robots_txt = await response.text()
                 robots_parser.parse(robots_txt.splitlines())
@@ -140,16 +143,17 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
                 log_json("INFO", "robots_loaded", crawlJobId=crawl_job_id, url=robots_url)
             else:
                 log_json("INFO", "robots_missing", crawlJobId=crawl_job_id, url=robots_url)
-            await page.close()
-            await context.close()
+            await pg.close()
+            await ctx.close()
         except Exception as e:
             log_json("WARNING", "robots_load_failed", crawlJobId=crawl_job_id, error=str(e))
 
         async def worker():
-            while True:
+            while not stop_event.is_set():
                 try:
-                    # Get next url to crawl
-                    url = await queue.get()
+                    url = await asyncio.wait_for(queue.get(), timeout=1)
+                except asyncio.TimeoutError:
+                    continue
                 except asyncio.CancelledError:
                     break
 
@@ -177,10 +181,8 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
                         )
                         
                         # Extract internal links from page HTML to follow
-                        if "html" in page_data:
-                            # Keep the HTML until issue aggregation so JSON-LD can be
-                            # validated. It is removed before the CrawlResult is saved.
-                            html = page_data["html"]
+                        html = page_data.pop("html", None)
+                        if html:
                             soup = BeautifulSoup(html, 'html.parser')
                             for anchor in soup.find_all('a', href=True):
                                 raw_href = anchor['href']
@@ -193,6 +195,19 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
                                     if clean_url not in visited_urls and is_internal_link(clean_url, target_hostname):
                                         visited_urls.add(clean_url)
                                         await queue.put(clean_url)
+                        
+                        # Check schema issues per-page while HTML is available
+                        if html:
+                            from schema_validator import validate_json_ld
+                            try:
+                                schema_issues = validate_json_ld(html, url, crawl_job_id)
+                                for si in schema_issues:
+                                    page_data.setdefault("schemaIssues", []).append(si)
+                            except Exception as e:
+                                log_json("ERROR", "schema_validation_error", url=url, error=str(e))
+
+                    if len(crawled_pages) >= limit:
+                        stop_event.set()
 
                 queue.task_done()
 
@@ -202,10 +217,7 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
         # Create workers to run concurrently
         workers = [asyncio.create_task(worker()) for _ in range(max_concurrency)]
 
-        # Run until the queue is completely empty
-        while not queue.empty() and len(crawled_pages) < limit:
-            await asyncio.sleep(0.5)
-
+        await stop_event.wait()
         await queue.join()
 
         # Cancel active workers
@@ -218,11 +230,6 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
     raw_issues = identify_raw_seo_issues(crawled_pages, crawl_job_id)
     if raw_issues:
         await db.auditissues.insert_many(raw_issues)
-
-    # Clean raw html strings from crawled pages list before saving to database
-    for p in crawled_pages:
-        if "html" in p:
-            del p["html"]
 
     # Save CrawlResult output into the crawlresults collection
     crawl_result = {
@@ -329,20 +336,13 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
         else:
             passed_counts["single_h1"] += 1
 
-        # Check structured schema issues and opportunities
-        html = page.get("html")
-        if html:
-            from schema_validator import validate_json_ld
-            try:
-                schema_issues = validate_json_ld(html, url, crawl_job_id)
-                for schema_issue in schema_issues:
-                    if schema_issue.get("severity") == "passed":
-                        description = schema_issue.get("description", "Valid structured data")
-                        schema_passed_counts[description] = schema_passed_counts.get(description, 0) + 1
-                    else:
-                        issues.append(schema_issue)
-            except Exception as e:
-                log_json("ERROR", "schema_validation_error", url=url, error=str(e))
+        # Collect schema issues found during crawl (attached per-page by worker)
+        for schema_issue in page.get("schemaIssues", []):
+            if schema_issue.get("severity") == "passed":
+                description = schema_issue.get("description", "Valid structured data")
+                schema_passed_counts[description] = schema_passed_counts.get(description, 0) + 1
+            else:
+                issues.append(schema_issue)
 
     # Passed checks are stored as one crawl-level summary per check type. This
     # keeps a 5,000-page audit from flooding the checklist and LLM context.
@@ -381,14 +381,13 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
 async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | None:
     max_retries = 3
     context = None
-    page = None
 
     for attempt in range(max_retries + 1):
         try:
-            context = await browser.new_context()
+            if context is None:
+                context = await browser.new_context()
             page = await context.new_page()
 
-            # Set a standard 15-second navigation timeout limit
             response = await page.goto(url, timeout=15000)
             
             status_code = response.status if response else 0
@@ -404,20 +403,24 @@ async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | 
 
             # Success: Parse page SEO data
             seo_data = extract_seo_data(html, url, status_code)
-            seo_data["html"] = html  # Attach html temp to extract links
+            seo_data["html"] = html  # Attached temporarily for link extraction + schema validation
 
             await page.close()
-            await context.close()
+            if context:
+                await context.close()
+                context = None
             return seo_data
 
         except (PlaywrightTimeoutError, IOError, Exception) as e:
-            # Cleanup current context on failure
-            if page:
+            # Cleanup current page and context on failure
+            try:
                 await page.close()
-            if context:
-                await context.close()
+            except Exception:
+                pass
+            page = None
+            # Keep context alive across retries (reuse for backoff)
+            context = None
 
-            # Check if we should retry
             if attempt < max_retries:
                 backoff_seconds = 2 ** attempt
                 log_json(

@@ -1,5 +1,12 @@
 import type { Variants, Transition, TargetAndTransition } from 'framer-motion';
-import { duration, easing, motion as m } from './tokens';
+
+const m = {
+  fast: { duration: 0.15, ease: 'easeInOut' as const },
+  normal: { duration: 0.25, ease: 'easeInOut' as const },
+  slow: { duration: 0.35, ease: 'easeInOut' as const },
+  spring: { type: 'spring' as const, stiffness: 400, damping: 30 },
+  page: { duration: 0.2, ease: 'easeInOut' as const },
+};
 
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
@@ -42,7 +49,7 @@ export const badgePop: Variants = {
 export const cardHover = {
   rest: { y: 0, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.3)' },
   hover: { y: -2, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3)' },
-  transition: { duration: duration.fast, ease: easing.out },
+  transition: { duration: 0.15, ease: 'easeOut' as const },
 };
 
 export const pageTransition: {
@@ -62,7 +69,7 @@ export const pressScale = { whileTap: { scale: 0.97 } };
 export const hoverLift = {
   whileHover: { scale: 1.02 },
   whileTap: { scale: 0.97 },
-  transition: { duration: duration.fast, ease: easing.out },
+  transition: { duration: 0.15, ease: 'easeOut' as const },
 };
 
 export const slideFadeIn: Variants = {

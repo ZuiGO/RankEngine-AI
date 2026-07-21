@@ -39,7 +39,7 @@ describe('resolveNavRoute', () => {
 
   it('routes "Audit / Checklist" to the project detail page root', () => {
     const route = resolveNavRoute(
-      { label: 'Audit / Checklist', to: null, icon: () => null },
+      { label: 'Audit / Checklist', to: null, icon: 'M9 12l2 2 4-4' },
       PROJECT_ID,
     );
     expect(route).toBe(`/projects/${PROJECT_ID}`);
@@ -47,7 +47,7 @@ describe('resolveNavRoute', () => {
 
   it('routes "Migration Check" to the project detail page root', () => {
     const route = resolveNavRoute(
-      { label: 'Migration Check', to: null, icon: () => null },
+      { label: 'Migration Check', to: null, icon: 'M9 12l2 2 4-4' },
       PROJECT_ID,
     );
     expect(route).toBe(`/projects/${PROJECT_ID}`);
@@ -55,7 +55,7 @@ describe('resolveNavRoute', () => {
 
   it('routes "Keyword Research" globally regardless of project selection', () => {
     const route = resolveNavRoute(
-      { label: 'Keyword Research', to: '/keyword-research', icon: () => null },
+      { label: 'Keyword Research', to: '/keyword-research', icon: 'M9 12l2 2 4-4' },
       null,
     );
     expect(route).toBe('/keyword-research');
@@ -72,10 +72,6 @@ describe('resolveNavRoute', () => {
 const ALL_ROUTES = [
   '/dev/score-reveal',
   '/',
-  '/pricing',
-  '/login',
-  '/register',
-  '/onboarding',
   '/dashboard',
   '/projects/:id',
   '/projects/:id/content-editor',
@@ -85,9 +81,6 @@ const ALL_ROUTES = [
   '/projects/:id/competitors',
   '/keyword-research',
   '/settings',
-  '/settings/team',
-  '/settings/branding',
-  '/settings/billing',
   '/notifications',
 ] as const;
 
@@ -97,9 +90,6 @@ type Route = (typeof ALL_ROUTES)[number];
 const INTENTIONAL_ORPHANS: Route[] = [
   '/dev/score-reveal',
   '/',
-  '/onboarding',
-  '/login',
-  '/register',
 ];
 
 /**
@@ -126,13 +116,6 @@ function collectAllNavPaths(): string[] {
   paths.push('/dashboard');           // All Projects
   paths.push('/settings');            // Settings
   paths.push('/notifications');       // Notifications
-  paths.push('/pricing');             // Pricing & Plans
-
-  // Settings sub-tabs (SettingsPage.tsx)
-  paths.push('/settings');
-  paths.push('/settings/team');
-  paths.push('/settings/branding');
-  paths.push('/settings/billing');
 
   // User menu (Layout.tsx)
   paths.push('/settings');
@@ -175,31 +158,10 @@ describe('Route ↔ nav cross-reference', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const LINK_TARGETS = [
-  // Layout.tsx — sidebar footer
-  '/pricing',
   // LandingPage.tsx
   '/',
-  '/register',
-  '/pricing',
-  '/login',
-  // PricingPage.tsx
-  '/',
-  '/dashboard',
-  '/register',
-  '/login',
-  // LoginPage.tsx
-  '/register',
-  // RegisterPage.tsx
-  '/login',
   // ProjectDetailPage.tsx — breadcrumb
   '/dashboard',
-  // BillingPage.tsx — breadcrumb
-  '/settings',
-  // TeamPage.tsx — breadcrumb
-  '/settings',
-  // BrandingPage.tsx — breadcrumbs + links
-  '/settings',
-  '/settings/billing',
   // BacklinksPage.tsx — breadcrumb
   '/projects/:id',    // "Back to Project"
   // CompetitorsPage.tsx — breadcrumb
@@ -209,9 +171,7 @@ const LINK_TARGETS = [
 ];
 
 const NAVIGATE_CALLS = [
-  '/login',
   '/dashboard',
-  '/register',       // PricingPage → /register?plan=xxx
 ];
 
 describe('Link / navigate() targets cross-reference', () => {

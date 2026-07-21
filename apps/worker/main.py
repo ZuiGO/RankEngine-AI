@@ -73,6 +73,7 @@ async def health_check():
         health["mongodb"] = f"error: {str(e)}"
 
     # 2. Redis connectivity & in-progress jobs check
+    r = None
     try:
         r = redis_async.from_url(settings.REDIS_URL, decode_responses=True)
         # ping redis to assert connection success
@@ -82,9 +83,11 @@ async def health_check():
         # Check active (in-progress) jobs count from BullMQ zset in Redis
         active_count = await r.zcard("bull:crawl-jobs:active")
         health["in_progress_jobs"] = active_count or 0
-        await r.close()
     except Exception as e:
         health["status"] = "error"
         health["redis"] = f"error: {str(e)}"
+    finally:
+        if r:
+            await r.close()
 
     return health

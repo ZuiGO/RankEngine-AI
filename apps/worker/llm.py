@@ -143,7 +143,10 @@ JSON Schema format:
                 temperature=0.1,
             )
             
-            content = chat_completion.choices[0].message.content or ""
+            content = chat_completion.choices[0].message.content
+            if not content:
+                print("[LLM FixList]: Empty response from LLM. Falling back to raw issues.")
+                return [], 0
             
             # Clean possible markdown wrappers
             content_clean = content.strip()
@@ -170,7 +173,7 @@ JSON Schema format:
             # Otherwise retry loop triggers
             
     # Save the parsed checklist items as AuditIssue documents in MongoDB
-    if parsed_response:
+    if parsed_response and len(parsed_response) > 0:
         # Delete existing raw audit issues for this job to replace them with the parsed checklist items
         await db.auditissues.delete_many({"crawlJobId": ObjectId(crawl_job_id)})
         

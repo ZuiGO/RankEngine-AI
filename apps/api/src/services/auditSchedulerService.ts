@@ -1,6 +1,5 @@
 import cron from 'node-cron';
 import { Project } from '../models/Project';
-import { Organization } from '../models/Organization';
 import { CrawlJob } from '../models/CrawlJob';
 import { AuditIssue } from '../models/AuditIssue';
 import { Notification } from '../models/Notification';
@@ -21,7 +20,6 @@ const getCriticalCount = async (crawlJobId: string): Promise<number> => {
 export const runAutoAudits = async (): Promise<void> => {
   const today = new Date();
   const isMonday = today.getDay() === 1;
-
   const schedules = isMonday ? ['daily', 'weekly'] : ['daily'];
 
   const projects = await Project.find({
@@ -47,7 +45,7 @@ export const monitorCompletedAudits = async (): Promise<void> => {
   const recentJobs = await CrawlJob.find({
     status: 'completed',
     completedAt: { $gte: new Date(Date.now() - POLL_INTERVAL_MS - 5000) },
-  });
+  }).limit(100);
 
   for (const job of recentJobs) {
     try {
@@ -66,18 +64,13 @@ export const monitorCompletedAudits = async (): Promise<void> => {
         const increase = currentCritical - previousCritical;
         const message = `Critical issues increased from ${previousCritical} to ${currentCritical} (+${increase}) in latest automatic audit for "${project.name}"`;
 
-        const org = await Organization.findById(project.organizationId);
-
         const notification = new Notification({
-          userId: org ? org.ownerId : project.organizationId,
           projectId: project._id,
           message,
         });
         await notification.save();
 
-        console.log(
-          `[AuditScheduler]: Notification created for project ${project._id}: ${message}`
-        );
+        console.log(`[AuditScheduler]: Notification created for project ${project._id}: ${message}`);
       }
     } catch (err) {
       console.error(`[AuditScheduler]: Error processing completed job ${job._id}:`, err);

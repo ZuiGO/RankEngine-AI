@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../lib/api';
-import { useAuth } from '../context/AuthContext';
 import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
 
 interface KeywordResult {
@@ -44,8 +43,6 @@ function difficultyVariant(score: number): 'success' | 'warning' | 'danger' {
 }
 
 export default function KeywordResearchPage() {
-  const { profile } = useAuth();
-
   const [seedKeyword, setSeedKeyword] = useState('');
   const [results, setResults] = useState<KeywordResult[]>([]);
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -57,9 +54,9 @@ export default function KeywordResearchPage() {
   const [trackingKeyword, setTrackingKeyword] = useState<string | null>(null);
   const [pickerProject, setPickerProject] = useState<string>('');
 
-  const quotaUsed = profile?.dataProviderCallsThisMonth ?? 0;
-  const quotaLimit = profile?.dataProviderMonthlyLimit ?? 500;
-  const quotaPct = quotaLimit > 0 ? Math.round((quotaUsed / quotaLimit) * 100) : 0;
+  const quotaUsed = 0;
+  const quotaLimit = 0;
+  const quotaPct = 0;
 
   const fetchRecent = useCallback(async () => {
     try {

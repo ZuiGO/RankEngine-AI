@@ -95,8 +95,7 @@ export const rateLimiter = (limit: number, windowMs: number) => {
     limit,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
-    // Identify by authenticated userId or fall back to IP
-    keyGenerator: (req: Request) => req.user?.userId ?? req.ip ?? 'anonymous',
+    keyGenerator: (req: Request) => req.ip ?? 'anonymous',
     message: {
       error: 'Too many requests, please try again later.',
     },

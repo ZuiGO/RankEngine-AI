@@ -5,48 +5,23 @@ import { Project } from '../models/Project';
 import { CrawlJob } from '../models/CrawlJob';
 import { AuditIssue } from '../models/AuditIssue';
 import { Report } from '../models/Report';
-import { Organization } from '../models/Organization';
-import { Membership } from '../models/Membership';
-import requireAuth from '../middleware/requireAuth';
 import { buildReportPayload, generateReportHtml, renderPdf } from '../services/pdfExportService';
 import { saveFile, getFileStream, generateDownloadToken } from '../services/storageService';
 
 const router = Router();
-router.use(requireAuth);
 
-// ── Auth helpers ───────────────────────────────────────────────────────
-
-async function checkProjectAccess(
-  projectId: string,
-  userId: string
-): Promise<{ project: any; membership: any } | null> {
-  if (!mongoose.Types.ObjectId.isValid(projectId)) return null;
-
-  const project = await Project.findById(projectId);
-  if (!project) return null;
-
-  const membership = await Membership.findOne({
-    organizationId: project.organizationId,
-    userId,
-  });
-  if (!membership) return null;
-
-  return { project, membership };
-}
-
-// ── POST /api/projects/:id/reports/generate ────────────────────────────
-
+// POST /api/projects/:id/reports/generate
 router.post('/:id/reports/generate', async (req: Request, res: Response) => {
   try {
-    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
 
-    const access = await checkProjectAccess(req.params.id, req.user.userId);
-    if (!access) {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    const { project } = access;
 
-    // Parse optional crawlJobId from body; default to most recent completed crawl
     const crawlJobId: string | undefined = req.body.crawlJobId;
     if (crawlJobId && !mongoose.Types.ObjectId.isValid(crawlJobId)) {
       return res.status(400).json({ error: 'Invalid crawlJobId format' });
@@ -75,7 +50,6 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
 
     const crawlJobIdStr = crawlJob._id.toString();
 
-    // Fetch issues and build report data
     const issues = await AuditIssue.find({ crawlJobId: crawlJobIdStr });
 
     const criticalIssues = issues.filter((i) => i.severity === 'critical');
@@ -84,10 +58,8 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
 
     const healthScore = crawlJob.healthScore ?? 0;
 
-    // Build sections for the PDF report
     const sections: any[] = [];
 
-    // 1. Health Score gauge
     sections.push({
       title: 'SEO Health Score',
       type: 'score_gauge',
@@ -97,7 +69,6 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
       },
     });
 
-    // 2. Issue counts stat grid
     sections.push({
       title: 'Issue Summary',
       type: 'table',
@@ -113,7 +84,6 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
       },
     });
 
-    // 3. Top critical issues with recommendations (up to 15)
     const topCritical = criticalIssues.slice(0, 15);
     if (topCritical.length > 0) {
       sections.push({
@@ -129,7 +99,6 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
       });
     }
 
-    // 4. Top warnings with recommendations (up to 10)
     const topWarnings = warningIssues.slice(0, 10);
     if (topWarnings.length > 0) {
       sections.push({
@@ -145,44 +114,24 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
       });
     }
 
-    // Fetch org branding for white-label report
-    const org = await Organization.findById(project.organizationId).select(
-      'name logoUrl primaryColor reportFooterText'
-    );
-    const whiteLabel =
-      org?.logoUrl || org?.primaryColor || org?.reportFooterText
-        ? {
-            agencyName: org.name,
-            agencyLogoUrl: org.logoUrl ?? undefined,
-            primaryColor: org.primaryColor ?? undefined,
-            reportFooterText: org.reportFooterText ?? undefined,
-          }
-        : undefined;
-
-    // Build payload and render PDF
     const payload = buildReportPayload(
       project._id.toString(),
       project.name,
       project.domain,
-      sections,
-      whiteLabel
+      sections
     );
 
     const html = generateReportHtml(payload);
     const pdfBuffer = await renderPdf(html);
 
-    // Save to local storage
     const filename = `report_${project._id}_${crawlJobIdStr}_${Date.now()}.pdf`;
     const filePath = saveFile(pdfBuffer, filename);
 
-    // Generate download token
     const { token, expiresAt } = generateDownloadToken();
 
-    // Persist report metadata
     const report = await Report.create({
       projectId: project._id,
       crawlJobId: crawlJobIdStr,
-      generatedBy: req.user.userId,
       filePath,
       fileSize: pdfBuffer.length,
       downloadToken: token,
@@ -206,28 +155,24 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
   }
 });
 
-// ── GET /api/projects/:id/reports/:reportId/download ───────────────────
-
+// GET /api/projects/:id/reports/:reportId/download
 router.get('/:id/reports/:reportId/download', async (req: Request, res: Response) => {
   try {
-    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    const { id, reportId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(reportId)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
 
-    const access = await checkProjectAccess(req.params.id, req.user.userId);
-    if (!access) {
+    const project = await Project.findById(id);
+    if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const { reportId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(reportId)) {
-      return res.status(400).json({ error: 'Invalid report ID format' });
-    }
-
     const report = await Report.findById(reportId);
-    if (!report || report.projectId.toString() !== req.params.id) {
+    if (!report || report.projectId.toString() !== id) {
       return res.status(404).json({ error: 'Report not found' });
     }
 
-    // Validate download token
     const token = String(req.query.token || '');
     if (!token) {
       return res.status(400).json({ error: 'Download token is required' });
@@ -241,7 +186,6 @@ router.get('/:id/reports/:reportId/download', async (req: Request, res: Response
       return res.status(410).json({ error: 'Download token has expired' });
     }
 
-    // Stream the file
     try {
       const stream = getFileStream(report.filePath);
       const filename = path.basename(report.filePath);
@@ -250,10 +194,24 @@ router.get('/:id/reports/:reportId/download', async (req: Request, res: Response
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.setHeader('Content-Length', report.fileSize);
 
+      stream.on('error', (streamErr) => {
+        console.error('Report stream error:', streamErr);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Failed to stream report file' });
+        }
+      });
+
+      res.on('error', (resErr) => {
+        console.error('Response stream error during report download:', resErr);
+        stream.destroy();
+      });
+
       stream.pipe(res);
     } catch (fileErr) {
       console.error('Report file not found on disk:', fileErr);
-      res.status(404).json({ error: 'Report file not found on disk' });
+      if (!res.headersSent) {
+        res.status(404).json({ error: 'Report file not found on disk' });
+      }
     }
   } catch (error) {
     console.error('Report download error:', error);
@@ -261,22 +219,29 @@ router.get('/:id/reports/:reportId/download', async (req: Request, res: Response
   }
 });
 
-// ── GET /api/projects/:id/reports — list reports ───────────────────────
-
+// GET /api/projects/:id/reports — list reports
 router.get('/:id/reports', async (req: Request, res: Response) => {
   try {
-    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-
-    const access = await checkProjectAccess(req.params.id, req.user.userId);
-    if (!access) {
-      return res.status(404).json({ error: 'Project not found' });
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
     }
 
-    const reports = await Report.find({ projectId: req.params.id })
-      .sort({ createdAt: -1 })
-      .select('_id projectId crawlJobId fileSize createdAt tokenExpiresAt');
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10));
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '20'), 10)));
+    const skip = (page - 1) * limit;
 
-    res.json({ reports });
+    const filter = { projectId: id };
+    const [reports, total] = await Promise.all([
+      Report.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select('_id projectId crawlJobId fileSize createdAt tokenExpiresAt'),
+      Report.countDocuments(filter),
+    ]);
+
+    res.json({ reports, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error('List reports error:', error);
     res.status(500).json({ error: 'Failed to list reports' });

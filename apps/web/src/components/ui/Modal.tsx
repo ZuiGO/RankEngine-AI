@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { motion as m } from '../../lib/tokens';
+
+const m = {
+  fast: { duration: 0.15, ease: 'easeInOut' as const },
+  normal: { duration: 0.25, ease: 'easeInOut' as const },
+  slow: { duration: 0.35, ease: 'easeInOut' as const },
+  modals: { duration: 0.2, ease: 'easeOut' as const },
+};
 
 interface ModalProps {
   open: boolean;

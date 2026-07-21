@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
 export type AuditSchedule = 'manual' | 'daily' | 'weekly';
 
@@ -11,7 +11,6 @@ export interface ISuggestedKeyword {
 
 export interface IProject extends Document {
   name: string;
-  organizationId: Types.ObjectId;
   domain: string;
   stagingDomain?: string;
   auditSchedule: AuditSchedule;
@@ -32,11 +31,6 @@ const ProjectSchema = new Schema<IProject>({
     type: String,
     required: true,
     trim: true,
-  },
-  organizationId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Organization',
-    required: true,
   },
   domain: {
     type: String,
@@ -66,8 +60,7 @@ const ProjectSchema = new Schema<IProject>({
   },
 });
 
-// Index to quickly fetch all active projects by organization
-ProjectSchema.index({ organizationId: 1, deletedAt: 1 });
+ProjectSchema.index({ deletedAt: 1 });
 
 export const Project = model<IProject>('Project', ProjectSchema);
 export default Project;

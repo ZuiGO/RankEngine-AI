@@ -1,14 +1,50 @@
-import { useNotifications } from '../context/NotificationContext';
+import { useState, useEffect } from 'react';
+import api from '../lib/api';
+
+interface NotificationItem {
+  _id: string;
+  projectId: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
 
 export default function NotificationsPage() {
-  const { notifications, unreadCount, markRead, refresh } = useNotifications();
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetch = async () => {
+    try {
+      const { data } = await api.get<{ notifications: NotificationItem[]; unreadCount: number }>('/notifications');
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
+    } catch {
+      //
+    }
+  };
+
+  useEffect(() => {
+    fetch();
+  }, []);
+
+  const markRead = async (id: string) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch {
+      //
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-app-text">Notifications</h1>
         <button
-          onClick={refresh}
+          onClick={fetch}
           className="text-sm text-app-signal hover:text-app-signal/80 transition-colors"
         >
           Refresh

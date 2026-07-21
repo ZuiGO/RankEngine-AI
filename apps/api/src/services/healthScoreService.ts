@@ -36,10 +36,12 @@ export const computeAndStoreHealthScore = async (
   const warningCount = issues.filter((i) => i.severity === 'warning').length;
   const healthScore = computeHealthScore(criticalCount, warningCount);
 
-  await CrawlJob.findByIdAndUpdate(crawlJobId, { healthScore });
+  const currentJob = await CrawlJob.findByIdAndUpdate(
+    crawlJobId,
+    { healthScore },
+    { new: true }
+  );
 
-  // Find the previous completed crawl for the same project to get trend
-  const currentJob = await CrawlJob.findById(crawlJobId);
   let previousHealthScore: number | null = null;
 
   if (currentJob) {
