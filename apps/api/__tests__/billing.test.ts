@@ -136,7 +136,8 @@ describe('POST /api/billing/create-checkout-session', () => {
       'cus_mock123',
       'pro',
       expect.stringContaining('success=1'),
-      expect.stringContaining('canceled=1')
+      expect.stringContaining('canceled=1'),
+      userId
     );
 
     const user = await User.findById(userId);
