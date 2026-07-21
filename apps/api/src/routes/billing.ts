@@ -1,13 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import crypto from 'crypto';
-import Subscription, { getPlanLimits, SubscriptionPlan } from '../models/Subscription';
+import Subscription, { getPlanLimits } from '../models/Subscription';
 import TeamInvite from '../models/TeamInvite';
 import Organization from '../models/Organization';
 import User from '../models/User';
 import requireAuth from '../middleware/requireAuth';
 import config from '../config';
-import { getPlanConfig, type PlanId, PLANS } from '../config/plans';
+import { getPlanConfig, PLANS } from '../config/plans';
 import {
   createOrRetrieveCustomer,
   createCheckoutSession,
@@ -44,7 +44,7 @@ router.get('/subscription', async (req: Request, res: Response) => {
 
     const plan = getPlanConfig(user.planId);
 
-    let sub = await Subscription.findOne({ ownerId: req.user.userId });
+    const sub = await Subscription.findOne({ ownerId: req.user.userId });
 
     res.json({
       plan: user.planId,
@@ -145,7 +145,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     const customerId = await createOrRetrieveCustomer(
       req.user.userId,
       user.email,
-      user.stripeCustomerId,
+      user.stripeCustomerId
     );
 
     const sessionUrl = await createCheckoutSession(
@@ -153,7 +153,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       planId,
       successUrl || `${config.CORS_ORIGIN}/settings/billing?success=1`,
       cancelUrl || `${config.CORS_ORIGIN}/settings/billing?canceled=1`,
-      req.user.userId,
+      req.user.userId
     );
 
     // Persist the Stripe customer ID immediately so future calls reuse it
@@ -212,12 +212,19 @@ router.post('/invite', async (req: Request, res: Response) => {
 
     const sub = await Subscription.findOne({ ownerId: req.user.userId });
     const limits = getPlanLimits(sub?.plan ?? 'free');
-    const pendingCount = await TeamInvite.countDocuments({ invitedBy: req.user.userId, status: 'pending' });
+    const pendingCount = await TeamInvite.countDocuments({
+      invitedBy: req.user.userId,
+      status: 'pending',
+    });
     if (pendingCount >= limits.seats) {
       return res.status(403).json({ error: 'Team seat limit reached for your plan' });
     }
 
-    const existing = await TeamInvite.findOne({ invitedBy: req.user.userId, email, status: 'pending' });
+    const existing = await TeamInvite.findOne({
+      invitedBy: req.user.userId,
+      email,
+      status: 'pending',
+    });
     if (existing) {
       return res.status(409).json({ error: 'Invite already sent to this email' });
     }

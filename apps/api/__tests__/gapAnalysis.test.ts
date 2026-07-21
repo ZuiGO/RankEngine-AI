@@ -88,11 +88,16 @@ beforeEach(async () => {
   token = jwt.sign(
     { userId: testUser._id.toString(), role: testUser.role },
     process.env.JWT_SECRET!,
-    { expiresIn: '1h' },
+    { expiresIn: '1h' }
   );
 
   const org = await Organization.create({ name: 'Test Org', ownerId: testUser._id });
-  await Membership.create({ organizationId: org._id, userId: testUser._id, role: 'owner', joinedAt: new Date() });
+  await Membership.create({
+    organizationId: org._id,
+    userId: testUser._id,
+    role: 'owner',
+    joinedAt: new Date(),
+  });
 
   testProject = await Project.create({
     name: 'Gap Project',
@@ -140,7 +145,7 @@ describe('Keyword Gap — POST /api/projects/:id/keyword-gap', () => {
     // partialOverlap: seo tools, content marketing, social media, email marketing
 
     expect(res.body.yourAdvantage).toEqual(
-      expect.arrayContaining(['link building', 'keyword research']),
+      expect.arrayContaining(['link building', 'keyword research'])
     );
     expect(res.body.yourAdvantage).toHaveLength(2);
 
@@ -154,7 +159,7 @@ describe('Keyword Gap — POST /api/projects/:id/keyword-gap', () => {
       expect.arrayContaining([
         expect.objectContaining({ keyword: 'social media' }),
         expect.objectContaining({ keyword: 'email marketing' }),
-      ]),
+      ])
     );
     expect(res.body.partialOverlap).toHaveLength(2);
 
@@ -165,7 +170,11 @@ describe('Keyword Gap — POST /api/projects/:id/keyword-gap', () => {
   it('returns empty arrays when project has no competitor keywords', async () => {
     mockGetDomainOverview.mockImplementation(async (_userId: string, domain: string) => {
       if (domain === 'myproject.com') {
-        return { organicTrafficEstimate: 5000, organicKeywordCount: 1, topKeywords: [{ keyword: 'my niche', searchVolume: 100, position: 1 }] };
+        return {
+          organicTrafficEstimate: 5000,
+          organicKeywordCount: 1,
+          topKeywords: [{ keyword: 'my niche', searchVolume: 100, position: 1 }],
+        };
       }
       return { organicTrafficEstimate: 3000, organicKeywordCount: 0, topKeywords: [] };
     });
@@ -200,7 +209,12 @@ describe('Keyword Gap — POST /api/projects/:id/keyword-gap', () => {
       companyName: 'Other Co',
     });
     const otherOrg = await Organization.create({ name: 'Other Gap Org', ownerId: otherUser._id });
-    await Membership.create({ organizationId: otherOrg._id, userId: otherUser._id, role: 'owner', joinedAt: new Date() });
+    await Membership.create({
+      organizationId: otherOrg._id,
+      userId: otherUser._id,
+      role: 'owner',
+      joinedAt: new Date(),
+    });
     const otherProject = await Project.create({
       name: 'Other',
       domain: 'other.com',
@@ -222,9 +236,7 @@ describe('Keyword Gap — POST /api/projects/:id/keyword-gap', () => {
       return {
         organicTrafficEstimate: 10000,
         organicKeywordCount: 2,
-        topKeywords: [
-          { keyword: `${base} kw1`, searchVolume: 500, position: 3 },
-        ],
+        topKeywords: [{ keyword: `${base} kw1`, searchVolume: 500, position: 3 }],
       };
     });
 
@@ -321,7 +333,12 @@ describe('Backlink Gap — POST /api/projects/:id/backlink-gap', () => {
       companyName: 'Other',
     });
     const otherOrg = await Organization.create({ name: 'Other Bg Org', ownerId: otherUser._id });
-    await Membership.create({ organizationId: otherOrg._id, userId: otherUser._id, role: 'owner', joinedAt: new Date() });
+    await Membership.create({
+      organizationId: otherOrg._id,
+      userId: otherUser._id,
+      role: 'owner',
+      joinedAt: new Date(),
+    });
     const otherProject = await Project.create({
       name: 'Other',
       domain: 'other.com',
@@ -371,8 +388,12 @@ describe('Backlink Gap — POST /api/projects/:id/backlink-gap', () => {
       .expect(200);
 
     // shared.com is linked to myproject AND c1.com — excluded from link opportunities
-    expect(res.body.linkOpportunities.find((lo: any) => lo.domain === 'shared.com')).toBeUndefined();
+    expect(
+      res.body.linkOpportunities.find((lo: any) => lo.domain === 'shared.com')
+    ).toBeUndefined();
     // new-opportunity.com only links to c1.com, not to myproject.com — it's an opportunity
-    expect(res.body.linkOpportunities.find((lo: any) => lo.domain === 'new-opportunity.com')).toBeDefined();
+    expect(
+      res.body.linkOpportunities.find((lo: any) => lo.domain === 'new-opportunity.com')
+    ).toBeDefined();
   });
 });

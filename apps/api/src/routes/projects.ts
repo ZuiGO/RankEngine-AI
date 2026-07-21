@@ -162,8 +162,13 @@ router.get('/:id/latest-crawl', async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden: You do not own this project' });
     }
 
-    const latestJob = await CrawlJob.findOne({ projectId: id, type: 'crawl' }).sort({ createdAt: -1 });
-    const latestMigrationJob = await CrawlJob.findOne({ projectId: id, type: 'migration-check' }).sort({ createdAt: -1 });
+    const latestJob = await CrawlJob.findOne({ projectId: id, type: 'crawl' }).sort({
+      createdAt: -1,
+    });
+    const latestMigrationJob = await CrawlJob.findOne({
+      projectId: id,
+      type: 'migration-check',
+    }).sort({ createdAt: -1 });
 
     return res.json({
       latestJob,

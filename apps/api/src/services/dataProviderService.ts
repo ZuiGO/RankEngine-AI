@@ -169,7 +169,7 @@ export class MockDataProvider implements IDataProvider {
     }));
   }
 
-  async fetchReferringDomains(domain: string): Promise<string[]> {
+  async fetchReferringDomains(_domain: string): Promise<string[]> {
     const prefixes = ['blog', 'news', 'forum', 'links', 'resources', 'support', 'community'];
     const tlds = ['.com', '.org', '.io', '.net', '.co', '.dev'];
     const count = Math.floor(Math.random() * 15) + 10;
@@ -188,11 +188,31 @@ export class MockDataProvider implements IDataProvider {
       organicTrafficEstimate: Math.floor(Math.random() * 100000) + 1000,
       organicKeywordCount: Math.floor(Math.random() * 10000) + 100,
       topKeywords: [
-        { keyword: `${base} seo`, searchVolume: Math.floor(Math.random() * 5000) + 200, position: Math.floor(Math.random() * 20) + 1 },
-        { keyword: `${base} marketing`, searchVolume: Math.floor(Math.random() * 4000) + 150, position: Math.floor(Math.random() * 20) + 1 },
-        { keyword: `best ${base} tools`, searchVolume: Math.floor(Math.random() * 3000) + 100, position: Math.floor(Math.random() * 30) + 1 },
-        { keyword: `${base} pricing`, searchVolume: Math.floor(Math.random() * 2000) + 50, position: Math.floor(Math.random() * 40) + 1 },
-        { keyword: `${base} vs`, searchVolume: Math.floor(Math.random() * 1500) + 30, position: Math.floor(Math.random() * 50) + 1 },
+        {
+          keyword: `${base} seo`,
+          searchVolume: Math.floor(Math.random() * 5000) + 200,
+          position: Math.floor(Math.random() * 20) + 1,
+        },
+        {
+          keyword: `${base} marketing`,
+          searchVolume: Math.floor(Math.random() * 4000) + 150,
+          position: Math.floor(Math.random() * 20) + 1,
+        },
+        {
+          keyword: `best ${base} tools`,
+          searchVolume: Math.floor(Math.random() * 3000) + 100,
+          position: Math.floor(Math.random() * 30) + 1,
+        },
+        {
+          keyword: `${base} pricing`,
+          searchVolume: Math.floor(Math.random() * 2000) + 50,
+          position: Math.floor(Math.random() * 40) + 1,
+        },
+        {
+          keyword: `${base} vs`,
+          searchVolume: Math.floor(Math.random() * 1500) + 30,
+          position: Math.floor(Math.random() * 50) + 1,
+        },
       ],
     };
   }
@@ -390,13 +410,17 @@ export class DataForSEOProvider implements IDataProvider {
   async fetchReferringDomains(domain: string): Promise<string[]> {
     const response = await axios.post<{
       tasks: { result: { items: { domain: string }[] }[] }[];
-    }>(`${DATAFORSEO_BASE}/v3/backlinks/referring_domains/live`, [{ target: domain, limit: 1000 }], {
-      headers: {
-        Authorization: this.authHeader,
-        'Content-Type': 'application/json',
-      },
-      timeout: 30000,
-    });
+    }>(
+      `${DATAFORSEO_BASE}/v3/backlinks/referring_domains/live`,
+      [{ target: domain, limit: 1000 }],
+      {
+        headers: {
+          Authorization: this.authHeader,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000,
+      }
+    );
     const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
     return items.map((item) => item.domain).filter(Boolean);
   }
@@ -611,10 +635,7 @@ export const getBacklinkList = async (
   return items;
 };
 
-export const getReferringDomains = async (
-  userId: string,
-  domain: string
-): Promise<string[]> => {
+export const getReferringDomains = async (userId: string, domain: string): Promise<string[]> => {
   await checkAndIncrementQuota(userId, 'referringDomains', false);
 
   const provider = getDataProvider();

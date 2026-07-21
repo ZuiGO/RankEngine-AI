@@ -53,7 +53,12 @@ beforeAll(async () => {
   // Register owner (User A)
   const ownerRes = await request
     .post('/api/auth/register')
-    .send({ email: 'owner@org.test', password: 'password123', role: 'agency_owner', companyName: 'Owner Co' })
+    .send({
+      email: 'owner@org.test',
+      password: 'password123',
+      role: 'agency_owner',
+      companyName: 'Owner Co',
+    })
     .expect(201);
   ownerToken = ownerRes.body.token;
   ownerId = ownerRes.body.user.id;
@@ -65,18 +70,33 @@ beforeAll(async () => {
   // Register a second user to be a regular member
   const memberRes = await request
     .post('/api/auth/register')
-    .send({ email: 'member@org.test', password: 'password123', role: 'marketer', companyName: 'Member Co' })
+    .send({
+      email: 'member@org.test',
+      password: 'password123',
+      role: 'marketer',
+      companyName: 'Member Co',
+    })
     .expect(201);
   memberToken = memberRes.body.token;
   memberId = memberRes.body.user.id;
 
   // Make them a member of orgA
-  await Membership.create({ organizationId: orgId, userId: memberId, role: 'member', joinedAt: new Date() });
+  await Membership.create({
+    organizationId: orgId,
+    userId: memberId,
+    role: 'member',
+    joinedAt: new Date(),
+  });
 
   // Register a third user with NO membership in orgA
   const outsiderRes = await request
     .post('/api/auth/register')
-    .send({ email: 'outsider@org.test', password: 'password123', role: 'developer', companyName: 'Outsider Co' })
+    .send({
+      email: 'outsider@org.test',
+      password: 'password123',
+      role: 'developer',
+      companyName: 'Outsider Co',
+    })
     .expect(201);
   outsiderToken = outsiderRes.body.token;
   outsiderId = outsiderRes.body.user.id;
@@ -184,7 +204,12 @@ describe('Organization Team Management', () => {
       // Register a user with the invited email
       const newUserRes = await request
         .post('/api/auth/register')
-        .send({ email: 'accept-test@test.com', password: 'password123', role: 'developer', companyName: 'Accept Co' })
+        .send({
+          email: 'accept-test@test.com',
+          password: 'password123',
+          role: 'developer',
+          companyName: 'Accept Co',
+        })
         .expect(201);
       const newUserToken = newUserRes.body.token;
 
@@ -265,9 +290,7 @@ describe('Organization Team Management', () => {
     });
 
     it('should reject listing without auth', async () => {
-      await request
-        .get(`/api/organizations/${orgId}/members`)
-        .expect(401);
+      await request.get(`/api/organizations/${orgId}/members`).expect(401);
     });
   });
 
@@ -278,7 +301,12 @@ describe('Organization Team Management', () => {
       // Add a user we can safely remove
       const userRes = await request
         .post('/api/auth/register')
-        .send({ email: 'removable@test.com', password: 'password123', role: 'developer', companyName: 'Removable' })
+        .send({
+          email: 'removable@test.com',
+          password: 'password123',
+          role: 'developer',
+          companyName: 'Removable',
+        })
         .expect(201);
       removableUserId = userRes.body.user.id;
 
@@ -296,7 +324,10 @@ describe('Organization Team Management', () => {
         .set('Authorization', `Bearer ${ownerToken}`)
         .expect(200);
 
-      const membership = await Membership.findOne({ organizationId: orgId, userId: removableUserId });
+      const membership = await Membership.findOne({
+        organizationId: orgId,
+        userId: removableUserId,
+      });
       expect(membership).toBeNull();
     });
 
@@ -396,7 +427,9 @@ describe('Organization Team Management', () => {
 
         expect(res.body.message).toBe('Branding updated');
         expect(res.body.organization.primaryColor).toBe('#ff6600');
-        expect(res.body.organization.reportFooterText).toBe('Powered by My Agency — contact@myagency.com');
+        expect(res.body.organization.reportFooterText).toBe(
+          'Powered by My Agency — contact@myagency.com'
+        );
 
         // Verify persisted
         const org = await Organization.findById(orgId);

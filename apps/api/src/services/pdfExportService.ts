@@ -1,5 +1,4 @@
 import puppeteer from 'puppeteer';
-import crypto from 'crypto';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -32,7 +31,7 @@ export function buildReportPayload(
   projectName: string,
   domain: string,
   sections: ReportSection[],
-  whiteLabel?: WhiteLabelConfig,
+  whiteLabel?: WhiteLabelConfig
 ): ReportPayload {
   return {
     projectId,
@@ -132,7 +131,7 @@ function renderSection(section: ReportSection, primaryColor: string): string {
   }
 }
 
-function renderScoreGauge(section: ReportSection, primaryColor: string): string {
+function renderScoreGauge(section: ReportSection, _primaryColor: string): string {
   const score = Number(section.data.score) || 0;
   const label = String(section.data.label || 'SEO Health Score');
 
@@ -164,33 +163,55 @@ function renderTable(section: ReportSection): string {
         ${headers.map((h) => `<th style="padding:8px 12px;font-weight:600;color:#475569;">${escapeHtml(h)}</th>`).join('')}
       </tr></thead>
       <tbody>
-        ${rows.map((row) => `<tr style="border-bottom:1px solid #e2e8f0;">
-          ${row.map((cell, ci) => {
-            const color = colorMap && headers[ci] ? colorMap[headers[ci]] : undefined;
-            const colorStyle = color ? `style="color:${color};font-weight:600;"` : '';
-            return `<td style="padding:8px 12px;color:#334155;" ${colorStyle}>${escapeHtml(cell)}</td>`;
-          }).join('')}
-        </tr>`).join('')}
+        ${rows
+          .map(
+            (row) => `<tr style="border-bottom:1px solid #e2e8f0;">
+          ${row
+            .map((cell, ci) => {
+              const color = colorMap && headers[ci] ? colorMap[headers[ci]] : undefined;
+              const colorStyle = color ? `style="color:${color};font-weight:600;"` : '';
+              return `<td style="padding:8px 12px;color:#334155;" ${colorStyle}>${escapeHtml(cell)}</td>`;
+            })
+            .join('')}
+        </tr>`
+          )
+          .join('')}
       </tbody>
     </table>
   </div>`;
 }
 
 function renderChecklist(section: ReportSection): string {
-  const items = (section.data.items as Array<{ severity: string; description: string; recommendation?: string }>) || [];
+  const items =
+    (section.data.items as Array<{
+      severity: string;
+      description: string;
+      recommendation?: string;
+    }>) || [];
 
   return `<div class="section">
     <div class="section-title">${escapeHtml(section.title)}</div>
-    ${items.length === 0 ? '<p style="font-size:12px;color:#64748b;">No issues found.</p>' : items.map((item) => {
-      const badgeClass = item.severity === 'critical' ? 'badge-critical' : item.severity === 'warning' ? 'badge-warning' : 'badge-passed';
-      return `<div class="issue">
+    ${
+      items.length === 0
+        ? '<p style="font-size:12px;color:#64748b;">No issues found.</p>'
+        : items
+            .map((item) => {
+              const badgeClass =
+                item.severity === 'critical'
+                  ? 'badge-critical'
+                  : item.severity === 'warning'
+                    ? 'badge-warning'
+                    : 'badge-passed';
+              return `<div class="issue">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
           <span class="badge ${badgeClass}">${escapeHtml(item.severity)}</span>
           <span class="issue-title">${escapeHtml(item.description)}</span>
         </div>
         ${item.recommendation ? `<div class="issue-rec">Recommendation: ${escapeHtml(item.recommendation)}</div>` : ''}
       </div>`;
-    }).join('')}
+            })
+            .join('')
+    }
   </div>`;
 }
 

@@ -14,7 +14,7 @@ function getStripe(): Stripe {
 export async function createOrRetrieveCustomer(
   userId: string,
   email: string,
-  existingCustomerId?: string | null,
+  existingCustomerId?: string | null
 ): Promise<string> {
   const stripe = getStripe();
 
@@ -40,7 +40,7 @@ export async function createCheckoutSession(
   planId: PlanId,
   successUrl: string,
   cancelUrl: string,
-  userId?: string,
+  userId?: string
 ): Promise<string> {
   const stripe = getStripe();
   const plan = getPlanConfig(planId);
@@ -68,10 +68,7 @@ export async function createCheckoutSession(
   return session.url;
 }
 
-export async function createPortalSession(
-  customerId: string,
-  returnUrl: string,
-): Promise<string> {
+export async function createPortalSession(customerId: string, returnUrl: string): Promise<string> {
   const stripe = getStripe();
 
   const session = await stripe.billingPortal.sessions.create({
@@ -82,24 +79,17 @@ export async function createPortalSession(
   return session.url;
 }
 
-export async function retrieveSubscription(
-  subscriptionId: string,
-): Promise<Stripe.Subscription> {
+export async function retrieveSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
   const stripe = getStripe();
   return stripe.subscriptions.retrieve(subscriptionId);
 }
 
-export async function cancelSubscription(
-  subscriptionId: string,
-): Promise<Stripe.Subscription> {
+export async function cancelSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
   const stripe = getStripe();
   return stripe.subscriptions.cancel(subscriptionId);
 }
 
-export function constructWebhookEvent(
-  payload: Buffer | string,
-  sigHeader: string,
-): Stripe.Event {
+export function constructWebhookEvent(payload: Buffer | string, sigHeader: string): Stripe.Event {
   const stripe = getStripe();
   return stripe.webhooks.constructEvent(payload, sigHeader, config.STRIPE_WEBHOOK_SECRET);
 }

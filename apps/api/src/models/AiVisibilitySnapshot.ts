@@ -40,6 +40,6 @@ AiVisibilitySnapshotSchema.index({ trackedPromptId: 1, engine: 1, checkedAt: -1 
 
 export const AiVisibilitySnapshot = model<IAiVisibilitySnapshot>(
   'AiVisibilitySnapshot',
-  AiVisibilitySnapshotSchema,
+  AiVisibilitySnapshotSchema
 );
 export default AiVisibilitySnapshot;

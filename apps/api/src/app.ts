@@ -111,8 +111,6 @@ app.use('/api/organizations', organizationsRouter);
 app.use('/api', organizationsRouter); // for /api/invites/:token/accept
 app.use('/api/projects', reportsRouter);
 
-
-
 // Dynamically load queue listeners only when not running unit tests
 if (process.env.NODE_ENV !== 'test') {
   import('./queues/crawlQueueEvents')

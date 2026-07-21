@@ -18,8 +18,6 @@ jest.mock('bullmq', () => ({
   })),
 }));
 
-
-
 process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_reports';
 process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
@@ -64,7 +62,12 @@ beforeAll(async () => {
   // Register owner
   const ownerRes = await request
     .post('/api/auth/register')
-    .send({ email: 'owner@reports.test', password: 'password123', role: 'agency_owner', companyName: 'Report Co' })
+    .send({
+      email: 'owner@reports.test',
+      password: 'password123',
+      role: 'agency_owner',
+      companyName: 'Report Co',
+    })
     .expect(201);
   ownerToken = ownerRes.body.token;
   ownerId = ownerRes.body.user.id;
@@ -92,17 +95,58 @@ beforeAll(async () => {
 
   // Seed audit issues
   await AuditIssue.create([
-    { crawlJobId: cj._id, severity: 'critical', category: 'meta', url: '/', description: 'Missing meta description', recommendation: 'Add a unique meta description to each page', whyItMatters: 'Search engines display this in snippets' },
-    { crawlJobId: cj._id, severity: 'critical', category: 'headings', url: '/about', description: 'Multiple H1 tags found', recommendation: 'Use only one H1 per page' },
-    { crawlJobId: cj._id, severity: 'warning', category: 'images', url: '/', description: 'Missing alt text on 3 images', recommendation: 'Add descriptive alt attributes' },
-    { crawlJobId: cj._id, severity: 'warning', category: 'links', url: '/contact', description: 'Broken internal link', recommendation: 'Fix or remove the broken link' },
-    { crawlJobId: cj._id, severity: 'passed', category: 'performance', url: '/', description: 'Page load time is acceptable', recommendation: 'Continue monitoring page speed' },
+    {
+      crawlJobId: cj._id,
+      severity: 'critical',
+      category: 'meta',
+      url: '/',
+      description: 'Missing meta description',
+      recommendation: 'Add a unique meta description to each page',
+      whyItMatters: 'Search engines display this in snippets',
+    },
+    {
+      crawlJobId: cj._id,
+      severity: 'critical',
+      category: 'headings',
+      url: '/about',
+      description: 'Multiple H1 tags found',
+      recommendation: 'Use only one H1 per page',
+    },
+    {
+      crawlJobId: cj._id,
+      severity: 'warning',
+      category: 'images',
+      url: '/',
+      description: 'Missing alt text on 3 images',
+      recommendation: 'Add descriptive alt attributes',
+    },
+    {
+      crawlJobId: cj._id,
+      severity: 'warning',
+      category: 'links',
+      url: '/contact',
+      description: 'Broken internal link',
+      recommendation: 'Fix or remove the broken link',
+    },
+    {
+      crawlJobId: cj._id,
+      severity: 'passed',
+      category: 'performance',
+      url: '/',
+      description: 'Page load time is acceptable',
+      recommendation: 'Continue monitoring page speed',
+    },
   ]);
 
   // Register outsider
   const outsiderRes = await request
     .post('/api/auth/register')
-    .send({ email: 'outsider@reports.test', password: 'password123', role: 'developer', companyName: 'Outsider' })
+    .send({
+      email: 'outsider@reports.test',
+      password: 'password123',
+      role: 'developer',
+      companyName: 'Outsider',
+    })
     .expect(201);
   outsiderToken = outsiderRes.body.token;
 });
@@ -172,9 +216,7 @@ describe('Audit Report Generation & Download', () => {
     });
 
     it('should reject report generation without auth', async () => {
-      await request
-        .post(`/api/projects/${projectId}/reports/generate`)
-        .expect(401);
+      await request.post(`/api/projects/${projectId}/reports/generate`).expect(401);
     });
   });
 
@@ -188,7 +230,9 @@ describe('Audit Report Generation & Download', () => {
         .set('Authorization', `Bearer ${ownerToken}`)
         .expect(201);
       reportId = res.body.report.id;
-      downloadToken = new URL(res.body.report.downloadUrl, 'http://localhost').searchParams.get('token')!;
+      downloadToken = new URL(res.body.report.downloadUrl, 'http://localhost').searchParams.get(
+        'token'
+      )!;
     });
 
     it('should download the report PDF with a valid token', async () => {

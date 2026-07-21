@@ -8,11 +8,7 @@ import { Report } from '../models/Report';
 import { Organization } from '../models/Organization';
 import { Membership } from '../models/Membership';
 import requireAuth from '../middleware/requireAuth';
-import {
-  buildReportPayload,
-  generateReportHtml,
-  renderPdf,
-} from '../services/pdfExportService';
+import { buildReportPayload, generateReportHtml, renderPdf } from '../services/pdfExportService';
 import { saveFile, getFileStream, generateDownloadToken } from '../services/storageService';
 
 const router = Router();
@@ -20,7 +16,10 @@ router.use(requireAuth);
 
 // ── Auth helpers ───────────────────────────────────────────────────────
 
-async function checkProjectAccess(projectId: string, userId: string): Promise<{ project: any; membership: any } | null> {
+async function checkProjectAccess(
+  projectId: string,
+  userId: string
+): Promise<{ project: any; membership: any } | null> {
   if (!mongoose.Types.ObjectId.isValid(projectId)) return null;
 
   const project = await Project.findById(projectId);
@@ -48,7 +47,7 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
     const { project } = access;
 
     // Parse optional crawlJobId from body; default to most recent completed crawl
-    let crawlJobId: string | undefined = req.body.crawlJobId;
+    const crawlJobId: string | undefined = req.body.crawlJobId;
     if (crawlJobId && !mongoose.Types.ObjectId.isValid(crawlJobId)) {
       return res.status(400).json({ error: 'Invalid crawlJobId format' });
     }
@@ -92,7 +91,10 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
     sections.push({
       title: 'SEO Health Score',
       type: 'score_gauge',
-      data: { score: healthScore, label: `out of 100 — ${criticalIssues.length} critical, ${warningIssues.length} warnings` },
+      data: {
+        score: healthScore,
+        label: `out of 100 — ${criticalIssues.length} critical, ${warningIssues.length} warnings`,
+      },
     });
 
     // 2. Issue counts stat grid
@@ -107,7 +109,7 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
           ['Passed Checks', String(passedIssues.length)],
           ['Total Pages Crawled', String(crawlJob.pageCount)],
         ],
-        colorMap: { 'Count': criticalIssues.length > 5 ? '#dc2626' : '#16a34a' },
+        colorMap: { Count: criticalIssues.length > 5 ? '#dc2626' : '#16a34a' },
       },
     });
 
@@ -144,15 +146,18 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
     }
 
     // Fetch org branding for white-label report
-    const org = await Organization.findById(project.organizationId).select('name logoUrl primaryColor reportFooterText');
-    const whiteLabel = org?.logoUrl || org?.primaryColor || org?.reportFooterText
-      ? {
-          agencyName: org.name,
-          agencyLogoUrl: org.logoUrl ?? undefined,
-          primaryColor: org.primaryColor ?? undefined,
-          reportFooterText: org.reportFooterText ?? undefined,
-        }
-      : undefined;
+    const org = await Organization.findById(project.organizationId).select(
+      'name logoUrl primaryColor reportFooterText'
+    );
+    const whiteLabel =
+      org?.logoUrl || org?.primaryColor || org?.reportFooterText
+        ? {
+            agencyName: org.name,
+            agencyLogoUrl: org.logoUrl ?? undefined,
+            primaryColor: org.primaryColor ?? undefined,
+            reportFooterText: org.reportFooterText ?? undefined,
+          }
+        : undefined;
 
     // Build payload and render PDF
     const payload = buildReportPayload(
@@ -160,7 +165,7 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
       project.name,
       project.domain,
       sections,
-      whiteLabel,
+      whiteLabel
     );
 
     const html = generateReportHtml(payload);

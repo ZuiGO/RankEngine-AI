@@ -72,7 +72,7 @@ router.post(
       console.error('[AiVisibility] POST prompt error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
-  },
+  }
 );
 
 // GET /api/projects/:id/ai-visibility
@@ -93,11 +93,14 @@ router.get(
 
       const promptsWithSnapshots = await Promise.all(
         prompts.map(async (prompt) => {
-          const latestSnapshots: Record<string, {
-            mentioned: boolean;
-            mentionContext: string;
-            checkedAt: Date;
-          }> = {};
+          const latestSnapshots: Record<
+            string,
+            {
+              mentioned: boolean;
+              mentionContext: string;
+              checkedAt: Date;
+            }
+          > = {};
 
           for (const engine of engines) {
             const snap = await AiVisibilitySnapshot.findOne({
@@ -121,7 +124,7 @@ router.get(
             ...prompt,
             latestSnapshots,
           };
-        }),
+        })
       );
 
       // Rolling visibility score: % of (prompt × engine) combinations with mentioned=true
@@ -136,8 +139,7 @@ router.get(
           }
         }
       }
-      const visibilityScore =
-        totalChecks > 0 ? Math.round((totalMentions / totalChecks) * 100) : 0;
+      const visibilityScore = totalChecks > 0 ? Math.round((totalMentions / totalChecks) * 100) : 0;
 
       return res.json({
         prompts: promptsWithSnapshots,
@@ -149,7 +151,7 @@ router.get(
       console.error('[AiVisibility] GET error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
-  },
+  }
 );
 
 export default router;

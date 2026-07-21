@@ -41,6 +41,6 @@ DomainOverviewSnapshotSchema.index({ projectId: 1, date: 1 }, { unique: true });
 
 export const DomainOverviewSnapshot = model<IDomainOverviewSnapshot>(
   'DomainOverviewSnapshot',
-  DomainOverviewSnapshotSchema,
+  DomainOverviewSnapshotSchema
 );
 export default DomainOverviewSnapshot;

@@ -85,11 +85,16 @@ beforeEach(async () => {
   token = jwt.sign(
     { userId: testUser._id.toString(), role: testUser.role },
     process.env.JWT_SECRET!,
-    { expiresIn: '1h' },
+    { expiresIn: '1h' }
   );
 
   const org = await Organization.create({ name: 'Test Org', ownerId: testUser._id });
-  await Membership.create({ organizationId: org._id, userId: testUser._id, role: 'owner', joinedAt: new Date() });
+  await Membership.create({
+    organizationId: org._id,
+    userId: testUser._id,
+    role: 'owner',
+    joinedAt: new Date(),
+  });
 
   testProject = await Project.create({
     name: 'Test Project',
@@ -163,7 +168,12 @@ describe('Domain Overview — GET', () => {
       companyName: 'Other Co',
     });
     const otherOrg = await Organization.create({ name: 'Other Org', ownerId: otherUser._id });
-    await Membership.create({ organizationId: otherOrg._id, userId: otherUser._id, role: 'owner', joinedAt: new Date() });
+    await Membership.create({
+      organizationId: otherOrg._id,
+      userId: otherUser._id,
+      role: 'owner',
+      joinedAt: new Date(),
+    });
     const otherProject = await Project.create({
       name: 'Other',
       domain: 'other.com',

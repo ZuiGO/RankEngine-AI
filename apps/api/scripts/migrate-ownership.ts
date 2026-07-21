@@ -68,7 +68,10 @@ async function migrate() {
   }
 
   // Migrate projects that still have ownerId
-  const projectsWithOwnerId = await Project.find({ ownerId: { $exists: true }, organizationId: { $exists: false } }).lean();
+  const projectsWithOwnerId = await Project.find({
+    ownerId: { $exists: true },
+    organizationId: { $exists: false },
+  }).lean();
   console.log(`Found ${projectsWithOwnerId.length} projects with ownerId (no organizationId)`);
 
   for (const project of projectsWithOwnerId) {
@@ -87,14 +90,19 @@ async function migrate() {
   }
 
   // Also handle projects that might have BOTH fields (partial migration)
-  const projectsWithBoth = await Project.find({ ownerId: { $exists: true }, organizationId: { $exists: true } }).lean();
+  const projectsWithBoth = await Project.find({
+    ownerId: { $exists: true },
+    organizationId: { $exists: true },
+  }).lean();
   for (const project of projectsWithBoth) {
     await Project.findByIdAndUpdate(project._id, {
       $unset: { ownerId: '' },
     });
   }
   if (projectsWithBoth.length > 0) {
-    console.log(`Cleaned up ownerId from ${projectsWithBoth.length} already-partially-migrated projects`);
+    console.log(
+      `Cleaned up ownerId from ${projectsWithBoth.length} already-partially-migrated projects`
+    );
   }
 
   console.log(`\nMigration complete:`);

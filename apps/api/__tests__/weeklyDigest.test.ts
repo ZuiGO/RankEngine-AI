@@ -53,7 +53,12 @@ beforeAll(async () => {
 
   // Create personal org + membership
   const org = await Organization.create({ name: 'TestCo', ownerId: user._id });
-  await Membership.create({ organizationId: org._id, userId: user._id, role: 'owner', joinedAt: new Date() });
+  await Membership.create({
+    organizationId: org._id,
+    userId: user._id,
+    role: 'owner',
+    joinedAt: new Date(),
+  });
 });
 
 afterAll(async () => {
@@ -81,7 +86,7 @@ describe('Weekly Digest', () => {
   });
 
   it('should build correct digest from a week of mock activity', async () => {
-      const org = await Organization.findOne({ ownerId: userId });
+    const org = await Organization.findOne({ ownerId: userId });
     // Create a project
     const project = await Project.create({
       name: 'TestSite',

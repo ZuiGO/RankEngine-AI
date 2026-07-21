@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import cron from 'node-cron';
 import { User } from '../models/User';
-import { Organization } from '../models/Organization';
 import { Membership } from '../models/Membership';
 import { Project } from '../models/Project';
 import { CrawlJob } from '../models/CrawlJob';

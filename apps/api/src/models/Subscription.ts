@@ -16,7 +16,10 @@ export interface ISubscription extends Document {
   updatedAt: Date;
 }
 
-const PLAN_LIMITS: Record<SubscriptionPlan, { projects: number; keywords: number; seats: number; dataProviderMonthlyLimit: number }> = {
+const PLAN_LIMITS: Record<
+  SubscriptionPlan,
+  { projects: number; keywords: number; seats: number; dataProviderMonthlyLimit: number }
+> = {
   free: { projects: 1, keywords: 10, seats: 1, dataProviderMonthlyLimit: 100 },
   pro: { projects: 20, keywords: 200, seats: 5, dataProviderMonthlyLimit: 2000 },
   agency: { projects: 100, keywords: 1000, seats: 25, dataProviderMonthlyLimit: 10000 },
@@ -49,7 +52,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     canceledAt: { type: Date },
     seats: { type: Number, default: 1 },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export const Subscription = model<ISubscription>('Subscription', SubscriptionSchema);

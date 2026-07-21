@@ -130,13 +130,13 @@ describe('POST /api/billing/create-checkout-session', () => {
     expect(mockCreateOrRetrieveCustomer).toHaveBeenCalledWith(
       userId,
       'billing@rankengine.ai',
-      undefined,
+      undefined
     );
     expect(mockCreateCheckoutSession).toHaveBeenCalledWith(
       'cus_mock123',
       'pro',
       expect.stringContaining('success=1'),
-      expect.stringContaining('canceled=1'),
+      expect.stringContaining('canceled=1')
     );
 
     const user = await User.findById(userId);
@@ -159,7 +159,7 @@ describe('POST /api/billing/create-checkout-session', () => {
     expect(mockCreateOrRetrieveCustomer).toHaveBeenCalledWith(
       userId,
       'billing@rankengine.ai',
-      'cus_existing',
+      'cus_existing'
     );
 
     await User.findByIdAndUpdate(userId, { $unset: { stripeCustomerId: '' } });
@@ -168,9 +168,7 @@ describe('POST /api/billing/create-checkout-session', () => {
 
 describe('GET /api/billing/portal-session', () => {
   it('requires authentication', async () => {
-    const res = await request
-      .get('/api/billing/portal-session')
-      .expect(401);
+    const res = await request.get('/api/billing/portal-session').expect(401);
 
     expect(res.body.error).toBe('Unauthorized: No token provided');
   });
@@ -196,7 +194,7 @@ describe('GET /api/billing/portal-session', () => {
     expect(res.body.url).toBe('https://billing.stripe.com/session/mock');
     expect(mockCreatePortalSession).toHaveBeenCalledWith(
       'cus_portal_test',
-      expect.stringContaining('billing'),
+      expect.stringContaining('billing')
     );
   });
 });
@@ -204,9 +202,7 @@ describe('GET /api/billing/portal-session', () => {
 describe('POST /api/billing/webhook', () => {
   const sendWebhook = (payload: object, signature?: string) => {
     const body = Buffer.from(JSON.stringify(payload));
-    const req = request
-      .post('/api/billing/webhook')
-      .set('Content-Type', 'application/json');
+    const req = request.post('/api/billing/webhook').set('Content-Type', 'application/json');
     if (signature) {
       req.set('stripe-signature', signature);
     }
@@ -224,10 +220,7 @@ describe('POST /api/billing/webhook', () => {
       throw new Error('Invalid signature');
     });
 
-    const res = await sendWebhook(
-      { type: 'checkout.session.completed' },
-      'invalid_sig',
-    );
+    const res = await sendWebhook({ type: 'checkout.session.completed' }, 'invalid_sig');
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid signature');
   });
@@ -252,10 +245,7 @@ describe('POST /api/billing/webhook', () => {
         },
       });
 
-      const res = await sendWebhook(
-        { type: 'checkout.session.completed' },
-        'valid_sig',
-      );
+      const res = await sendWebhook({ type: 'checkout.session.completed' }, 'valid_sig');
       expect(res.status).toBe(200);
       expect(res.body.received).toBe(true);
 
@@ -293,10 +283,7 @@ describe('POST /api/billing/webhook', () => {
         status: 'past_due',
       });
 
-      const res = await sendWebhook(
-        { type: 'customer.subscription.updated' },
-        'valid_sig',
-      );
+      const res = await sendWebhook({ type: 'customer.subscription.updated' }, 'valid_sig');
       expect(res.status).toBe(200);
 
       const user = await User.findById(userId);
@@ -333,10 +320,7 @@ describe('POST /api/billing/webhook', () => {
         status: 'canceled',
       });
 
-      const res = await sendWebhook(
-        { type: 'customer.subscription.deleted' },
-        'valid_sig',
-      );
+      const res = await sendWebhook({ type: 'customer.subscription.deleted' }, 'valid_sig');
       expect(res.status).toBe(200);
 
       const user = await User.findById(userId);
@@ -353,10 +337,7 @@ describe('POST /api/billing/webhook', () => {
       data: { object: { id: 'in_mock' } },
     });
 
-    const res = await sendWebhook(
-      { type: 'invoice.payment_succeeded' },
-      'valid_sig',
-    );
+    const res = await sendWebhook({ type: 'invoice.payment_succeeded' }, 'valid_sig');
     expect(res.status).toBe(200);
     expect(res.body.received).toBe(true);
   });

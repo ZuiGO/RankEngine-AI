@@ -38,7 +38,7 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
             planId,
             subscriptionStatus: 'active',
             dataProviderMonthlyLimit: plan.dataProviderMonthlyLimit,
-          },
+          }
         );
 
         await Subscription.findOneAndUpdate(
@@ -49,7 +49,7 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscriptionId,
           },
-          { upsert: true },
+          { upsert: true }
         );
 
         console.log(`[Webhook] checkout.session.completed: customer=${customerId}, plan=${planId}`);
@@ -70,20 +70,19 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
           updateFields.subscriptionStatus = 'past_due';
         }
 
-        await User.findOneAndUpdate(
-          { stripeCustomerId: meta.customerId },
-          updateFields,
-        );
+        await User.findOneAndUpdate({ stripeCustomerId: meta.customerId }, updateFields);
 
         await Subscription.findOneAndUpdate(
           { stripeCustomerId: meta.customerId },
           {
             plan: meta.planId as any,
             status: meta.status as string,
-          },
+          }
         );
 
-        console.log(`[Webhook] customer.subscription.updated: customer=${meta.customerId}, status=${meta.status}`);
+        console.log(
+          `[Webhook] customer.subscription.updated: customer=${meta.customerId}, status=${meta.status}`
+        );
         break;
       }
 
@@ -98,7 +97,7 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
             planId: 'free',
             subscriptionStatus: 'canceled',
             dataProviderMonthlyLimit: freePlan.dataProviderMonthlyLimit,
-          },
+          }
         );
 
         await Subscription.findOneAndUpdate(
@@ -107,7 +106,7 @@ export async function handleWebhook(req: Request, res: Response): Promise<void> 
             plan: 'free',
             status: 'canceled',
             stripeSubscriptionId: null,
-          },
+          }
         );
 
         console.log(`[Webhook] customer.subscription.deleted: customer=${meta.customerId}`);

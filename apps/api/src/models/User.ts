@@ -2,7 +2,8 @@ import { Schema, model, Document } from 'mongoose';
 import { getPlanConfig } from '../config/plans';
 
 export type UserRole = 'agency_owner' | 'marketer' | 'developer';
-export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid';
+export type SubscriptionStatus =
+  'active' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid';
 
 export interface IUser extends Document {
   email: string;
@@ -74,7 +75,15 @@ const UserSchema = new Schema<IUser>({
   planId: { type: String, default: 'free' },
   subscriptionStatus: {
     type: String,
-    enum: ['active', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'trialing', 'unpaid'],
+    enum: [
+      'active',
+      'past_due',
+      'canceled',
+      'incomplete',
+      'incomplete_expired',
+      'trialing',
+      'unpaid',
+    ],
     default: 'active',
   },
 });

@@ -93,7 +93,12 @@ beforeEach(async () => {
   );
 
   const org = await Organization.create({ name: 'Test Org', ownerId: testUser._id });
-  await Membership.create({ organizationId: org._id, userId: testUser._id, role: 'owner', joinedAt: new Date() });
+  await Membership.create({
+    organizationId: org._id,
+    userId: testUser._id,
+    role: 'owner',
+    joinedAt: new Date(),
+  });
 
   testProject = await Project.create({
     name: 'Test Project',
@@ -175,7 +180,12 @@ describe('Backlinks — toxic flag', () => {
     });
 
     const otherOrg = await Organization.create({ name: 'Other Org', ownerId: otherUser._id });
-    await Membership.create({ organizationId: otherOrg._id, userId: otherUser._id, role: 'owner', joinedAt: new Date() });
+    await Membership.create({
+      organizationId: otherOrg._id,
+      userId: otherUser._id,
+      role: 'owner',
+      joinedAt: new Date(),
+    });
 
     const otherProject = await Project.create({
       name: 'Other Project',

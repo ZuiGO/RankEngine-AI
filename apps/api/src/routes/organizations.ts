@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
-import multer from 'multer';
+import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import requireAuth from '../middleware/requireAuth';
 import { requirePlan } from '../middleware/requirePlan';
@@ -13,7 +13,7 @@ import { User } from '../models/User';
 import { getEmailService } from '../services/emailService';
 import { saveFile, getFileUrl, generateFilename } from '../services/storageService';
 import config from '../config';
-import { getPlanConfig, PLANS } from '../config/plans';
+import { getPlanConfig } from '../config/plans';
 
 const router = Router();
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
@@ -27,7 +27,11 @@ async function getOrg(orgId: string) {
   return Organization.findById(orgId);
 }
 
-async function requireOrgAccess(orgId: string, userId: string, allowedRoles: string[] = ['owner', 'admin']) {
+async function requireOrgAccess(
+  orgId: string,
+  userId: string,
+  allowedRoles: string[] = ['owner', 'admin']
+) {
   const membership = await Membership.findOne({ organizationId: orgId, userId });
   if (!membership || !allowedRoles.includes(membership.role)) return null;
   return membership;
@@ -48,7 +52,10 @@ async function countAcceptedMembers(orgId: string): Promise<number> {
  * POST /api/organizations/:orgId/invites — invite a teammate by email
  */
 const inviteSchema = z.object({
-  email: z.string().email().transform((e) => e.toLowerCase().trim()),
+  email: z
+    .string()
+    .email()
+    .transform((e) => e.toLowerCase().trim()),
   role: z.enum(['admin', 'member']).default('member'),
 });
 
@@ -61,7 +68,9 @@ router.post('/:orgId/invites', requireAuth, async (req: Request, res: Response) 
 
     const callerMembership = await requireOrgAccess(req.params.orgId, req.user.userId);
     if (!callerMembership) {
-      return res.status(403).json({ error: 'Forbidden: Only organization owners and admins can invite members' });
+      return res
+        .status(403)
+        .json({ error: 'Forbidden: Only organization owners and admins can invite members' });
     }
 
     const validation = inviteSchema.safeParse(req.body);
@@ -89,7 +98,9 @@ router.post('/:orgId/invites', requireAuth, async (req: Request, res: Response) 
       status: 'pending',
     });
     if (currentMembers + pendingCount >= plan.teamSeats) {
-      return res.status(403).json({ error: `Team seat limit reached for the ${plan.name} plan (${plan.teamSeats} seats). Upgrade to add more members.` });
+      return res.status(403).json({
+        error: `Team seat limit reached for the ${plan.name} plan (${plan.teamSeats} seats). Upgrade to add more members.`,
+      });
     }
 
     // Check for existing pending invite for this email in this org
@@ -118,7 +129,7 @@ router.post('/:orgId/invites', requireAuth, async (req: Request, res: Response) 
     const token = crypto.randomBytes(24).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    const invite = await TeamInvite.create({
+    await TeamInvite.create({
       organizationId: new mongoose.Types.ObjectId(req.params.orgId),
       invitedBy: new mongoose.Types.ObjectId(req.user.userId),
       email,
@@ -161,7 +172,7 @@ router.post('/:orgId/invites', requireAuth, async (req: Request, res: Response) 
         `This invitation expires in 7 days.`,
         ``,
         `— RankEngine AI Team`,
-      ].join('\n'),
+      ].join('\n')
     );
 
     return res.status(201).json({
@@ -199,7 +210,9 @@ router.post('/invites/:token/accept', requireAuth, async (req: Request, res: Res
     // Verify the authenticated user matches the invited email
     const user = await User.findById(req.user.userId);
     if (!user || user.email.toLowerCase() !== invite.email) {
-      return res.status(403).json({ error: 'This invitation was sent to a different email address' });
+      return res
+        .status(403)
+        .json({ error: 'This invitation was sent to a different email address' });
     }
 
     // Upsert membership — handles both pre-created (user existed at invite time)
@@ -213,7 +226,7 @@ router.post('/invites/:token/accept', requireAuth, async (req: Request, res: Res
         joinedAt: new Date(),
         $setOnInsert: { invitedAt: new Date() },
       },
-      { upsert: true, new: true },
+      { upsert: true, new: true }
     );
 
     invite.status = 'accepted';
@@ -246,7 +259,9 @@ router.get('/:orgId/members', requireAuth, async (req: Request, res: Response) =
 
     const callerMembership = await requireOrgAccess(req.params.orgId, req.user.userId);
     if (!callerMembership) {
-      return res.status(403).json({ error: 'Forbidden: Only organization members can view team members' });
+      return res
+        .status(403)
+        .json({ error: 'Forbidden: Only organization members can view team members' });
     }
 
     // Fetch members with user data
@@ -299,7 +314,9 @@ router.delete('/:orgId/members/:userId', requireAuth, async (req: Request, res: 
 
     const callerMembership = await requireOrgAccess(req.params.orgId, req.user.userId);
     if (!callerMembership) {
-      return res.status(403).json({ error: 'Forbidden: Only owners and admins can remove members' });
+      return res
+        .status(403)
+        .json({ error: 'Forbidden: Only owners and admins can remove members' });
     }
 
     if (!isValidObjectId(req.params.userId)) {
@@ -331,8 +348,12 @@ router.delete('/:orgId/members/:userId', requireAuth, async (req: Request, res: 
     const user = await User.findById(req.params.userId);
     if (user) {
       await TeamInvite.updateMany(
-        { organizationId: new mongoose.Types.ObjectId(req.params.orgId), email: user.email, status: 'pending' },
-        { status: 'expired' },
+        {
+          organizationId: new mongoose.Types.ObjectId(req.params.orgId),
+          email: user.email,
+          status: 'pending',
+        },
+        { status: 'expired' }
       );
     }
 
@@ -399,7 +420,7 @@ router.get('/:orgId', requireAuth, async (req: Request, res: Response) => {
 const logoUpload = multer({
   dest: path.resolve(config.STORAGE_PATH),
   limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
@@ -431,7 +452,9 @@ router.post(
 
       const membership = await requireOrgAccess(req.params.orgId, req.user.userId);
       if (!membership) {
-        return res.status(403).json({ error: 'Forbidden: Only owners and admins can update branding' });
+        return res
+          .status(403)
+          .json({ error: 'Forbidden: Only owners and admins can update branding' });
       }
 
       const update: Record<string, string | undefined> = {};
@@ -439,12 +462,13 @@ router.post(
       // Handle logo file upload
       if (req.file) {
         const filename = generateFilename(req.file.originalname);
-        const savedPath = saveFile(
-          require('fs').readFileSync(req.file.path),
-          filename,
-        );
+        const savedPath = saveFile(require('fs').readFileSync(req.file.path), filename);
         // Clean up multer's temp file
-        try { require('fs').unlinkSync(req.file.path); } catch { /* ignore */ }
+        try {
+          require('fs').unlinkSync(req.file.path);
+        } catch {
+          /* ignore */
+        }
         update.logoUrl = getFileUrl(savedPath);
       }
 
@@ -454,7 +478,9 @@ router.post(
         if (color === '') {
           update.primaryColor = '';
         } else if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
-          return res.status(400).json({ error: 'primaryColor must be a valid hex color (e.g. #4f46e5)' });
+          return res
+            .status(400)
+            .json({ error: 'primaryColor must be a valid hex color (e.g. #4f46e5)' });
         } else {
           update.primaryColor = color;
         }
@@ -464,7 +490,9 @@ router.post(
       if (req.body.reportFooterText !== undefined) {
         const text = String(req.body.reportFooterText).trim();
         if (text.length > 500) {
-          return res.status(400).json({ error: 'reportFooterText must be 500 characters or fewer' });
+          return res
+            .status(400)
+            .json({ error: 'reportFooterText must be 500 characters or fewer' });
         }
         update.reportFooterText = text;
       }
@@ -476,7 +504,7 @@ router.post(
       const updated = await Organization.findByIdAndUpdate(
         req.params.orgId,
         { $set: update },
-        { new: true },
+        { new: true }
       ).select('name logoUrl primaryColor reportFooterText');
 
       return res.json({ message: 'Branding updated', organization: updated });
@@ -487,7 +515,7 @@ router.post(
       console.error('[Organizations] Branding error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
-  },
+  }
 );
 
 export default router;

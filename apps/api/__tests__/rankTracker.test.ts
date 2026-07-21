@@ -51,7 +51,10 @@ describe('Rank Tracker Scheduled Job', () => {
     await Organization.deleteMany({});
     await Membership.deleteMany({});
 
-    const org = await Organization.create({ name: 'Rank Test Org', ownerId: new mongoose.Types.ObjectId() });
+    const org = await Organization.create({
+      name: 'Rank Test Org',
+      ownerId: new mongoose.Types.ObjectId(),
+    });
 
     project1 = new Project({
       name: 'Search Tech Project',

@@ -23,9 +23,7 @@ export function requirePlan(...requiredFeatures: PlanFeature[]) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const user = await User.findById(req.user.userId).select(
-        'planId subscriptionStatus',
-      );
+      const user = await User.findById(req.user.userId).select('planId subscriptionStatus');
 
       if (!user) {
         return res.status(401).json({ error: 'User not found' });

@@ -179,7 +179,10 @@ describe('Caching', () => {
       domain: 'example.com',
       organicTrafficEstimate: 50000,
       organicKeywordCount: 1000,
-      topKeywords: [{ keyword: 'example seo', searchVolume: 1200, position: 3 }, { keyword: 'example marketing', searchVolume: 800, position: 5 }],
+      topKeywords: [
+        { keyword: 'example seo', searchVolume: 1200, position: 3 },
+        { keyword: 'example marketing', searchVolume: 800, position: 5 },
+      ],
       cachedAt: new Date(),
     });
 
