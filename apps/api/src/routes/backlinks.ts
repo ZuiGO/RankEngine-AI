@@ -20,10 +20,29 @@ const isCacheFresh = (cachedAt: Date, ttlMs: number): boolean =>
 const CACHE_TTL_SNAPSHOT = 3 * 24 * 60 * 60 * 1000;
 
 const SPAM_ANCHOR_PATTERNS = [
-  'casino', 'gambling', 'bet', 'poker', 'slot', 'pharmacy', 'pharma',
-  'viagra', 'cialis', 'levitra', 'adult', 'porn', 'xxx', 'escort',
-  'payday loan', 'quick cash', 'debt consolidation', 'free money',
-  'work from home', 'make money fast', 'click here', 'buy now', 'cheap',
+  'casino',
+  'gambling',
+  'bet',
+  'poker',
+  'slot',
+  'pharmacy',
+  'pharma',
+  'viagra',
+  'cialis',
+  'levitra',
+  'adult',
+  'porn',
+  'xxx',
+  'escort',
+  'payday loan',
+  'quick cash',
+  'debt consolidation',
+  'free money',
+  'work from home',
+  'make money fast',
+  'click here',
+  'buy now',
+  'cheap',
 ];
 
 const SPAM_SCORE_THRESHOLD = 60;

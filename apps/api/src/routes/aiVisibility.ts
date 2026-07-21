@@ -67,7 +67,10 @@ router.get('/:id/ai-visibility', async (req: Request, res: Response) => {
 
     const promptsWithSnapshots = await Promise.all(
       prompts.map(async (prompt) => {
-        const latestSnapshots: Record<string, { mentioned: boolean; mentionContext: string; checkedAt: Date }> = {};
+        const latestSnapshots: Record<
+          string,
+          { mentioned: boolean; mentionContext: string; checkedAt: Date }
+        > = {};
 
         for (const engine of engines) {
           const snap = await AiVisibilitySnapshot.findOne({

@@ -49,13 +49,6 @@ export class DataProviderQuotaError extends Error {
   }
 }
 
-const CACHE_TTL: Record<string, number> = {
-  keyword: 7 * 24 * 60 * 60 * 1000,
-  ideas: 7 * 24 * 60 * 60 * 1000,
-  backlink: 3 * 24 * 60 * 60 * 1000,
-  domainOverview: 3 * 24 * 60 * 60 * 1000,
-};
-
 const DATAFORSEO_BASE = 'https://api.dataforseo.com';
 
 export interface IDataProvider {
@@ -78,8 +71,11 @@ export class MockDataProvider implements IDataProvider {
         Math.floor(Math.random() * 4)
       ],
       relatedKeywords: [
-        `${kw} guide`, `${kw} tools`, `best ${kw}`,
-        `${kw} software`, `${kw} examples`,
+        `${kw} guide`,
+        `${kw} tools`,
+        `best ${kw}`,
+        `${kw} software`,
+        `${kw} examples`,
       ],
     }));
   }
@@ -87,11 +83,36 @@ export class MockDataProvider implements IDataProvider {
   async fetchKeywordIdeas(keyword: string, _locationCode?: string): Promise<KeywordData[]> {
     const ideas: KeywordData[] = [];
     const modifiers = [
-      'guide', 'tools', 'software', 'examples', 'best', 'top', 'review',
-      'pricing', 'vs', 'benefits', 'strategies', 'tips', 'trends', 'services',
-      'platforms', 'case study', 'checklist', 'analytics', 'automation',
-      'optimization', 'comparison', 'tutorial', 'course', 'certification',
-      'community', 'agency', 'consultant', 'jobs', 'interview questions', 'for beginners',
+      'guide',
+      'tools',
+      'software',
+      'examples',
+      'best',
+      'top',
+      'review',
+      'pricing',
+      'vs',
+      'benefits',
+      'strategies',
+      'tips',
+      'trends',
+      'services',
+      'platforms',
+      'case study',
+      'checklist',
+      'analytics',
+      'automation',
+      'optimization',
+      'comparison',
+      'tutorial',
+      'course',
+      'certification',
+      'community',
+      'agency',
+      'consultant',
+      'jobs',
+      'interview questions',
+      'for beginners',
     ];
     for (const mod of modifiers) {
       ideas.push({
@@ -117,7 +138,11 @@ export class MockDataProvider implements IDataProvider {
     };
   }
 
-  async fetchBacklinkList(domain: string, limit: number, offset: number = 0): Promise<BacklinkItem[]> {
+  async fetchBacklinkList(
+    domain: string,
+    limit: number,
+    offset: number = 0
+  ): Promise<BacklinkItem[]> {
     const count = Math.min(limit, 20);
     return Array.from({ length: count }, (_, i) => ({
       sourceUrl: `https://referrer-${offset + i + 1}.com/article`,
@@ -147,11 +172,31 @@ export class MockDataProvider implements IDataProvider {
       organicTrafficEstimate: Math.floor(Math.random() * 100000) + 1000,
       organicKeywordCount: Math.floor(Math.random() * 10000) + 100,
       topKeywords: [
-        { keyword: `${base} seo`, searchVolume: Math.floor(Math.random() * 5000) + 200, position: Math.floor(Math.random() * 20) + 1 },
-        { keyword: `${base} marketing`, searchVolume: Math.floor(Math.random() * 4000) + 150, position: Math.floor(Math.random() * 20) + 1 },
-        { keyword: `best ${base} tools`, searchVolume: Math.floor(Math.random() * 3000) + 100, position: Math.floor(Math.random() * 30) + 1 },
-        { keyword: `${base} pricing`, searchVolume: Math.floor(Math.random() * 2000) + 50, position: Math.floor(Math.random() * 40) + 1 },
-        { keyword: `${base} vs`, searchVolume: Math.floor(Math.random() * 1500) + 30, position: Math.floor(Math.random() * 50) + 1 },
+        {
+          keyword: `${base} seo`,
+          searchVolume: Math.floor(Math.random() * 5000) + 200,
+          position: Math.floor(Math.random() * 20) + 1,
+        },
+        {
+          keyword: `${base} marketing`,
+          searchVolume: Math.floor(Math.random() * 4000) + 150,
+          position: Math.floor(Math.random() * 20) + 1,
+        },
+        {
+          keyword: `best ${base} tools`,
+          searchVolume: Math.floor(Math.random() * 3000) + 100,
+          position: Math.floor(Math.random() * 30) + 1,
+        },
+        {
+          keyword: `${base} pricing`,
+          searchVolume: Math.floor(Math.random() * 2000) + 50,
+          position: Math.floor(Math.random() * 40) + 1,
+        },
+        {
+          keyword: `${base} vs`,
+          searchVolume: Math.floor(Math.random() * 1500) + 30,
+          position: Math.floor(Math.random() * 50) + 1,
+        },
       ],
     };
   }
@@ -167,8 +212,12 @@ export class DataForSEOProvider implements IDataProvider {
   private async post<T>(path: string, body: unknown[]): Promise<T> {
     type DataForSEOTask = { result: T[]; error?: { message: string; code: number } };
     const response = await axios.post<{ tasks: DataForSEOTask[] }>(
-      `${DATAFORSEO_BASE}${path}`, body,
-      { headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' }, timeout: 30000 }
+      `${DATAFORSEO_BASE}${path}`,
+      body,
+      {
+        headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' },
+        timeout: 30000,
+      }
     );
     const task = response.data.tasks?.[0];
     if (!task || task.error) {
@@ -184,10 +233,23 @@ export class DataForSEOProvider implements IDataProvider {
       location_code: locationCode ? Number(locationCode) : 2840,
       language_code: 'en',
     }));
-    const response = await axios.post<{ tasks: { result: { items: { keyword: string; search_volume: number; competition: number; cpc: number; keyword_intent: string; keyword_properties: { intent?: string } }[] }[] }[] }>(
-      `${DATAFORSEO_BASE}/v3/keywords_data/google_ads/search_volume/live`, tasks,
-      { headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' }, timeout: 30000 }
-    );
+    const response = await axios.post<{
+      tasks: {
+        result: {
+          items: {
+            keyword: string;
+            search_volume: number;
+            competition: number;
+            cpc: number;
+            keyword_intent: string;
+            keyword_properties: { intent?: string };
+          }[];
+        }[];
+      }[];
+    }>(`${DATAFORSEO_BASE}/v3/keywords_data/google_ads/search_volume/live`, tasks, {
+      headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' },
+      timeout: 30000,
+    });
     const result = response.data.tasks?.[0]?.result?.[0];
     if (!result) throw new Error('DataForSEO keyword data returned no result');
     return result.items.map((item) => ({
@@ -201,10 +263,34 @@ export class DataForSEOProvider implements IDataProvider {
   }
 
   async fetchKeywordIdeas(keyword: string, locationCode?: string): Promise<KeywordData[]> {
-    const response = await axios.post<{ tasks: { result: { items: { keyword: string; search_volume: number; competition: number; cpc: number; keyword_intent: string; keyword_properties: { intent?: string } }[] }[] }[] }>(
+    const response = await axios.post<{
+      tasks: {
+        result: {
+          items: {
+            keyword: string;
+            search_volume: number;
+            competition: number;
+            cpc: number;
+            keyword_intent: string;
+            keyword_properties: { intent?: string };
+          }[];
+        }[];
+      }[];
+    }>(
       `${DATAFORSEO_BASE}/v3/dataforseo_labs/google/keyword_ideas/live`,
-      [{ keyword, location_code: locationCode ? Number(locationCode) : 2840, language_code: 'en', include_serp_info: false, limit: 30 }],
-      { headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' }, timeout: 30000 }
+      [
+        {
+          keyword,
+          location_code: locationCode ? Number(locationCode) : 2840,
+          language_code: 'en',
+          include_serp_info: false,
+          limit: 30,
+        },
+      ],
+      {
+        headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' },
+        timeout: 30000,
+      }
     );
     const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
     return items.map((item) => ({
@@ -218,9 +304,11 @@ export class DataForSEOProvider implements IDataProvider {
   }
 
   async fetchBacklinkOverview(domain: string): Promise<BacklinkOverview> {
-    const result = await this.post<{ total_backlinks: number; referring_domains: number; domain_rating: number }>(
-      '/v3/backlinks/summary/live', [{ target: domain, include_subdomains: false }]
-    );
+    const result = await this.post<{
+      total_backlinks: number;
+      referring_domains: number;
+      domain_rating: number;
+    }>('/v3/backlinks/summary/live', [{ target: domain, include_subdomains: false }]);
     return {
       totalBacklinks: result.total_backlinks ?? 0,
       referringDomains: result.referring_domains ?? 0,
@@ -228,11 +316,27 @@ export class DataForSEOProvider implements IDataProvider {
     };
   }
 
-  async fetchBacklinkList(domain: string, limit: number, offset: number = 0): Promise<BacklinkItem[]> {
-    const response = await axios.post<{ tasks: { result: { items: { source_url: string; target_url: string; anchor_text: string; first_seen: string; spam_score: number }[] }[] }[] }>(
-      `${DATAFORSEO_BASE}/v3/backlinks/backlinks/live`, [{ target: domain, limit, offset }],
-      { headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' }, timeout: 30000 }
-    );
+  async fetchBacklinkList(
+    domain: string,
+    limit: number,
+    offset: number = 0
+  ): Promise<BacklinkItem[]> {
+    const response = await axios.post<{
+      tasks: {
+        result: {
+          items: {
+            source_url: string;
+            target_url: string;
+            anchor_text: string;
+            first_seen: string;
+            spam_score: number;
+          }[];
+        }[];
+      }[];
+    }>(`${DATAFORSEO_BASE}/v3/backlinks/backlinks/live`, [{ target: domain, limit, offset }], {
+      headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' },
+      timeout: 30000,
+    });
     const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
     return items.map((item) => ({
       sourceUrl: item.source_url ?? '',
@@ -244,10 +348,16 @@ export class DataForSEOProvider implements IDataProvider {
   }
 
   async fetchDomainOverview(domain: string): Promise<DomainOverview> {
-    const result = await this.post<{ organic_traffic_estimate: number; organic_keywords_count: number; top_keywords: { keyword: string; keyword_data?: { keyword_info?: { search_volume?: number }; avg_position?: number } }[] }>(
-      '/v3/dataforseo_labs/google/domain_overview/live',
-      [{ target: domain, location_code: 2840, language_code: 'en' }]
-    );
+    const result = await this.post<{
+      organic_traffic_estimate: number;
+      organic_keywords_count: number;
+      top_keywords: {
+        keyword: string;
+        keyword_data?: { keyword_info?: { search_volume?: number }; avg_position?: number };
+      }[];
+    }>('/v3/dataforseo_labs/google/domain_overview/live', [
+      { target: domain, location_code: 2840, language_code: 'en' },
+    ]);
     return {
       organicTrafficEstimate: result.organic_traffic_estimate ?? 0,
       organicKeywordCount: result.organic_keywords_count ?? 0,
@@ -263,7 +373,10 @@ export class DataForSEOProvider implements IDataProvider {
     const response = await axios.post<{ tasks: { result: { items: { domain: string }[] }[] }[] }>(
       `${DATAFORSEO_BASE}/v3/backlinks/referring_domains/live`,
       [{ target: domain, limit: 1000 }],
-      { headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' }, timeout: 30000 }
+      {
+        headers: { Authorization: this.authHeader, 'Content-Type': 'application/json' },
+        timeout: 30000,
+      }
     );
     const items = response.data.tasks?.[0]?.result?.[0]?.items ?? [];
     return items.map((item) => item.domain).filter(Boolean);
@@ -308,9 +421,16 @@ export const getKeywordData = async (
   await KeywordDataCache.findOneAndUpdate(
     { cacheKey, dateBucket },
     {
-      cacheKey, dateBucket, keyword: keyword.toLowerCase().trim(), locationCode: loc,
-      searchVolume: data.searchVolume, difficulty: data.difficulty, cpc: data.cpc,
-      intent: data.intent, relatedKeywords: data.relatedKeywords, cachedAt: now,
+      cacheKey,
+      dateBucket,
+      keyword: keyword.toLowerCase().trim(),
+      locationCode: loc,
+      searchVolume: data.searchVolume,
+      difficulty: data.difficulty,
+      cpc: data.cpc,
+      intent: data.intent,
+      relatedKeywords: data.relatedKeywords,
+      cachedAt: now,
     },
     { upsert: true, new: true }
   );
@@ -338,9 +458,16 @@ export const getKeywordIdeas = async (
   await KeywordDataCache.findOneAndUpdate(
     { cacheKey, dateBucket },
     {
-      cacheKey, dateBucket, keyword: keyword.toLowerCase().trim(), locationCode: loc,
-      searchVolume: 0, difficulty: 0, cpc: 0, intent: '',
-      relatedKeywords: [JSON.stringify(data)], cachedAt: now,
+      cacheKey,
+      dateBucket,
+      keyword: keyword.toLowerCase().trim(),
+      locationCode: loc,
+      searchVolume: 0,
+      difficulty: 0,
+      cpc: 0,
+      intent: '',
+      relatedKeywords: [JSON.stringify(data)],
+      cachedAt: now,
     },
     { upsert: true, new: true }
   );
@@ -368,9 +495,13 @@ export const getBacklinkOverview = async (domain: string): Promise<BacklinkOverv
   await BacklinkDataCache.findOneAndUpdate(
     { cacheKey, dateBucket },
     {
-      cacheKey, dateBucket, domain: domain.toLowerCase().trim(),
-      totalBacklinks: data.totalBacklinks, referringDomains: data.referringDomains,
-      domainRating: data.domainRating, cachedAt: now,
+      cacheKey,
+      dateBucket,
+      domain: domain.toLowerCase().trim(),
+      totalBacklinks: data.totalBacklinks,
+      referringDomains: data.referringDomains,
+      domainRating: data.domainRating,
+      cachedAt: now,
     },
     { upsert: true, new: true }
   );
@@ -379,7 +510,9 @@ export const getBacklinkOverview = async (domain: string): Promise<BacklinkOverv
 };
 
 export const getBacklinkList = async (
-  domain: string, limit: number = 100, offset: number = 0
+  domain: string,
+  limit: number = 100,
+  offset: number = 0
 ): Promise<BacklinkItem[]> => {
   const provider = getDataProvider();
   return provider.fetchBacklinkList(domain, limit, offset);
@@ -410,10 +543,13 @@ export const getDomainOverview = async (domain: string): Promise<DomainOverview>
   await DomainOverviewCache.findOneAndUpdate(
     { cacheKey, dateBucket },
     {
-      cacheKey, dateBucket, domain: domain.toLowerCase().trim(),
+      cacheKey,
+      dateBucket,
+      domain: domain.toLowerCase().trim(),
       organicTrafficEstimate: data.organicTrafficEstimate,
       organicKeywordCount: data.organicKeywordCount,
-      topKeywords: data.topKeywords, cachedAt: now,
+      topKeywords: data.topKeywords,
+      cachedAt: now,
     },
     { upsert: true, new: true }
   );

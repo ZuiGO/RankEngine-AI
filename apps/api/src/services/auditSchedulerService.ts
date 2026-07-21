@@ -70,7 +70,9 @@ export const monitorCompletedAudits = async (): Promise<void> => {
         });
         await notification.save();
 
-        console.log(`[AuditScheduler]: Notification created for project ${project._id}: ${message}`);
+        console.log(
+          `[AuditScheduler]: Notification created for project ${project._id}: ${message}`
+        );
       }
     } catch (err) {
       console.error(`[AuditScheduler]: Error processing completed job ${job._id}:`, err);

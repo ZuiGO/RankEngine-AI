@@ -121,24 +121,20 @@ router.post('/serp-analysis', async (req: Request, res: Response) => {
 import { rateLimiter } from '../middleware/rateLimiter';
 import { gradeContent } from '../services/graderService';
 
-router.post(
-  '/grade',
-  rateLimiter(10, 1000),
-  async (req: Request, res: Response) => {
-    try {
-      const { text, targetKeyword, sharedEntities } = req.body;
+router.post('/grade', rateLimiter(10, 1000), async (req: Request, res: Response) => {
+  try {
+    const { text, targetKeyword, sharedEntities } = req.body;
 
-      if (typeof text !== 'string') {
-        return res.status(400).json({ error: 'Text content must be a valid string' });
-      }
-
-      const gradeResult = gradeContent(text, targetKeyword, sharedEntities);
-      return res.json(gradeResult);
-    } catch (error) {
-      console.error('Content grading failed:', error);
-      return res.status(500).json({ error: 'Internal server error during content grading' });
+    if (typeof text !== 'string') {
+      return res.status(400).json({ error: 'Text content must be a valid string' });
     }
+
+    const gradeResult = gradeContent(text, targetKeyword, sharedEntities);
+    return res.json(gradeResult);
+  } catch (error) {
+    console.error('Content grading failed:', error);
+    return res.status(500).json({ error: 'Internal server error during content grading' });
   }
-);
+});
 
 export default router;

@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { CrawlJob } from '../models/CrawlJob';
-import { Project } from '../models/Project';
 import { AuditIssue } from '../models/AuditIssue';
 
 const router = Router();
@@ -116,7 +115,14 @@ router.get('/:id/checklist', async (req: Request, res: Response) => {
     // Schema audit issues section (separate from severity groups)
     const schema = issues.filter((i) => i.category === 'schema');
 
-    return res.json({ checklist, schema, total, page, limit, totalPages: Math.ceil(total / limit) });
+    return res.json({
+      checklist,
+      schema,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     console.error('Get crawl job checklist error:', error);
     return res.status(500).json({ error: 'Internal server error' });

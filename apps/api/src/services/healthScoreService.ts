@@ -36,11 +36,7 @@ export const computeAndStoreHealthScore = async (
   const warningCount = issues.filter((i) => i.severity === 'warning').length;
   const healthScore = computeHealthScore(criticalCount, warningCount);
 
-  const currentJob = await CrawlJob.findByIdAndUpdate(
-    crawlJobId,
-    { healthScore },
-    { new: true }
-  );
+  const currentJob = await CrawlJob.findByIdAndUpdate(crawlJobId, { healthScore }, { new: true });
 
   let previousHealthScore: number | null = null;
 

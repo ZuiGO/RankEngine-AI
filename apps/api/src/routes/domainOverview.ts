@@ -101,7 +101,13 @@ router.post('/:id/domain-overview/compare', async (req: Request, res: Response) 
           return { domain, ...data, error: null };
         } catch (err) {
           const message = err instanceof Error ? err.message : 'Unknown error';
-          return { domain, organicTrafficEstimate: 0, organicKeywordCount: 0, topKeywords: [], error: message };
+          return {
+            domain,
+            organicTrafficEstimate: 0,
+            organicKeywordCount: 0,
+            topKeywords: [],
+            error: message,
+          };
         }
       })
     );
