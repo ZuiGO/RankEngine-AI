@@ -25,6 +25,17 @@
   --color-surface-900: #0f172a;
   --color-surface-950: #020617;
 
+  --color-app-base: #0B0E14;
+  --color-app-surface: #12161F;
+  --color-app-surface-raised: #171C28;
+  --color-app-border: #232838;
+  --color-app-signal: #33D6C0;
+  --color-app-citation: #F5A623;
+  --color-app-text: #E8EAF0;
+  --color-app-text-muted: #8890A6;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
   --color-success: #34d399;
   --color-warning: #fbbf24;
   --color-danger: #f43f5e;
@@ -60,4 +71,74 @@
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
+}
+
+/* ── Scan-reveal (signature animation) ───────────────────── */
+
+@keyframes scan-reveal {
+  0%   { filter: grayscale(0.85) brightness(0.45); }
+  20%  { filter: grayscale(0.6)  brightness(0.65); }
+  45%  { filter: grayscale(0.3)  brightness(0.85); }
+  70%  { filter: grayscale(0.1)  brightness(0.95); }
+  100% { filter: grayscale(0)    brightness(1); }
+}
+
+@keyframes scan-sweep {
+  0%   { transform: translateX(-120%); opacity: 0.95; }
+  75%  { opacity: 0.6; }
+  100% { transform: translateX(250%);  opacity: 0; }
+}
+
+@keyframes scan-fade-in {
+  0%   { opacity: 0; filter: grayscale(0.85) brightness(0.45); }
+  100% { opacity: 1; filter: grayscale(0)    brightness(1); }
+}
+
+.scan-reveal-content {
+  animation: scan-reveal 0.8s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.scan-reveal-beam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+.scan-reveal-beam::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-app-signal, #33D6C0) 20%, transparent) 20%,
+    color-mix(in srgb, var(--color-app-signal, #33D6C0) 55%, transparent) 35%,
+    var(--color-app-signal, #33D6C0) 45%,
+    var(--color-app-citation, #F5A623) 52%,
+    color-mix(in srgb, var(--color-app-citation, #F5A623) 45%, transparent) 58%,
+    transparent 72%
+  );
+  animation: scan-sweep 0.8s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-reveal-content {
+    animation: scan-fade-in 0.35s ease-out forwards;
+  }
+  .scan-reveal-beam {
+    display: none;
+  }
+}
+
+/* ── Global reduced-motion override ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

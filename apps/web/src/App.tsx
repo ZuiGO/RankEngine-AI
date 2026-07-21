@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
+import { MotionConfig } from 'framer-motion';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -27,6 +28,8 @@ import BillingPage from './pages/BillingPage';
 import TeamPage from './pages/TeamPage';
 import BrandingPage from './pages/BrandingPage';
 
+import DevScoreRevealPage from './pages/DevScoreRevealPage';
+
 /*
  * Root route handler — shows the LandingPage for unauthenticated visitors
  * and redirects to /dashboard for logged-in users.
@@ -42,7 +45,9 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <NotificationProvider>
+          <MotionConfig reducedMotion="user">
           <Routes>
+            {import.meta.env.DEV && <Route path="/dev/score-reveal" element={<DevScoreRevealPage />} />}
             <Route path="/" element={<HomeRoute />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -66,6 +71,7 @@ export default function App() {
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+        </MotionConfig>
         </NotificationProvider>
       </BrowserRouter>
     </AuthProvider>

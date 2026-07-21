@@ -22,6 +22,8 @@ export function Card({ children, className = '', ...props }: CardProps) {
   );
 }
 
+
+
 export function CardHeader({ children, className = '', ...props }: CardProps) {
   return (
     <div className={`px-5 py-4 border-b border-slate-800/60 ${className}`} {...props}>

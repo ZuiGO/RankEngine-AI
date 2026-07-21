@@ -1,6 +1,7 @@
 import type { ReactNode, ButtonHTMLAttributes } from 'react';
 import { motion } from 'framer-motion';
-import { pressScale } from '../../lib/motion';
+import { hoverLift } from '../../lib/motion';
+import { duration, easing } from '../../lib/tokens';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -8,6 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   variant?: ButtonVariant;
   loading?: boolean;
+  glow?: 'citation' | 'signal';
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -25,6 +27,7 @@ export function Button({
   children,
   variant = 'primary',
   loading = false,
+  glow,
   className = '',
   disabled,
   ...props
@@ -32,7 +35,13 @@ export function Button({
   return (
     <motion.button
       disabled={disabled || loading}
-      {...pressScale}
+      {...hoverLift}
+      whileHover={{
+        ...hoverLift.whileHover,
+        boxShadow: glow
+          ? `0 0 14px color-mix(in srgb, var(--color-app-${glow}), 0.25)`
+          : undefined,
+      }}
       className={`inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all ${variantStyles[variant]} ${className}`}
       {...props}
     >

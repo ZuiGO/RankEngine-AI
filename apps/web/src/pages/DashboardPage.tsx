@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FolderSearch } from 'lucide-react';
 import api from '../lib/api';
-import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
+import { Card, CardBody, Badge, Button, EmptyState, Modal } from '../components/ui';
+import { stagger, listItem } from '../lib/motion';
 
 interface Project {
   _id: string;
