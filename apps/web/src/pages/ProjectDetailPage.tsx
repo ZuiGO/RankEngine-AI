@@ -26,10 +26,10 @@ interface CrawlJob {
 
 interface AuditIssue {
   _id: string;
-  title: string;
+  description: string;
   category: string;
   severity: 'critical' | 'warning' | 'passed';
-  affectedUrls: string[];
+  url: string;
   recommendation: string;
   whyItMatters?: string;
 }
@@ -148,7 +148,7 @@ function ChecklistSection({
                   <span className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${cfg.dotColor}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <p className="text-sm font-medium text-white">{issue.title}</p>
+<p className="text-sm font-medium text-white">{issue.description}</p>
                       <span
                         className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${cfg.badgeBg} ${cfg.badgeBorder} ${cfg.badgeText}`}
                       >
@@ -160,7 +160,7 @@ function ChecklistSection({
                     </p>
                     {issue.recommendation && issue.recommendation !== 'No action needed' && (
                       <details className="group mb-1.5">
-          <summary className="text-[11px] text-app-signal hover:text-app-signal/80 cursor-pointer select-none">
+        <summary className="text-[11px] text-app-signal hover:text-app-signal/80 cursor-pointer select-none">
                             Technical details
                         </summary>
                         <p className="mt-1.5 text-[11px] text-app-text-muted leading-relaxed pl-2">
@@ -168,25 +168,10 @@ function ChecklistSection({
                         </p>
                       </details>
                     )}
-                    {issue.affectedUrls && issue.affectedUrls.length > 0 && (
-                      <details className="group">
-                        <summary className="text-[11px] text-app-signal hover:text-app-signal cursor-pointer select-none">
-                          {issue.affectedUrls.length} affected URL
-                          {issue.affectedUrls.length !== 1 ? 's' : ''}
-                        </summary>
-                        <ul className="mt-1.5 space-y-0.5 pl-2">
-                          {issue.affectedUrls.slice(0, 10).map((url, i) => (
-                            <li key={i} className="text-[11px] text-app-text-muted truncate font-mono">
-                              {url}
-                            </li>
-                          ))}
-                          {issue.affectedUrls.length > 10 && (
-                            <li className="text-[11px] text-app-text-muted">
-                              …and {issue.affectedUrls.length - 10} more
-                            </li>
-                          )}
-                        </ul>
-                      </details>
+                    {issue.url && issue.url !== 'N/A' && (
+                      <p className="text-[11px] text-app-text-muted truncate font-mono mt-1.5">
+                        {issue.url}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -844,7 +829,7 @@ export default function ProjectDetailPage() {
                           <span className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${cfg.dotColor}`} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <p className="text-sm font-medium text-white">{issue.title}</p>
+                              <p className="text-sm font-medium text-white">{issue.description}</p>
                               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${cfg.badgeBg} ${cfg.badgeBorder} ${cfg.badgeText}`}>
                                 schema · {sev}
                               </span>

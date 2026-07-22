@@ -11,6 +11,7 @@ export const enqueueCrawlJob = async (
 ): Promise<EnqueueCrawlJobResult> => {
   const crawlJob = new CrawlJob({
     projectId: project._id,
+    type: 'crawl',
     status: 'queued',
     pageCount: 0,
   });
@@ -38,6 +39,7 @@ export const enqueueMigrationCheck = async (
 ): Promise<EnqueueCrawlJobResult> => {
   const crawlJob = new CrawlJob({
     projectId: project._id,
+    type: 'migration-check',
     status: 'queued',
     pageCount: 0,
   });

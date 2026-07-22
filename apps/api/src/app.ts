@@ -21,6 +21,11 @@ import aiVisibilityRouter from './routes/aiVisibility';
 import domainOverviewRouter from './routes/domainOverview';
 import gapAnalysisRouter from './routes/gapAnalysis';
 import reportsRouter from './routes/reports';
+import contentWriterRouter from './routes/contentWriter';
+import keywordClusteringRouter from './routes/keywordClustering';
+import cwvRouter from './routes/cwv';
+import internalLinksRouter from './routes/internalLinks';
+import chatRouter from './routes/chat';
 
 const app = express();
 
@@ -64,6 +69,11 @@ app.use('/api/projects', aiVisibilityRouter);
 app.use('/api/projects', domainOverviewRouter);
 app.use('/api/projects', gapAnalysisRouter);
 app.use('/api/projects', reportsRouter);
+app.use('/api/projects', contentWriterRouter);
+app.use('/api/projects', keywordClusteringRouter);
+app.use('/api/projects', cwvRouter);
+app.use('/api/projects', internalLinksRouter);
+app.use('/api/projects', chatRouter);
 
 // Dynamically load queue listeners only when not running unit tests
 if (process.env.NODE_ENV !== 'test') {

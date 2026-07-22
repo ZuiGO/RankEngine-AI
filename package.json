@@ -11,11 +11,16 @@
   "scripts": {
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
+    "dev:services": "brew services start mongodb-community 2>/dev/null; brew services start redis 2>/dev/null; echo 'MongoDB & Redis started'",
+    "dev": "bash scripts/dev.sh",
     "build": "npm run build --workspace=packages/shared-types && npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "format": "npm run format --workspaces --if-present"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
 }

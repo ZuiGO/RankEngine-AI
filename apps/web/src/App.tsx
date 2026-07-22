@@ -16,6 +16,11 @@ import BacklinksPage from './pages/BacklinksPage';
 import AiVisibilityPage from './pages/AiVisibilityPage';
 import CompetitorsPage from './pages/CompetitorsPage';
 import ContentEditorPage from './pages/ContentEditorPage';
+import ContentWriterPage from './pages/ContentWriterPage';
+import KeywordClusteringPage from './pages/KeywordClusteringPage';
+import CwvPage from './pages/CwvPage';
+import InternalLinksPage from './pages/InternalLinksPage';
+import ChatPage from './pages/ChatPage';
 import KeywordsPage from './pages/KeywordsPage';
 import NotificationsPage from './pages/NotificationsPage';
 
@@ -29,7 +34,12 @@ export default function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/projects/:id/content-editor" element={<ContentEditorPage />} />
+            <Route path="/projects/:id/content-writer" element={<ContentWriterPage />} />
             <Route path="/projects/:id/keywords" element={<KeywordsPage />} />
+            <Route path="/projects/:id/keyword-clustering" element={<KeywordClusteringPage />} />
+            <Route path="/projects/:id/cwv" element={<CwvPage />} />
+            <Route path="/projects/:id/internal-links" element={<InternalLinksPage />} />
+            <Route path="/projects/:id/chat" element={<ChatPage />} />
             <Route path="/projects/:id/backlinks" element={<BacklinksPage />} />
             <Route path="/projects/:id/ai-visibility" element={<AiVisibilityPage />} />
             <Route path="/projects/:id/competitors" element={<CompetitorsPage />} />

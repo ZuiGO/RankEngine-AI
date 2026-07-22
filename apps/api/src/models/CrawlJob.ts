@@ -1,10 +1,12 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
 export type CrawlJobStatus = 'queued' | 'running' | 'completed' | 'failed';
+export type CrawlJobType = 'crawl' | 'migration-check';
 
 export interface ICrawlJob extends Document {
   projectId: Types.ObjectId;
   status: CrawlJobStatus;
+  type: CrawlJobType;
   startedAt?: Date;
   completedAt?: Date;
   pageCount: number;
@@ -24,6 +26,11 @@ const CrawlJobSchema = new Schema<ICrawlJob>({
     enum: ['queued', 'running', 'completed', 'failed'],
     required: true,
     default: 'queued',
+  },
+  type: {
+    type: String,
+    enum: ['crawl', 'migration-check'],
+    default: 'crawl',
   },
   startedAt: {
     type: Date,

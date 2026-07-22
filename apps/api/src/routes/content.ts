@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
 import axios from 'axios';
 import { SerpAnalysis } from '../models/SerpAnalysis';
 import {
@@ -6,6 +7,7 @@ import {
   extractTextAndWordCount,
   analyzeSerpContentWithLlm,
 } from '../services/serpService';
+import { generate } from '../services/contentGeneratorService';
 
 const router = Router();
 
@@ -134,6 +136,34 @@ router.post('/grade', rateLimiter(10, 1000), async (req: Request, res: Response)
   } catch (error) {
     console.error('Content grading failed:', error);
     return res.status(500).json({ error: 'Internal server error during content grading' });
+  }
+});
+
+const generateContentSchema = z.object({
+  targetKeyword: z.string().min(1),
+  pageContext: z.string().optional(),
+  assetType: z.enum(['title', 'meta_description', 'faq', 'schema']),
+  schemaType: z.enum(['FAQPage', 'Article']).optional(),
+});
+
+router.post('/generate', async (req: Request, res: Response) => {
+  try {
+    const validation = generateContentSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Validation failed', details: validation.error.flatten().fieldErrors });
+    }
+
+    const { targetKeyword, pageContext, assetType, schemaType } = validation.data;
+
+    if (assetType === 'schema' && !schemaType) {
+      return res.status(400).json({ error: 'schemaType is required when assetType is schema' });
+    }
+
+    const result = await generate({ targetKeyword, pageContext, assetType, schemaType });
+    return res.json(result);
+  } catch (error) {
+    console.error('[Content Generate] Error:', error);
+    return res.status(502).json({ error: 'Content generation failed' });
   }
 });
 

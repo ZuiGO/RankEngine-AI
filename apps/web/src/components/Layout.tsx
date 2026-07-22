@@ -41,25 +41,41 @@ export interface NavItemDef {
 }
 
 export const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
-  { label: 'Site Health', items: [{ label: 'Audit / Checklist', to: null as string | null, icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' }] },
-  { label: 'Content', items: [{ label: 'Content Editor', to: null as string | null, icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' }] },
+  { label: 'Site Health', items: [
+    { label: 'Audit / Checklist', to: null as string | null, icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { label: 'Core Web Vitals', to: null as string | null, icon: 'M13 10V3L4 14h7v7l9-11h-7zM9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+  ]},
+  { label: 'Content', items: [
+    { label: 'Content Editor', to: null as string | null, icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+    { label: 'AI Writer', to: null as string | null, icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+  ]},
   { label: 'Rankings', items: [
     { label: 'Keywords', to: null as string | null, icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z' },
     { label: 'Keyword Research', to: '/keyword-research' as string | null, icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+    { label: 'Keyword Clustering', to: null as string | null, icon: 'M4 7h16M4 12h16M4 17h16' },
   ]},
   { label: 'Authority', items: [{ label: 'Backlinks', to: null as string | null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' }] },
   { label: 'AI Visibility', items: [{ label: 'AI Visibility', to: null as string | null, icon: 'M13 10V3L4 14h7v7l9-11h-7z' }] },
   { label: 'Competitors', items: [{ label: 'Overview & Gap Analysis', to: null as string | null, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' }] },
+  { label: 'Optimization', items: [
+    { label: 'Internal Linking', to: null as string | null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
+    { label: 'AI Chat', to: null as string | null, icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+  ]},
 ];
 
 const LABEL_ROUTE_MAP: Record<string, string> = {
   'Audit / Checklist': '',
   'Migration Check': '',
+  'Core Web Vitals': '/cwv',
+  'Content Editor': '/content-editor',
+  'AI Writer': '/content-writer',
   'Keywords': '/keywords',
+  'Keyword Clustering': '/keyword-clustering',
   'Backlinks': '/backlinks',
   'AI Visibility': '/ai-visibility',
   'Overview & Gap Analysis': '/competitors',
-  'Content Editor': '/content-editor',
+  'Internal Linking': '/internal-links',
+  'AI Chat': '/chat',
 };
 
 export function resolveNavRoute(

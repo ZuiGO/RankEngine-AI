@@ -35,11 +35,6 @@ const FEATURES = [
   },
 ];
 
-/*
- * Social-proof section — testimonials below are placeholder content used
- * for layout and visual structure only. Replace with real customer quotes
- * and attribution before launch.
- */
 const PLACEHOLDER_TESTIMONIALS = [
   {
     quote: 'We went from zero AI Overview appearances to ranking in 40% of relevant queries within two months. RankEngine caught issues our old toolset missed entirely.',
@@ -56,12 +51,6 @@ const PLACEHOLDER_TESTIMONIALS = [
     name: 'SEO Manager',
     company: 'Agency (placeholder)',
   },
-];
-
-const NAV_ITEMS = [
-  { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Testimonials', href: '#testimonials' },
 ];
 
 export default function LandingPage() {
@@ -82,35 +71,22 @@ export default function LandingPage() {
             <span className="font-bold text-lg tracking-tight font-display text-white">RankEngine <span className="text-app-signal">AI</span></span>
           </Link>
           <nav className="hidden sm:flex items-center gap-6 text-sm text-app-text-muted">
-            {NAV_ITEMS.map((item) =>
-              item.href.startsWith('#') ? (
-                <button
-                  key={item.label}
-                  onClick={() => scrollTo(item.href.slice(1))}
-                  className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1"
-                >
-                  {item.label}
-                </button>
-              ) : (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1"
-                >
-                  {item.label}
-                </Link>
-              ),
-            )}
+            <button
+              onClick={() => scrollTo('features')}
+              className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1"
+            >
+              Features
+            </button>
+            <button
+              onClick={() => scrollTo('testimonials')}
+              className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1"
+            >
+              Testimonials
+            </button>
           </nav>
           <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="text-sm text-app-text-muted hover:text-white transition-colors hidden sm:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-2 py-1"
-            >
-              Sign in
-            </Link>
-            <Link to="/register" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
-              <Button glow="signal">Start Free</Button>
+            <Link to="/dashboard" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
+              <Button glow="signal">Go to Dashboard</Button>
             </Link>
           </div>
         </div>
@@ -134,18 +110,12 @@ export default function LandingPage() {
               tracking, and content scoring — tuned for how AI engines discover and rank content.
             </p>
             <div className="hero-stagger-4 flex flex-col sm:flex-row items-center gap-4 mt-8">
-              <Link to="/register" className="w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
+              <Link to="/dashboard" className="w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
                 <Button glow="citation" className="w-full sm:w-auto px-8 py-3 text-base shadow-xl shadow-app-citation/15">
-                  Start Free
-                </Button>
-              </Link>
-              <Link to="/pricing" className="w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg">
-                <Button variant="secondary" className="w-full sm:w-auto px-8 py-3 text-base">
-                  See Pricing
+                  Go to Dashboard
                 </Button>
               </Link>
             </div>
-            <p className="hero-stagger-4 text-xs text-app-text-muted/60 mt-4">No credit card required &middot; Free tier includes 3 projects</p>
           </div>
 
           {/* Scan visual card */}
@@ -241,12 +211,6 @@ export default function LandingPage() {
       </section>
 
       {/* ── Social proof (placeholders) ────────────────────── */}
-      {/*
-        WARNING: All testimonials below are placeholder content.
-        Replace with real customer quotes, names, companies, and photos
-        before public launch. The structure is ready — just swap the
-        PLACEHOLDER_TESTIMONIALS array data.
-      */}
       <section id="testimonials" className="max-w-6xl mx-auto px-6 pb-28">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold font-display text-white">Trusted by SEO teams switching to AI-native tools</h2>
@@ -281,13 +245,10 @@ export default function LandingPage() {
           <h2 className="text-3xl md:text-4xl font-bold font-display text-white max-w-2xl mx-auto">
             Ready to see where you stand in AI search?
           </h2>
-          <p className="text-app-text-muted mt-4 max-w-lg mx-auto text-base">
-            Get your first 3 projects free, including full Site Audit and AI Visibility reports.
-          </p>
           <div className="mt-8">
-            <Link to="/register" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg inline-block">
+            <Link to="/dashboard" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded-lg inline-block">
               <Button glow="citation" className="px-8 py-3 text-base shadow-xl shadow-app-citation/15">
-                Start Free — No Credit Card
+                Go to Dashboard
               </Button>
             </Link>
           </div>
@@ -303,14 +264,8 @@ export default function LandingPage() {
             </div>
             RankEngine AI
           </div>
-          <div className="flex items-center gap-6 text-xs text-app-text-muted/60">
-            <span>&copy; {new Date().getFullYear()} RankEngine AI</span>
-            <Link to="/pricing" className="hover:text-app-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1">
-              Pricing
-            </Link>
-            <Link to="/login" className="hover:text-app-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal rounded px-1">
-              Sign in
-            </Link>
+          <div className="text-xs text-app-text-muted/60">
+            &copy; {new Date().getFullYear()} RankEngine AI
           </div>
         </div>
       </footer>
