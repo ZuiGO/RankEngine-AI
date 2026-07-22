@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import api from '../lib/api';
-import { Card, Badge, EmptyState } from '../components/ui';
+import { Card, EmptyState } from '../components/ui';
 
 type Tone = 'professional' | 'conversational' | 'persuasive' | 'informative';
 type Length = 'short' | 'medium' | 'long';

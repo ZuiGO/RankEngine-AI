@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { getKeywordIdeas, DataProviderQuotaError } from '../services/dataProviderService';
+import { getKeywordIdeas, DataProviderQuotaError, isUsingMockProvider } from '../services/dataProviderService';
 import KeywordResearchQuery from '../models/KeywordResearchQuery';
 import { callGroq, LlmError } from '../services/llmService';
 
@@ -23,7 +23,7 @@ router.post('/keyword-research', async (req: Request, res: Response) => {
     const { seedKeyword, locationCode } = validation.data;
     const results = await getKeywordIdeas(seedKeyword, locationCode);
 
-    return res.json({ seedKeyword, results });
+    return res.json({ seedKeyword, results, isMockData: isUsingMockProvider() });
   } catch (error) {
     if (error instanceof DataProviderQuotaError) {
       return res.status(429).json({

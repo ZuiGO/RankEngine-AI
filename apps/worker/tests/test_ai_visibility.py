@@ -23,7 +23,6 @@ from ai_visibility_checker import (
     run_visibility_check,
 )
 
-pytestmark = pytest.mark.asyncio
 
 
 # ─── Substring match ─────────────────────────────────────────────────────────
@@ -41,6 +40,7 @@ class TestSubstringMatch:
 
 # ─── Groq classifier fallback ───────────────────────────────────────────────
 
+@pytest.mark.asyncio
 class TestGroqClassifier:
     async def test_returns_true_when_groq_says_yes(self):
         mock_choice = MagicMock()
@@ -79,6 +79,7 @@ class TestGroqClassifier:
 
 # ─── google_aio check ───────────────────────────────────────────────────────
 
+@pytest.mark.asyncio
 class TestGoogleAio:
     async def test_mentioned_when_brand_in_ai_overview(self):
         mock_response = MagicMock(spec=HttpxResponse)
@@ -122,6 +123,7 @@ class TestGoogleAio:
 
 # ─── chatgpt check ──────────────────────────────────────────────────────────
 
+@pytest.mark.asyncio
 class TestChatgpt:
     async def test_substring_match_detects_brand(self):
         """Brand appears directly in ChatGPT's response — no Groq fallback needed."""
@@ -187,6 +189,7 @@ class TestChatgpt:
 
 # ─── gemini check ───────────────────────────────────────────────────────────
 
+@pytest.mark.asyncio
 class TestGemini:
     async def test_substring_match_detects_brand(self):
         mock_response = MagicMock(spec=HttpxResponse)
@@ -242,6 +245,7 @@ class TestGemini:
 
 # ─── perplexity check ───────────────────────────────────────────────────────
 
+@pytest.mark.asyncio
 class TestPerplexity:
     async def test_substring_match_detects_brand(self):
         mock_response = MagicMock(spec=HttpxResponse)
@@ -278,6 +282,7 @@ class TestPerplexity:
 
 # ─── Full orchestrator ───────────────────────────────────────────────────────
 
+@pytest.mark.asyncio
 class TestRunVisibilityCheck:
     async def test_stores_snapshot_for_each_engine(self, monkeypatch):
         """

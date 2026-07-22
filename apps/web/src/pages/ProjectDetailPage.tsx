@@ -349,6 +349,7 @@ export default function ProjectDetailPage() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [projectLoading, setProjectLoading] = useState(true);
+  const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
 
   // Audit schedule state
   const [scheduleUpdating, setScheduleUpdating] = useState(false);
@@ -1019,6 +1020,26 @@ export default function ProjectDetailPage() {
               />
             </div>
           )}
+        </div>
+      )}
+
+      {showCopilotDrawer && (
+        <div className="fixed inset-y-0 right-0 z-50 w-96 bg-app-surface border-l border-app-border shadow-2xl p-4 flex flex-col space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-app-border">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-app-signal" />
+              <h3 className="text-sm font-semibold text-white">AI SEO Copilot</h3>
+            </div>
+            <button
+              onClick={() => setShowCopilotDrawer(false)}
+              className="text-app-text-muted hover:text-white p-1 rounded-lg transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <ChatPanel projectId={id!} />
+          </div>
         </div>
       )}
     </div>

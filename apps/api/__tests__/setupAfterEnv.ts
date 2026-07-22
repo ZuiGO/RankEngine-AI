@@ -6,10 +6,14 @@ process.env.SERP_API_KEY = 'mock-serp-key';
 process.env.LLM_API_KEY = 'mock-llm-key';
 
 import { _closeRedisClient } from '../src/middleware/rateLimiter';
+import { crawlQueue } from '../src/queues/crawlQueue';
+import { gradingQueue } from '../src/queues/gradingQueue';
 
 afterAll(async () => {
   try {
     await _closeRedisClient();
+    await crawlQueue.close();
+    await gradingQueue.close();
   } catch (err) {
     console.error('Error closing Redis client in global afterAll:', err);
   }

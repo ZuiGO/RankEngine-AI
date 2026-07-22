@@ -13,7 +13,7 @@ def log_json(level: str, event: str, **kwargs):
     log_data = {
         "level": level,
         "event": event,
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         **kwargs
     }
     print(json.dumps(log_data), flush=True)
@@ -27,7 +27,7 @@ async def process_crawl_job(job, job_token):
     job_type = job_data.get("type", "crawl")
     
     log_json("INFO", "job_start", crawlJobId=crawl_job_id, domain=domain, type=job_type)
-    start_time = datetime.datetime.utcnow()
+    start_time = datetime.datetime.now(datetime.timezone.utc)
 
     try:
         if not crawl_job_id:
@@ -42,7 +42,7 @@ async def process_crawl_job(job, job_token):
             # Execute standard Playwright crawl site traversal
             crawl_result_id, page_count = await crawl_site(crawl_job_id, domain)
 
-        elapsed = (datetime.datetime.utcnow() - start_time).total_seconds()
+        elapsed = (datetime.datetime.now(datetime.timezone.utc) - start_time).total_seconds()
         log_json(
             "INFO",
             "job_completed",
@@ -72,7 +72,7 @@ async def process_crawl_job(job, job_token):
                         "$set": {
                             "status": "failed",
                             "errorMessage": str(err),
-                            "completedAt": datetime.datetime.utcnow()
+                            "completedAt": datetime.datetime.now(datetime.timezone.utc)
                         }
                     }
                 )

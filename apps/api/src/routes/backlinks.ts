@@ -7,6 +7,7 @@ import {
   getBacklinkOverview,
   getBacklinkList,
   DataProviderQuotaError,
+  isUsingMockProvider,
 } from '../services/dataProviderService';
 
 const router = Router();
@@ -83,6 +84,7 @@ router.get('/:id/backlinks/overview', async (req: Request, res: Response) => {
         totalBacklinks: cached.totalBacklinks,
         referringDomains: cached.referringDomains,
         authorityScore: cached.authorityScore,
+        isMockData: isUsingMockProvider(),
       });
     }
 
@@ -107,6 +109,7 @@ router.get('/:id/backlinks/overview', async (req: Request, res: Response) => {
       totalBacklinks: data.totalBacklinks,
       referringDomains: data.referringDomains,
       authorityScore,
+      isMockData: isUsingMockProvider(),
     });
   } catch (error) {
     if (error instanceof DataProviderQuotaError) {
@@ -151,6 +154,7 @@ router.get('/:id/backlinks/list', async (req: Request, res: Response) => {
       page,
       limit,
       items: enriched,
+      isMockData: isUsingMockProvider(),
     });
   } catch (error) {
     if (error instanceof DataProviderQuotaError) {

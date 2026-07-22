@@ -189,7 +189,7 @@ JSON Schema format:
                     "description": item.title,
                     "recommendation": item.recommendation,
                     "whyItMatters": item.whyItMatters,
-                    "createdAt": datetime.datetime.utcnow()
+                    "createdAt": datetime.datetime.now(datetime.timezone.utc)
                 })
         
         if issues_to_create:

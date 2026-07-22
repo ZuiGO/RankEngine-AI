@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Send, Bot, User, RefreshCw } from 'lucide-react';
 import api from '../lib/api';
-import { Card, EmptyState } from '../components/ui';
+import { Card } from '../components/ui';
 
 interface Message {
   role: 'user' | 'assistant';

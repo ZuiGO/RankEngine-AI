@@ -19,7 +19,7 @@ def log_json(level: str, event: str, **kwargs):
     log_data = {
         "level": level,
         "event": event,
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         **kwargs
     }
     print(json.dumps(log_data), flush=True)

@@ -229,7 +229,7 @@ async def store_link_suggestions(crawl_job_id: str, project_id: str, suggestions
         "crawlJobId": ObjectId(crawl_job_id),
         "projectId": ObjectId(project_id),
         "suggestions": suggestion_dicts,
-        "createdAt": datetime.datetime.utcnow(),
+        "createdAt": datetime.datetime.now(datetime.timezone.utc),
     }
 
     await db.link_suggestions.insert_one(doc)

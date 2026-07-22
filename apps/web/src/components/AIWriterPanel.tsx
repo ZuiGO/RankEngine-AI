@@ -69,7 +69,6 @@ export default function AIWriterPanel({ targetKeyword, pageContext, onInsert }: 
     }
   };
 
-  const s = buttonStates;
 
   return (
     <Card className="p-5">
@@ -147,7 +146,7 @@ export default function AIWriterPanel({ targetKeyword, pageContext, onInsert }: 
                       </pre>
                       <div className="px-3 pb-3">
                         <button
-                          onClick={() => copyToClipboard(JSON.stringify(state.result.jsonLd, null, 2))}
+                          onClick={() => state.result && copyToClipboard(JSON.stringify(state.result.jsonLd, null, 2))}
                           className="text-2xs text-app-signal hover:text-app-signal/80 font-semibold"
                         >
                           Copy JSON-LD

@@ -14,7 +14,7 @@ def log_json(level: str, event: str, **kwargs):
     log_data = {
         "level": level,
         "event": event,
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         **kwargs
     }
     print(json.dumps(log_data), flush=True)
@@ -533,7 +533,7 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
     crawl_result = {
         "crawlJobId": ObjectId(crawl_job_id),
         "pages": crawled_pages,
-        "createdAt": datetime.datetime.utcnow()
+        "createdAt": datetime.datetime.now(datetime.timezone.utc)
     }
     result_insert = await db.crawlresults.insert_one(crawl_result)
     crawl_result_id = result_insert.inserted_id
@@ -1050,7 +1050,7 @@ async def run_migration_check(crawl_job_id: str, live_domain: str, staging_domai
     crawl_result = {
         "crawlJobId": ObjectId(crawl_job_id),
         "pages": results_list,
-        "createdAt": datetime.datetime.utcnow(),
+        "createdAt": datetime.datetime.now(datetime.timezone.utc),
         "type": "migration-check"
     }
     result_insert = await db.crawlresults.insert_one(crawl_result)
@@ -1063,7 +1063,7 @@ async def run_migration_check(crawl_job_id: str, live_domain: str, staging_domai
                 "status": "completed",
                 "pageCount": len(discovered_urls),
                 "rawResultsRef": str(crawl_result_id),
-                "completedAt": datetime.datetime.utcnow()
+                "completedAt": datetime.datetime.now(datetime.timezone.utc)
             }
         }
     )

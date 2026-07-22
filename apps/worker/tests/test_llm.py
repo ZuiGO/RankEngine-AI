@@ -11,8 +11,6 @@ import json
 from unittest.mock import AsyncMock, patch, MagicMock
 from llm import generate_fix_list, summarize_issues
 
-# Mark all test cases in this file as async
-pytestmark = pytest.mark.asyncio
 
 def test_summarize_issues_keeps_passed_summary_as_positive_confirmation():
     summary = summarize_issues([
@@ -27,6 +25,7 @@ def test_summarize_issues_keeps_passed_summary_as_positive_confirmation():
     assert "[PASSED] Category: meta | Positive confirmation:" in summary
     assert "Affected URLs" not in summary
 
+@pytest.mark.asyncio
 async def test_llm_fix_list_successful_generation():
     # Successful Groq JSON response structure
     valid_json = {
@@ -78,6 +77,7 @@ async def test_llm_fix_list_successful_generation():
         assert inserted_list[0]["whyItMatters"] == "Redirect loops confuse search engine crawlers and may prevent your pages from being indexed at all"
         assert count == 2
 
+@pytest.mark.asyncio
 async def test_llm_fix_list_retry_mechanism():
     # Attempt 1: returns invalid content (missing bracket)
     # Attempt 2: returns valid JSON after stricter retry instruction
@@ -131,6 +131,7 @@ async def test_llm_fix_list_retry_mechanism():
         assert inserted[0]["severity"] == "warning"
         assert count == 1
 
+@pytest.mark.asyncio
 async def test_llm_fix_list_fallback_on_consecutive_failures():
     # Both attempts return invalid output
     mock_choice = MagicMock()

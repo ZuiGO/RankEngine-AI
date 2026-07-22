@@ -18,10 +18,12 @@ async def test_retry_on_429_status():
     # Attempt 1: returns HTTP 429
     response_429 = AsyncMock()
     response_429.status = 429
+    response_429.headers = {}
 
     # Attempt 2: returns HTTP 200 (Success)
     response_200 = AsyncMock()
     response_200.status = 200
+    response_200.headers = {}
 
     page = AsyncMock()
     # Mock goto to return 429 then 200
@@ -55,6 +57,7 @@ async def test_retry_on_captcha_detection():
     # Mocks for browser, page, and context
     response_200 = AsyncMock()
     response_200.status = 200
+    response_200.headers = {}
 
     page = AsyncMock()
     page.goto = AsyncMock(return_value=response_200)
@@ -92,6 +95,7 @@ async def test_exceed_max_retries():
     # Setup response that always returns 429
     response_429 = AsyncMock()
     response_429.status = 429
+    response_429.headers = {}
 
     page = AsyncMock()
     page.goto = AsyncMock(return_value=response_429)

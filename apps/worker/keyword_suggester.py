@@ -144,7 +144,7 @@ Return ONLY valid JSON in the following schema. No explanations, no markdown wra
         return
 
     # Build suggested keyword docs
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
     suggested = [
         {
             "keyword": s.keyword,

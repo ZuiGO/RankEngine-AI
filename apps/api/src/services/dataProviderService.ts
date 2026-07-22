@@ -143,7 +143,7 @@ export class MockDataProvider implements IDataProvider {
     limit: number,
     offset: number = 0
   ): Promise<BacklinkItem[]> {
-    const count = Math.min(limit, 20);
+    const count = Math.min(limit, 500);
     return Array.from({ length: count }, (_, i) => ({
       sourceUrl: `https://referrer-${offset + i + 1}.com/article`,
       targetUrl: `https://${domain}/page`,
@@ -168,36 +168,31 @@ export class MockDataProvider implements IDataProvider {
 
   async fetchDomainOverview(domain: string): Promise<DomainOverview> {
     const base = domain.split('.')[0];
+    const kwTemplates = [
+      `${base} seo`,
+      `${base} marketing`,
+      `best ${base} tools`,
+      `${base} pricing`,
+      `${base} vs`,
+      `${base} platform`,
+      `${base} software`,
+      `${base} features`,
+      `${base} review`,
+      `${base} integration`,
+      `${base} analytics`,
+      `${base} automation`,
+      `how to use ${base}`,
+      `${base} alternative`,
+      `${base} guide`,
+    ];
     return {
       organicTrafficEstimate: Math.floor(Math.random() * 100000) + 1000,
       organicKeywordCount: Math.floor(Math.random() * 10000) + 100,
-      topKeywords: [
-        {
-          keyword: `${base} seo`,
-          searchVolume: Math.floor(Math.random() * 5000) + 200,
-          position: Math.floor(Math.random() * 20) + 1,
-        },
-        {
-          keyword: `${base} marketing`,
-          searchVolume: Math.floor(Math.random() * 4000) + 150,
-          position: Math.floor(Math.random() * 20) + 1,
-        },
-        {
-          keyword: `best ${base} tools`,
-          searchVolume: Math.floor(Math.random() * 3000) + 100,
-          position: Math.floor(Math.random() * 30) + 1,
-        },
-        {
-          keyword: `${base} pricing`,
-          searchVolume: Math.floor(Math.random() * 2000) + 50,
-          position: Math.floor(Math.random() * 40) + 1,
-        },
-        {
-          keyword: `${base} vs`,
-          searchVolume: Math.floor(Math.random() * 1500) + 30,
-          position: Math.floor(Math.random() * 50) + 1,
-        },
-      ],
+      topKeywords: kwTemplates.map((kw) => ({
+        keyword: kw,
+        searchVolume: Math.floor(Math.random() * 5000) + 50,
+        position: Math.floor(Math.random() * 50) + 1,
+      })),
     };
   }
 }
@@ -383,8 +378,12 @@ export class DataForSEOProvider implements IDataProvider {
   }
 }
 
+export const isUsingMockProvider = (): boolean => {
+  return !config.DATAFORSEO_LOGIN || !config.DATAFORSEO_PASSWORD || config.DATAFORSEO_LOGIN === '';
+};
+
 export const getDataProvider = (): IDataProvider => {
-  if (!config.DATAFORSEO_LOGIN || !config.DATAFORSEO_PASSWORD || config.DATAFORSEO_LOGIN === '') {
+  if (isUsingMockProvider()) {
     return new MockDataProvider();
   }
   return new DataForSEOProvider();
