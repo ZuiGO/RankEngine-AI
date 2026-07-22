@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
-import { Card, CardBody, Badge, Button, EmptyState } from '../components/ui';
+import { Card, CardBody, CardHeader, Badge, Button, EmptyState } from '../components/ui';
 
 interface KeywordResult {
   keyword: string;
@@ -43,6 +44,7 @@ function difficultyVariant(score: number): 'success' | 'warning' | 'danger' {
 }
 
 export default function KeywordResearchPage() {
+  const navigate = useNavigate();
   const [seedKeyword, setSeedKeyword] = useState('');
   const [results, setResults] = useState<KeywordResult[]>([]);
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -53,6 +55,9 @@ export default function KeywordResearchPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [trackingKeyword, setTrackingKeyword] = useState<string | null>(null);
   const [pickerProject, setPickerProject] = useState<string>('');
+  const [clusters, setClusters] = useState<{ topicName: string; keywords: string[] }[]>([]);
+  const [clusteringLoading, setClusteringLoading] = useState(false);
+  const [clusteringError, setClusteringError] = useState('');
 
   const quotaUsed = 0;
   const quotaLimit = 0;
@@ -136,6 +141,26 @@ export default function KeywordResearchPage() {
       // silently ignore
     } finally {
       setTrackingKeyword(null);
+    }
+  };
+
+  const handleCluster = async () => {
+    const kws = results.map(r => r.keyword);
+    if (kws.length < 2) return;
+    setClusteringLoading(true);
+    setClusteringError('');
+    setClusters([]);
+    try {
+      const { data } = await api.post<{ clusters: { topicName: string; keywords: string[] }[] }>(
+        '/keyword-research/cluster',
+        { keywords: kws },
+      );
+      setClusters(data.clusters);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err.message || 'Clustering failed';
+      setClusteringError(msg);
+    } finally {
+      setClusteringLoading(false);
     }
   };
 
@@ -296,6 +321,56 @@ export default function KeywordResearchPage() {
                 </table>
               </div>
             </Card>
+          )}
+
+          {results.length > 0 && (
+            <div className="flex items-center justify-end">
+              <Button
+                onClick={handleCluster}
+                disabled={clusteringLoading}
+                loading={clusteringLoading}
+                className="px-5 py-2"
+              >
+                {clusteringLoading ? 'Clustering…' : 'Cluster these keywords'}
+              </Button>
+            </div>
+          )}
+
+          {clusteringError && (
+            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-3 rounded-lg">
+              {clusteringError}
+            </div>
+          )}
+
+          {clusters.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {clusters.map((cluster, idx) => (
+                <Card key={idx}>
+                  <CardHeader>
+                    <h3 className="text-sm font-bold text-white">{cluster.topicName}</h3>
+                  </CardHeader>
+                  <CardBody>
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {cluster.keywords.map((kw) => (
+                        <Badge key={kw} variant="info">{kw}</Badge>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (!pickerProject) return;
+                        navigate(
+                          `/projects/${pickerProject}/content-editor?topic=${encodeURIComponent(cluster.topicName)}&keyword=${encodeURIComponent(cluster.keywords[0])}`,
+                        );
+                      }}
+                      disabled={!pickerProject}
+                      className="w-full text-xs"
+                    >
+                      Start content for this topic
+                    </Button>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
           )}
 
           {!loading && results.length === 0 && (

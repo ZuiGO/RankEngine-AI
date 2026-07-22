@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Pencil } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import api from '../lib/api';
 import { Card, Badge, EmptyState } from '../components/ui';
+import AIWriterPanel from '../components/AIWriterPanel';
 
 interface GradeBreakdown {
   entityCoverage: number;
@@ -64,8 +65,15 @@ const analyzeH2Headings = (text: string): H2Analysis[] => {
 };
 
 export default function ContentEditorPage() {
-  const [text, setText] = useState('## AI Overview Check\n\nThis is the first paragraph. We want to write at least 40 words here to verify direct answer opportunities. RankEngine automatically analyses content headings to test eligibility markers. Write a complete description containing enough syllables to test readability too.\n\n## Syllable check\n\nAnother paragraph follows this heading to check structure scores.');
-  const [targetKeyword, setTargetKeyword] = useState('rankengine');
+  const [searchParams] = useSearchParams();
+  const urlKeyword = searchParams.get('keyword');
+  const urlTopic = searchParams.get('topic');
+  const [text, setText] = useState(
+    urlTopic
+      ? `## ${urlTopic}\n\nStart writing content about ${urlTopic} here.`
+      : '## AI Overview Check\n\nThis is the first paragraph. We want to write at least 40 words here to verify direct answer opportunities. RankEngine automatically analyses content headings to test eligibility markers. Write a complete description containing enough syllables to test readability too.\n\n## Syllable check\n\nAnother paragraph follows this heading to check structure scores.',
+  );
+  const [targetKeyword, setTargetKeyword] = useState(urlKeyword || 'rankengine');
 
   const [sharedEntities, setSharedEntities] = useState<string[]>([]);
   const [sharedSubtopics, setSharedSubtopics] = useState<string[]>([]);
@@ -395,6 +403,12 @@ export default function ContentEditorPage() {
               </div>
             )}
           </Card>
+
+          <AIWriterPanel
+            targetKeyword={targetKeyword}
+            pageContext={text}
+            onInsert={(inserted) => setText((prev) => prev + '\n\n' + inserted)}
+          />
         </div>
       </div>
     </div>

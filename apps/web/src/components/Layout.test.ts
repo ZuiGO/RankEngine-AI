@@ -75,7 +75,12 @@ const ALL_ROUTES = [
   '/dashboard',
   '/projects/:id',
   '/projects/:id/content-editor',
+  '/projects/:id/content-writer',
   '/projects/:id/keywords',
+  '/projects/:id/keyword-clustering',
+  '/projects/:id/cwv',
+  '/projects/:id/internal-links',
+  '/projects/:id/chat',
   '/projects/:id/backlinks',
   '/projects/:id/ai-visibility',
   '/projects/:id/competitors',
@@ -200,11 +205,16 @@ describe('LABEL_ROUTE_MAP covers every project-scoped nav item', () => {
   const LABEL_ROUTE_MAP: Record<string, string> = {
     'Audit / Checklist': '',
     'Migration Check': '',
+    'Core Web Vitals': '/cwv',
+    'Content Editor': '/content-editor',
+    'AI Writer': '/content-writer',
     'Keywords': '/keywords',
+    'Keyword Clustering': '/keyword-clustering',
     'Backlinks': '/backlinks',
     'AI Visibility': '/ai-visibility',
     'Overview & Gap Analysis': '/competitors',
-    'Content Editor': '/content-editor',
+    'Internal Linking': '/internal-links',
+    'AI Chat': '/chat',
   };
 
   for (const group of NAV_GROUPS) {
