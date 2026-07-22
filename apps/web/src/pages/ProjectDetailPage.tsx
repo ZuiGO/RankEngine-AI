@@ -759,6 +759,15 @@ export default function ProjectDetailPage() {
             </svg>
             {auditLoading ? 'Starting…' : 'Run Audit'}
           </Button>
+          <Button
+            id="ai-copilot-btn"
+            variant="secondary"
+            onClick={() => setShowCopilotDrawer((prev) => !prev)}
+            className="flex items-center gap-2 rounded-xl py-2.5"
+          >
+            <MessageSquare className="h-4 w-4 text-app-signal" />
+            AI Copilot
+          </Button>
         </div>
       </div>
 
