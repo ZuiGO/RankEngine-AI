@@ -50,6 +50,18 @@ def is_internal_link(url: str, target_hostname: str) -> bool:
     except Exception:
         return False
 
+# Extract outbound internal links from HTML for link graph
+def extract_outbound_links(html: str, base_url: str, target_hostname: str) -> list:
+    soup = BeautifulSoup(html, 'html.parser')
+    outbound = []
+    for anchor in soup.find_all('a', href=True):
+        resolved_href = urljoin(base_url, anchor['href'])
+        clean_url = resolved_href.split('#')[0].split('?')[0].rstrip('/')
+        if clean_url.startswith(('http://', 'https://')):
+            if is_internal_link(clean_url, target_hostname):
+                outbound.append(clean_url)
+    return outbound
+
 # SEO tag and word count extractor
 def extract_seo_data(html_content: str, url: str, status_code: int) -> dict:
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -77,6 +89,11 @@ def extract_seo_data(html_content: str, url: str, status_code: int) -> dict:
         found_tags = soup.find_all(tag_name)
         headers[tag_name] = [t.get_text().strip() for t in found_tags if t.get_text()]
 
+    # Meta Robots noindex
+    meta_robots_tag = soup.find('meta', attrs={'name': 'robots'})
+    meta_robots_content = (meta_robots_tag.get('content', '') or '').lower() if meta_robots_tag else ''
+    meta_noindex = 'noindex' in meta_robots_content
+
     # Extract word count from visible text
     for script_or_style in soup(["script", "style", "noscript", "iframe"]):
         script_or_style.decompose()
@@ -97,8 +114,285 @@ def extract_seo_data(html_content: str, url: str, status_code: int) -> dict:
         "canonical": canonical,
         "metaTitle": meta_title,
         "metaDescription": meta_description,
-        "wordCount": word_count
+        "wordCount": word_count,
+        "meta_noindex": meta_noindex,
     }
+
+# --- Core Web Vitals helpers ---
+
+def classify_lcp(value_ms: float) -> str:
+    if value_ms <= 2500:
+        return "good"
+    if value_ms <= 4000:
+        return "needs-improvement"
+    return "poor"
+
+def classify_cls(value: float) -> str:
+    if value <= 0.1:
+        return "good"
+    if value <= 0.25:
+        return "needs-improvement"
+    return "poor"
+
+def classify_tbt(value_ms: float) -> str:
+    if value_ms <= 200:
+        return "good"
+    if value_ms <= 600:
+        return "needs-improvement"
+    return "poor"
+
+def aggregate_severity(classifications: list) -> str:
+    total = len(classifications)
+    if total == 0:
+        return "passed"
+    poor = sum(1 for c in classifications if c == "poor")
+    needs_improvement = sum(1 for c in classifications if c == "needs-improvement")
+    if poor / total > 0.5:
+        return "critical"
+    if (poor + needs_improvement) / total > 0.2:
+        return "warning"
+    return "passed"
+
+
+async def measure_page_cwv(browser, url: str) -> dict:
+    context = await browser.new_context()
+    page = await context.new_page()
+
+    try:
+        await page.goto(url, timeout=15000, wait_until="load")
+        await page.add_script_tag(url="https://unpkg.com/web-vitals@4/dist/web-vitals.iife.js")
+
+        metrics = await page.evaluate("""() => {
+            return new Promise((resolve) => {
+                let lcp = 0, cls = 0, tbt = 0;
+
+                try { webVitals.onLCP((m) => { lcp = m.value; }); } catch(e) {}
+                try { webVitals.onCLS((m) => { cls = m.value; }); } catch(e) {}
+
+                let tbtObserver;
+                try {
+                    tbtObserver = new PerformanceObserver((list) => {
+                        for (const entry of list.getEntries()) {
+                            tbt += Math.max(0, entry.duration - 50);
+                        }
+                    });
+                    tbtObserver.observe({ type: 'longtask', buffered: true });
+                } catch(e) {}
+
+                setTimeout(() => {
+                    if (tbtObserver) tbtObserver.disconnect();
+                    resolve({ lcp, cls, tbt });
+                }, 8000);
+            });
+        }""")
+
+        return {"url": url, "lcp": metrics["lcp"], "cls": metrics["cls"], "tbt": metrics["tbt"]}
+    except Exception as e:
+        log_json("WARNING", "cwv_page_error", url=url, error=str(e))
+        return {"url": url, "lcp": 0, "cls": 0, "tbt": 0, "error": str(e)}
+    finally:
+        try:
+            await page.close()
+        except Exception:
+            pass
+        try:
+            await context.close()
+        except Exception:
+            pass
+
+
+async def measure_core_web_vitals(crawled_pages: list, crawl_job_id: str):
+    if not crawled_pages:
+        return
+
+    sampled = [crawled_pages[0]]
+    for page in crawled_pages[1:]:
+        if len(sampled) >= 20:
+            break
+        sampled.append(page)
+
+    measurements = []
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        for page_data in sampled:
+            url = page_data.get("url", "")
+            if not url:
+                continue
+            m = await measure_page_cwv(browser, url)
+            measurements.append(m)
+        await browser.close()
+
+    valid = [m for m in measurements if "error" not in m]
+    if not valid:
+        log_json("WARNING", "cwv_no_valid_measurements", crawlJobId=crawl_job_id)
+        return
+
+    lcp_vals = [m["lcp"] for m in valid]
+    cls_vals = [m["cls"] for m in valid]
+    tbt_vals = [m["tbt"] for m in valid]
+
+    lcp_ratings = [classify_lcp(v) for v in lcp_vals]
+    cls_ratings = [classify_cls(v) for v in cls_vals]
+    tbt_ratings = [classify_tbt(v) for v in tbt_vals]
+
+    def make_details(values, ratings, label):
+        return [{"url": m["url"], "value": values[i], "rating": ratings[i]} for i, m in enumerate(valid)]
+
+    def count_rating(ratings, target):
+        return sum(1 for r in ratings if r == target)
+
+    issues = [
+        {
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": aggregate_severity(lcp_ratings),
+            "category": "core-web-vitals",
+            "url": "N/A",
+            "description": (
+                f"LCP (Largest Contentful Paint): "
+                f"{count_rating(lcp_ratings, 'good')} good, "
+                f"{count_rating(lcp_ratings, 'needs-improvement')} needs-improvement, "
+                f"{count_rating(lcp_ratings, 'poor')} poor across {len(valid)} sampled pages. "
+                f"Thresholds: good \u2264 2500ms, needs-improvement \u2264 4000ms, poor > 4000ms."
+            ),
+            "recommendation": "Optimize server response time, use a CDN, lazy-load images, and eliminate render-blocking resources.",
+            "whyItMatters": "LCP measures loading performance. A good LCP ensures users see content quickly, reducing bounce rates.",
+            "details": make_details(lcp_vals, lcp_ratings, "LCP"),
+        },
+        {
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": aggregate_severity(cls_ratings),
+            "category": "core-web-vitals",
+            "url": "N/A",
+            "description": (
+                f"CLS (Cumulative Layout Shift): "
+                f"{count_rating(cls_ratings, 'good')} good, "
+                f"{count_rating(cls_ratings, 'needs-improvement')} needs-improvement, "
+                f"{count_rating(cls_ratings, 'poor')} poor across {len(valid)} sampled pages. "
+                f"Thresholds: good \u2264 0.1, needs-improvement \u2264 0.25, poor > 0.25."
+            ),
+            "recommendation": "Set explicit width/height on images and embeds, avoid inserting content above existing content, and use transform animations.",
+            "whyItMatters": "CLS measures visual stability. A good CLS prevents unexpected layout shifts that frustrate users.",
+            "details": make_details(cls_vals, cls_ratings, "CLS"),
+        },
+        {
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": aggregate_severity(tbt_ratings),
+            "category": "core-web-vitals",
+            "url": "N/A",
+            "description": (
+                f"TBT (proxy for INP — real INP requires field data): "
+                f"{count_rating(tbt_ratings, 'good')} good, "
+                f"{count_rating(tbt_ratings, 'needs-improvement')} needs-improvement, "
+                f"{count_rating(tbt_ratings, 'poor')} poor across {len(valid)} sampled pages. "
+                f"Thresholds: good \u2264 200ms, needs-improvement \u2264 600ms, poor > 600ms."
+            ),
+            "recommendation": "Break up long JavaScript tasks, use web workers for heavy computation, and lazy-load non-critical scripts.",
+            "whyItMatters": "TBT (proxy for INP — real INP requires field data). TBT measures responsiveness during load. Lower values mean pages are more interactive sooner.",
+            "details": make_details(tbt_vals, tbt_ratings, "TBT"),
+        },
+    ]
+
+    try:
+        await db.auditissues.insert_many(issues)
+        log_json("INFO", "cwv_issues_created", crawlJobId=crawl_job_id, count=len(issues), sampled=len(valid))
+    except Exception as e:
+        log_json("ERROR", "cwv_insert_failed", crawlJobId=crawl_job_id, error=str(e))
+
+
+# --- Indexing checks ---
+
+EXCLUSION_PATTERNS = ["/admin", "/wp-admin", "/login", "/staging", "/test", "/internal"]
+
+
+def is_path_excluded(path: str) -> bool:
+    path_lower = path.lower()
+    return any(pattern in path_lower for pattern in EXCLUSION_PATTERNS)
+
+
+def identify_indexing_issues(crawled_pages: list, crawl_job_id: str, robots_parser) -> list:
+    flagged_pages = []
+    robots_blocked_pages = []
+
+    for page in crawled_pages:
+        url = page.get("url", "")
+        if not url:
+            continue
+        parsed = urlparse(url)
+        path = parsed.path or "/"
+
+        robots_blocked = False
+        if robots_parser:
+            robots_blocked = not robots_parser.can_fetch("*", url)
+
+        meta_noindex = page.get("meta_noindex", False) or False
+
+        x_robots_tag = page.get("x_robots_tag", "")
+        if x_robots_tag and "noindex" in x_robots_tag.lower():
+            meta_noindex = True
+
+        canonical = page.get("canonical")
+        canonical_mismatch = False
+        if canonical:
+            clean_url = url.split("#")[0].split("?")[0].rstrip("/")
+            clean_canonical = canonical.split("#")[0].split("?")[0].rstrip("/")
+            if clean_url != clean_canonical:
+                canonical_mismatch = True
+
+        page_info = {
+            "url": url,
+            "meta_noindex": meta_noindex,
+            "canonical_mismatch": canonical_mismatch,
+            "robots_txt_blocked": robots_blocked,
+        }
+
+        has_indexing_issue = meta_noindex or canonical_mismatch
+
+        if has_indexing_issue and not is_path_excluded(path):
+            flagged_pages.append(page_info)
+
+        if robots_blocked and not has_indexing_issue:
+            robots_blocked_pages.append(page_info)
+
+    issues = []
+
+    if flagged_pages:
+        issues.append({
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": "critical",
+            "category": "indexing",
+            "url": "N/A",
+            "description": (
+                f"{len(flagged_pages)} of {len(crawled_pages)} crawled pages have indexing issues "
+                f"(noindex or canonical mismatch)"
+            ),
+            "recommendation": (
+                "Remove noindex directives for pages intended to appear in search results, "
+                "and ensure canonical tags point to the page itself."
+            ),
+            "whyItMatters": (
+                "Pages with noindex or conflicting canonicals may be excluded from search results, "
+                "reducing organic visibility."
+            ),
+            "details": flagged_pages,
+        })
+
+    if robots_blocked_pages:
+        issues.append({
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": "passed",
+            "category": "indexing",
+            "url": "N/A",
+            "description": (
+                f"{len(robots_blocked_pages)} pages are blocked by robots.txt "
+                f"(intentional \u2014 no action needed)"
+            ),
+            "recommendation": "No action needed.",
+            "details": robots_blocked_pages,
+        })
+
+    return issues
+
 
 async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_concurrency: int = 5):
     # Ensure start url contains schema protocol
@@ -180,9 +474,11 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
                             {"$inc": {"pageCount": 1}}
                         )
                         
-                        # Extract internal links from page HTML to follow
+                        # Extract internal links from page HTML to follow and build outbound link graph
                         html = page_data.pop("html", None)
+                        outbound_links = []
                         if html:
+                            outbound_links = extract_outbound_links(html, url, target_hostname)
                             soup = BeautifulSoup(html, 'html.parser')
                             for anchor in soup.find_all('a', href=True):
                                 raw_href = anchor['href']
@@ -192,9 +488,11 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
                                 clean_url = resolved_href.split('#')[0].split('?')[0].rstrip('/')
                                 
                                 if clean_url.startswith(('http://', 'https://')):
-                                    if clean_url not in visited_urls and is_internal_link(clean_url, target_hostname):
-                                        visited_urls.add(clean_url)
-                                        await queue.put(clean_url)
+                                    if is_internal_link(clean_url, target_hostname):
+                                        if clean_url not in visited_urls:
+                                            visited_urls.add(clean_url)
+                                            await queue.put(clean_url)
+                            page_data["outboundLinks"] = outbound_links
                         
                         # Check schema issues per-page while HTML is available
                         if html:
@@ -253,6 +551,27 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
         await generate_keyword_suggestions(crawl_job_id, crawled_pages)
     except Exception as e:
         log_json("ERROR", "keyword_suggestion_failed", crawlJobId=crawl_job_id, error=str(e))
+
+    # 4. Core Web Vitals sampling and measurement
+    try:
+        await measure_core_web_vitals(crawled_pages, crawl_job_id)
+    except Exception as e:
+        log_json("ERROR", "cwv_measurement_failed", crawlJobId=crawl_job_id, error=str(e))
+
+    # 5. Indexing checks (noindex, canonical mismatch, robots.txt)
+    try:
+        indexing_issues = identify_indexing_issues(crawled_pages, crawl_job_id, robots_parser)
+        if indexing_issues:
+            await db.auditissues.insert_many(indexing_issues)
+    except Exception as e:
+        log_json("ERROR", "indexing_check_failed", crawlJobId=crawl_job_id, error=str(e))
+
+    # 6. Internal link suggestions via topic clustering
+    from link_suggester import generate_internal_link_suggestions
+    try:
+        await generate_internal_link_suggestions(crawl_job_id, crawled_pages)
+    except Exception as e:
+        log_json("ERROR", "link_suggestion_failed", crawlJobId=crawl_job_id, error=str(e))
 
     log_json(
         "INFO",
@@ -391,6 +710,8 @@ async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | 
             response = await page.goto(url, timeout=15000)
             
             status_code = response.status if response else 0
+            response_headers = response.headers if response else {}
+            x_robots_tag = response_headers.get('x-robots-tag', '')
             html = await page.content()
 
             # Retry Trigger 1: Status Code 429
@@ -404,6 +725,7 @@ async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | 
             # Success: Parse page SEO data
             seo_data = extract_seo_data(html, url, status_code)
             seo_data["html"] = html  # Attached temporarily for link extraction + schema validation
+            seo_data["x_robots_tag"] = x_robots_tag
 
             await page.close()
             if context:

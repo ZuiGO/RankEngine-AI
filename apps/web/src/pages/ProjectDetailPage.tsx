@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { SearchCheck } from 'lucide-react';
+import { SearchCheck, MessageSquare } from 'lucide-react';
 import api from '../lib/api';
-import { Card, CardBody, Badge, Button, ScoreReveal, EmptyState } from '../components/ui';
+import { Card, CardBody, Badge, Button, ScoreReveal, StatGauge, EmptyState } from '../components/ui';
+import ChatPanel from '../components/ChatPanel';
 
 // ─────────────────────────────────────── TYPES ──────────────────────────────
 
@@ -32,6 +33,7 @@ interface AuditIssue {
   url: string;
   recommendation: string;
   whyItMatters?: string;
+  details?: Array<{ url: string; value?: number; rating?: string; meta_noindex?: boolean; canonical_mismatch?: boolean; robots_txt_blocked?: boolean }>;
 }
 
 interface Checklist {
@@ -46,6 +48,14 @@ interface ChecklistResponse {
 }
 
 // ──────────────────────────────────────── HELPERS ───────────────────────────
+
+function cwvScoreFromDetails(details?: AuditIssue['details']): number {
+  if (!details || details.length === 0) return 100;
+  const good = details.filter(d => d.rating === 'good').length;
+  const ni = details.filter(d => d.rating === 'needs-improvement').length;
+  const total = details.length;
+  return Math.round((good / total) * 100 + (ni / total) * 50);
+}
 
 const SEV_CONFIG = {
   critical: {
@@ -393,6 +403,8 @@ export default function ProjectDetailPage() {
   const [migrationJob, setMigrationJob] = useState<CrawlJob | null>(null);
   const [migrationChecklist, setMigrationChecklist] = useState<ChecklistResponse | null>(null);
 
+  const [chatOpen, setChatOpen] = useState(false);
+
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const migPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -574,6 +586,27 @@ export default function ProjectDetailPage() {
   const schemaIssues = checklistData?.schema ?? [];
   const totalPages = activeJob?.pageCount ?? 0;
 
+  const cwvIssues = [...allCritical, ...allWarning, ...allPassed].filter(
+    i => i.category === 'core-web-vitals',
+  );
+  const lcpIssue = cwvIssues.find(i => i.description.startsWith('LCP'));
+  const clsIssue = cwvIssues.find(i => i.description.startsWith('CLS'));
+  const tbtIssue = cwvIssues.find(i => i.description.startsWith('TBT (proxy for INP'));
+
+  const indexingCritical = allCritical.filter(i => i.category === 'indexing');
+  const indexingWarning = allWarning.filter(i => i.category === 'indexing');
+  const indexingPassed = allPassed.filter(i => i.category === 'indexing');
+
+  const mainCritical = allCritical.filter(
+    i => i.category !== 'core-web-vitals' && i.category !== 'indexing',
+  );
+  const mainWarning = allWarning.filter(
+    i => i.category !== 'core-web-vitals' && i.category !== 'indexing',
+  );
+  const mainPassed = allPassed.filter(
+    i => i.category !== 'core-web-vitals' && i.category !== 'indexing',
+  );
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
 
@@ -748,6 +781,34 @@ export default function ProjectDetailPage() {
         ))}
       </div>
 
+      {/* ── Chat panel (collapsible) ── */}
+      <div className="mt-2">
+        <button
+          onClick={() => setChatOpen((o) => !o)}
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-app-surface border border-app-border rounded-xl hover:brightness-110 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <MessageSquare className="h-4 w-4 text-app-signal" />
+            <span className="text-sm font-semibold text-white">Ask about this project</span>
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-4 w-4 text-app-text-muted transition-transform ${chatOpen ? 'rotate-180' : ''}`}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {chatOpen && (
+          <div className="mt-2">
+            <ChatPanel projectId={id!} />
+          </div>
+        )}
+      </div>
+
       {/* ─────────────────── AUDIT SECTION ─────────────────── */}
       <div>
         <h2 className="text-base font-bold font-display text-white mb-4 flex items-center gap-2">
@@ -793,15 +854,74 @@ export default function ProjectDetailPage() {
             {/* Summary pills */}
             <AuditSummaryBar
               pageCount={totalPages}
-              critical={allCritical.length}
-              warning={allWarning.length}
-              passed={allPassed.length}
+              critical={mainCritical.length}
+              warning={mainWarning.length}
+              passed={mainPassed.length}
             />
 
-            {/* Checklist sections */}
-            <ChecklistSection severity="critical" items={allCritical} />
-            <ChecklistSection severity="warning" items={allWarning} />
-            <ChecklistSection severity="passed" items={allPassed} />
+            {/* ── Core Web Vitals section ── */}
+            {(lcpIssue || clsIssue || tbtIssue) && (
+              <div>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-app-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Core Web Vitals
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                  {lcpIssue && (
+                    <StatGauge
+                      score={cwvScoreFromDetails(lcpIssue.details)}
+                      label="LCP"
+                    >
+                      <p className="text-xs text-app-text-muted leading-relaxed">
+                        {lcpIssue.description.replace(/^LCP \(Largest Contentful Paint\):\s*/, '')}
+                      </p>
+                    </StatGauge>
+                  )}
+                  {clsIssue && (
+                    <StatGauge
+                      score={cwvScoreFromDetails(clsIssue.details)}
+                      label="CLS"
+                    >
+                      <p className="text-xs text-app-text-muted leading-relaxed">
+                        {clsIssue.description.replace(/^CLS \(Cumulative Layout Shift\):\s*/, '')}
+                      </p>
+                    </StatGauge>
+                  )}
+                  {tbtIssue && (
+                    <StatGauge
+                      score={cwvScoreFromDetails(tbtIssue.details)}
+                      label="TBT (proxy for INP)"
+                    >
+                      <p className="text-xs text-app-text-muted leading-relaxed">
+                        {tbtIssue.description.replace(/^TBT \(proxy for INP — real INP requires field data\):\s*/, '')}
+                      </p>
+                    </StatGauge>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Main checklist sections */}
+            <ChecklistSection severity="critical" items={mainCritical} />
+            <ChecklistSection severity="warning" items={mainWarning} />
+            <ChecklistSection severity="passed" items={mainPassed} />
+
+            {/* ── Indexing section ── */}
+            {(indexingCritical.length > 0 || indexingWarning.length > 0 || indexingPassed.length > 0) && (
+              <div>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Indexing
+                </h3>
+                <ChecklistSection severity="critical" items={indexingCritical} />
+                <ChecklistSection severity="warning" items={indexingWarning} />
+                <ChecklistSection severity="passed" items={indexingPassed} />
+              </div>
+            )}
 
             {/* Schema section */}
             {schemaIssues.length > 0 && (
