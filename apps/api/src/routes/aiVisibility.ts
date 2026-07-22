@@ -64,38 +64,35 @@ router.get('/:id/ai-visibility', async (req: Request, res: Response) => {
       .lean();
 
     const engines = ['chatgpt', 'gemini', 'perplexity', 'google_aio'] as const;
+    const promptIds = prompts.map((p) => p._id);
 
-    const promptsWithSnapshots = await Promise.all(
-      prompts.map(async (prompt) => {
-        const latestSnapshots: Record<
-          string,
-          { mentioned: boolean; mentionContext: string; checkedAt: Date }
-        > = {};
+    const allSnapshots = await AiVisibilitySnapshot.find({
+      trackedPromptId: { $in: promptIds },
+    })
+      .sort({ checkedAt: -1 })
+      .select('trackedPromptId engine mentioned mentionContext checkedAt')
+      .lean();
 
-        for (const engine of engines) {
-          const snap = await AiVisibilitySnapshot.findOne({
-            trackedPromptId: prompt._id,
-            engine,
-          })
-            .sort({ checkedAt: -1 })
-            .select('mentioned mentionContext checkedAt')
-            .lean();
-
-          if (snap) {
-            latestSnapshots[engine] = {
-              mentioned: snap.mentioned,
-              mentionContext: snap.mentionContext,
-              checkedAt: snap.checkedAt,
-            };
-          }
-        }
-
-        return {
-          ...prompt,
-          latestSnapshots,
+    const snapshotMap = new Map<string, Record<string, any>>();
+    for (const snap of allSnapshots) {
+      const key = String(snap.trackedPromptId);
+      if (!snapshotMap.has(key)) {
+        snapshotMap.set(key, {});
+      }
+      const engineMap = snapshotMap.get(key)!;
+      if (!engineMap[snap.engine]) {
+        engineMap[snap.engine] = {
+          mentioned: snap.mentioned,
+          mentionContext: snap.mentionContext,
+          checkedAt: snap.checkedAt,
         };
-      })
-    );
+      }
+    }
+
+    const promptsWithSnapshots = prompts.map((prompt) => ({
+      ...prompt,
+      latestSnapshots: snapshotMap.get(String(prompt._id)) || {},
+    }));
 
     let totalChecks = 0;
     let totalMentions = 0;

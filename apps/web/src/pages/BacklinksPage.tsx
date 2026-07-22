@@ -221,9 +221,14 @@ export default function BacklinksPage() {
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-white">
-          {showToxicOnly ? 'Toxic Backlinks' : 'All Backlinks'}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold text-white">
+            {showToxicOnly ? 'Toxic Backlinks' : 'All Backlinks'}
+          </h3>
+          {showToxicOnly && (
+            <Badge variant="danger">{filtered.length} Toxic</Badge>
+          )}
+        </div>
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <span className="text-2xs text-app-text-muted font-medium">
             Show toxic links only

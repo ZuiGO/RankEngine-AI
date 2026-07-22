@@ -125,8 +125,10 @@ export default function KeywordResearchPage() {
 
   const sorted = [...results].sort((a, b) => {
     if (!sortField) return 0;
+    const valA = a[sortField] ?? 0;
+    const valB = b[sortField] ?? 0;
     const mul = sortOrder === 'desc' ? -1 : 1;
-    return (a[sortField] - b[sortField]) * mul;
+    return (valA - valB) * mul;
   });
 
   const handleTrack = async (kw: string) => {

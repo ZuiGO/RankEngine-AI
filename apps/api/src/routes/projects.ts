@@ -253,6 +253,18 @@ router.post('/:id/crawl', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    const existingActive = await CrawlJob.findOne({
+      projectId: id,
+      status: { $in: ['queued', 'running'] },
+      type: { $ne: 'migration-check' },
+    });
+    if (existingActive) {
+      return res.status(409).json({
+        error: 'A crawl job is already queued or running for this project',
+        crawlJobId: existingActive._id,
+      });
+    }
+
     const { crawlJobId } = await enqueueCrawlJob(project);
 
     return res.status(202).json({
@@ -280,6 +292,18 @@ router.post('/:id/migration-check', async (req: Request, res: Response) => {
 
     if (!project.stagingDomain) {
       return res.status(400).json({ error: 'Staging domain is not configured for this project' });
+    }
+
+    const existingActive = await CrawlJob.findOne({
+      projectId: id,
+      status: { $in: ['queued', 'running'] },
+      type: 'migration-check',
+    });
+    if (existingActive) {
+      return res.status(409).json({
+        error: 'A migration check is already queued or running for this project',
+        crawlJobId: existingActive._id,
+      });
     }
 
     const { crawlJobId } = await enqueueMigrationCheck(project);

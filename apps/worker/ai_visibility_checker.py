@@ -17,6 +17,7 @@ Reliability caveats (shared with users)
 """
 
 import json
+import re
 import logging
 from typing import Optional
 from datetime import datetime, timezone
@@ -75,8 +76,9 @@ async def _groq_classifier(text: str, brand_term: str) -> bool:
             temperature=0.0,
             max_tokens=10,
         )
-        answer = (chat.choices[0].message.content or "").strip().lower()
-        return answer.startswith("yes")
+        raw_answer = (chat.choices[0].message.content or "").strip().lower()
+        cleaned = re.sub(r"[^\w\s]", "", raw_answer).strip()
+        return cleaned.startswith("yes") or bool(re.search(r"\byes\b", cleaned))
     except Exception as exc:
         logger.warning("[AiVisibility] Groq classifier failed: %s", exc)
         return False

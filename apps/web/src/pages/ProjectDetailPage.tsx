@@ -531,8 +531,17 @@ export default function ProjectDetailPage() {
       const { data: jobData } = await api.get<{ crawlJob: CrawlJob }>(`/crawl-jobs/${data.crawlJobId}`);
       setActiveJob(jobData.crawlJob);
       startPolling(data.crawlJobId);
-    } catch {
-      // show nothing on error
+    } catch (err: any) {
+      const existingId = err?.response?.data?.crawlJobId;
+      if (existingId) {
+        try {
+          const { data: jobData } = await api.get<{ crawlJob: CrawlJob }>(`/crawl-jobs/${existingId}`);
+          setActiveJob(jobData.crawlJob);
+          startPolling(existingId);
+        } catch {
+          // ignore
+        }
+      }
     } finally {
       setAuditLoading(false);
     }
@@ -549,8 +558,17 @@ export default function ProjectDetailPage() {
       const { data: jobData } = await api.get<{ crawlJob: CrawlJob }>(`/crawl-jobs/${data.crawlJobId}`);
       setMigrationJob(jobData.crawlJob);
       startMigrationPolling(data.crawlJobId);
-    } catch {
-      // ignore
+    } catch (err: any) {
+      const existingId = err?.response?.data?.crawlJobId;
+      if (existingId) {
+        try {
+          const { data: jobData } = await api.get<{ crawlJob: CrawlJob }>(`/crawl-jobs/${existingId}`);
+          setMigrationJob(jobData.crawlJob);
+          startMigrationPolling(existingId);
+        } catch {
+          // ignore
+        }
+      }
     } finally {
       setMigrationLoading(false);
     }
