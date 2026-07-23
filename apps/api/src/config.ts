@@ -23,7 +23,8 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
-  RATE_LIMIT_MAX: z.coerce.number().default(200),
+  RATE_LIMIT_MAX: z.coerce.number().default(2000),
+  RATE_LIMIT_PAID_MAX: z.coerce.number().default(100),
 
   DATAFORSEO_LOGIN: z.string().default(''),
   DATAFORSEO_PASSWORD: z.string().default(''),

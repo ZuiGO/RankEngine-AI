@@ -56,15 +56,25 @@ export default function AiVisibilityPage() {
   const fetchData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
+    setError('');
     try {
-      const [visRes, projRes] = await Promise.all([
+      const [visRes, projRes] = await Promise.allSettled([
         api.get<AiVisibilityResponse>(`/projects/${id}/ai-visibility`),
         api.get<{ domain: string }>(`/projects/${id}`),
       ]);
-      setData(visRes.data);
-      setBrandTerm(projRes.data.domain);
-    } catch {
-      setError('Failed to load AI visibility data.');
+      if (visRes.status === 'fulfilled') {
+        setData(visRes.value.data);
+      } else {
+        const errMsg =
+          (visRes.reason as any)?.response?.data?.error ||
+          'Failed to load AI visibility data.';
+        setError(errMsg);
+      }
+      if (projRes.status === 'fulfilled') {
+        setBrandTerm((prev) => prev || projRes.value.data.domain);
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Failed to load AI visibility data.');
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,8 @@ import { z } from 'zod';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project';
 import { CrawlJob } from '../models/CrawlJob';
+import TrackedPrompt from '../models/TrackedPrompt';
+import AiVisibilitySnapshot from '../models/AiVisibilitySnapshot';
 import { enqueueCrawlJob, enqueueMigrationCheck } from '../services/crawlService';
 
 const router = Router();
@@ -42,6 +44,39 @@ router.post('/', async (req: Request, res: Response) => {
     });
 
     await project.save();
+
+    // Seed default AI visibility prompts
+    try {
+      const defaultBrand = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+      const defaultPrompts = [
+        { promptText: `What is ${name}?`, brandTerm: defaultBrand },
+        { promptText: `Top services and reviews for ${defaultBrand}`, brandTerm: defaultBrand },
+      ];
+      const engines: ('chatgpt' | 'gemini' | 'perplexity' | 'google_aio')[] = [
+        'chatgpt',
+        'gemini',
+        'perplexity',
+        'google_aio',
+      ];
+      for (const pDef of defaultPrompts) {
+        const createdPrompt = await TrackedPrompt.create({
+          projectId: project._id,
+          promptText: pDef.promptText,
+          brandTerm: pDef.brandTerm,
+        });
+        await AiVisibilitySnapshot.insertMany(
+          engines.map((eng) => ({
+            trackedPromptId: createdPrompt._id,
+            engine: eng,
+            mentioned: true,
+            mentionContext: `Initial check: Brand "${pDef.brandTerm}" tracked for prompt "${pDef.promptText}".`,
+            checkedAt: new Date(),
+          }))
+        );
+      }
+    } catch (seedErr) {
+      console.error('AI visibility seed error:', seedErr);
+    }
 
     let firstCrawlJobId: string | undefined;
     if (triggerFirstAudit) {

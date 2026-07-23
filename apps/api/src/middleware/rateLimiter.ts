@@ -84,6 +84,8 @@ function getRedisClient(): IORedis {
   return _redisClient;
 }
 
+import config from '../config';
+
 export const rateLimiter = (limit: number, windowMs: number) => {
   const store = new RedisRateLimitStore(getRedisClient());
 
@@ -92,7 +94,7 @@ export const rateLimiter = (limit: number, windowMs: number) => {
     limit,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
-    keyGenerator: (req: Request) => req.ip ?? 'anonymous',
+    keyGenerator: (req: Request) => req.ip || (req.headers['x-forwarded-for'] as string) || 'anonymous',
     message: {
       error: 'Too many requests, please try again later.',
     },
@@ -108,6 +110,24 @@ export const rateLimiter = (limit: number, windowMs: number) => {
     store,
   });
 };
+
+/**
+ * Route-scoped rate limiter for paid external API routes (DataForSEO, SERP, heavy LLM ops).
+ *
+ * Math & Cost-Control Rationale for single-company internal deployment:
+ *  - RankEngine AI is an internal single-company tool used by team members (~5-10 concurrent users).
+ *  - Standard UI polling endpoints (GET /api/crawl-jobs/:id every 3s, GET /api/notifications, GET /api/projects)
+ *    are NOT rate-limited by this middleware, ensuring UI responsiveness without false positives.
+ *  - DataForSEO and SERP API calls incur per-request financial cost.
+ *  - An active team member performing keyword research or competitor analysis triggers 5-10 paid calls per session.
+ *  - 100 requests per 15-minute window per IP (RATE_LIMIT_PAID_MAX = 100) permits peak multi-tab research
+ *    (~6.6 paid requests/minute per client IP) while capping total DataForSEO financial exposure and preventing
+ *    accidental runaway script loops.
+ */
+export const paidApiRateLimiter = rateLimiter(
+  config.RATE_LIMIT_PAID_MAX,
+  config.RATE_LIMIT_WINDOW_MS
+);
 
 export const _closeRedisClient = async (): Promise<void> => {
   if (_redisClient) {

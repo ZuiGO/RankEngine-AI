@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -300,9 +300,15 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const fetchedIdsRef = useRef<Set<string>>(new Set());
+
   const fetchSummaries = useCallback(async (list: Project[]) => {
+    const unfetched = list.filter((p) => !fetchedIdsRef.current.has(p._id));
+    if (unfetched.length === 0) return;
+    unfetched.forEach((p) => fetchedIdsRef.current.add(p._id));
+
     const results = await Promise.allSettled(
-      list.map((p) =>
+      unfetched.map((p) =>
         fetchProjectSummary(p._id).then((s) => ({ id: p._id, summary: s })),
       ),
     );

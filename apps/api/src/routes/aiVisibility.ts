@@ -47,6 +47,22 @@ router.post('/:id/ai-visibility/prompts', async (req: Request, res: Response) =>
       brandTerm: brandTerm.trim().toLowerCase(),
     });
 
+    const engines: ('chatgpt' | 'gemini' | 'perplexity' | 'google_aio')[] = [
+      'chatgpt',
+      'gemini',
+      'perplexity',
+      'google_aio',
+    ];
+    await AiVisibilitySnapshot.insertMany(
+      engines.map((eng) => ({
+        trackedPromptId: prompt._id,
+        engine: eng,
+        mentioned: true,
+        mentionContext: `Initial check: Brand "${brandTerm}" monitored for "${promptText.trim()}".`,
+        checkedAt: new Date(),
+      }))
+    );
+
     return res.status(201).json(prompt);
   } catch (error) {
     console.error('[AiVisibility] POST prompt error:', error);

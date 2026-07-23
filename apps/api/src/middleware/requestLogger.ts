@@ -25,8 +25,9 @@ const stream: StreamOptions = {
   },
 };
 
-// Skip logging in test environments to keep test output clean
-const skip = (_req: Request, _res: Response) => process.env.NODE_ENV === 'test';
+// Skip logging in test environments or 304 (Not Modified) responses to avoid terminal log floods
+const skip = (_req: Request, res: Response) =>
+  process.env.NODE_ENV === 'test' || res.statusCode === 304;
 
 /**
  * Returns a configured morgan middleware.
