@@ -792,6 +792,24 @@ export default function ProjectDetailPage() {
             border: 'border-emerald-700/20',
             iconColor: 'text-emerald-300',
           },
+          {
+            label: 'Content Performance',
+            desc: 'Per-page SEO scoring with GA4 and Search Console enrichment.',
+            to: `/projects/${id}/reports/content-performance`,
+            icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+            grad: 'from-violet-700/30 to-purple-700/30',
+            border: 'border-violet-700/20',
+            iconColor: 'text-violet-300',
+          },
+          {
+            label: 'Before / After Comparison',
+            desc: 'Compare SEO scores between your live and staging sites.',
+            to: `/projects/${id}/reports/comparison`,
+            icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
+            grad: 'from-amber-700/30 to-orange-700/30',
+            border: 'border-amber-700/20',
+            iconColor: 'text-amber-300',
+          },
         ].map((f) => (
           <Link key={f.label} to={f.to} className="group block">
             <Card className="hover:border-slate-700 hover:shadow-lg hover:-translate-y-0.5 transition-all">
@@ -808,6 +826,7 @@ export default function ProjectDetailPage() {
           </Link>
         ))}
       </div>
+
 
       {/* ── Chat panel (collapsible) ── */}
       <div className="mt-2">

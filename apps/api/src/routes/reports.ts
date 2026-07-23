@@ -5,7 +5,14 @@ import { Project } from '../models/Project';
 import { CrawlJob } from '../models/CrawlJob';
 import { AuditIssue } from '../models/AuditIssue';
 import { Report } from '../models/Report';
-import { buildReportPayload, generateReportHtml, renderPdf } from '../services/pdfExportService';
+import {
+  buildReportPayload,
+  generateReportHtml,
+  renderPdf,
+  buildContentPerformanceHtml,
+  buildComparisonHtml,
+  ReportType,
+} from '../services/pdfExportService';
 import { saveFile, getFileStream, generateDownloadToken } from '../services/storageService';
 import ContentPerformanceReportModel from '../models/ContentPerformanceReport';
 import { computeReport } from '../services/contentPerformanceService';
@@ -53,79 +60,97 @@ router.post('/:id/reports/generate', async (req: Request, res: Response) => {
     }
 
     const crawlJobIdStr = crawlJob._id.toString();
+    const reportType: ReportType = req.body.type || 'audit';
 
-    const issues = await AuditIssue.find({ crawlJobId: crawlJobIdStr });
+    let html = '';
 
-    const criticalIssues = issues.filter((i) => i.severity === 'critical');
-    const warningIssues = issues.filter((i) => i.severity === 'warning');
-    const passedIssues = issues.filter((i) => i.severity === 'passed');
+    if (reportType === 'content-performance') {
+      const contentReport = await computeReport(crawlJobIdStr);
+      html = buildContentPerformanceHtml(contentReport);
+    } else if (reportType === 'before-after-comparison') {
+      const compReport = await computeComparisonReport({
+        projectId: project._id.toString(),
+        oldUrl: req.body.oldUrl || project.domain,
+        newUrl: req.body.newUrl || project.stagingDomain || project.domain,
+        oldCrawlJobId: crawlJobIdStr,
+        newCrawlJobId: req.body.newCrawlJobId || crawlJobIdStr,
+        pathOverrides: req.body.pathOverrides,
+      });
+      html = buildComparisonHtml(compReport);
+    } else {
+      const issues = await AuditIssue.find({ crawlJobId: crawlJobIdStr });
 
-    const healthScore = crawlJob.healthScore ?? 0;
+      const criticalIssues = issues.filter((i) => i.severity === 'critical');
+      const warningIssues = issues.filter((i) => i.severity === 'warning');
+      const passedIssues = issues.filter((i) => i.severity === 'passed');
 
-    const sections: any[] = [];
+      const healthScore = crawlJob.healthScore ?? 0;
 
-    sections.push({
-      title: 'SEO Health Score',
-      type: 'score_gauge',
-      data: {
-        score: healthScore,
-        label: `out of 100 — ${criticalIssues.length} critical, ${warningIssues.length} warnings`,
-      },
-    });
+      const sections: any[] = [];
 
-    sections.push({
-      title: 'Issue Summary',
-      type: 'table',
-      data: {
-        headers: ['Category', 'Count'],
-        rows: [
-          ['Critical Issues', String(criticalIssues.length)],
-          ['Warnings', String(warningIssues.length)],
-          ['Passed Checks', String(passedIssues.length)],
-          ['Total Pages Crawled', String(crawlJob.pageCount)],
-        ],
-        colorMap: { Count: criticalIssues.length > 5 ? '#dc2626' : '#16a34a' },
-      },
-    });
-
-    const topCritical = criticalIssues.slice(0, 15);
-    if (topCritical.length > 0) {
       sections.push({
-        title: `Top Critical Issues (${topCritical.length} of ${criticalIssues.length})`,
-        type: 'checklist',
+        title: 'SEO Health Score',
+        type: 'score_gauge',
         data: {
-          items: topCritical.map((i) => ({
-            severity: 'critical',
-            description: `${i.description}${i.whyItMatters ? ` — ${i.whyItMatters}` : ''}`,
-            recommendation: i.recommendation,
-          })),
+          score: healthScore,
+          label: `out of 100 — ${criticalIssues.length} critical, ${warningIssues.length} warnings`,
         },
       });
-    }
 
-    const topWarnings = warningIssues.slice(0, 10);
-    if (topWarnings.length > 0) {
       sections.push({
-        title: `Top Warnings (${topWarnings.length} of ${warningIssues.length})`,
-        type: 'checklist',
+        title: 'Issue Summary',
+        type: 'table',
         data: {
-          items: topWarnings.map((i) => ({
-            severity: 'warning',
-            description: i.description,
-            recommendation: i.recommendation,
-          })),
+          headers: ['Category', 'Count'],
+          rows: [
+            ['Critical Issues', String(criticalIssues.length)],
+            ['Warnings', String(warningIssues.length)],
+            ['Passed Checks', String(passedIssues.length)],
+            ['Total Pages Crawled', String(crawlJob.pageCount)],
+          ],
+          colorMap: { Count: criticalIssues.length > 5 ? '#dc2626' : '#16a34a' },
         },
       });
+
+      const topCritical = criticalIssues.slice(0, 15);
+      if (topCritical.length > 0) {
+        sections.push({
+          title: `Top Critical Issues (${topCritical.length} of ${criticalIssues.length})`,
+          type: 'checklist',
+          data: {
+            items: topCritical.map((i) => ({
+              severity: 'critical',
+              description: `${i.description}${i.whyItMatters ? ` — ${i.whyItMatters}` : ''}`,
+              recommendation: i.recommendation,
+            })),
+          },
+        });
+      }
+
+      const topWarnings = warningIssues.slice(0, 10);
+      if (topWarnings.length > 0) {
+        sections.push({
+          title: `Top Warnings (${topWarnings.length} of ${warningIssues.length})`,
+          type: 'checklist',
+          data: {
+            items: topWarnings.map((i) => ({
+              severity: 'warning',
+              description: i.description,
+              recommendation: i.recommendation,
+            })),
+          },
+        });
+      }
+
+      const payload = buildReportPayload(
+        project._id.toString(),
+        project.name,
+        project.domain,
+        sections
+      );
+
+      html = generateReportHtml(payload);
     }
-
-    const payload = buildReportPayload(
-      project._id.toString(),
-      project.name,
-      project.domain,
-      sections
-    );
-
-    const html = generateReportHtml(payload);
     const pdfBuffer = await renderPdf(html);
 
     const filename = `report_${project._id}_${crawlJobIdStr}_${Date.now()}.pdf`;

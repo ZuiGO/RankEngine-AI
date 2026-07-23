@@ -23,6 +23,9 @@ import InternalLinksPage from './pages/InternalLinksPage';
 import ChatPage from './pages/ChatPage';
 import KeywordsPage from './pages/KeywordsPage';
 import NotificationsPage from './pages/NotificationsPage';
+import ProjectSettingsPage from './pages/ProjectSettingsPage';
+import ContentPerformancePage from './pages/ContentPerformancePage';
+import ComparisonReportPage from './pages/ComparisonReportPage';
 
 export default function App() {
   return (
@@ -43,6 +46,9 @@ export default function App() {
             <Route path="/projects/:id/backlinks" element={<BacklinksPage />} />
             <Route path="/projects/:id/ai-visibility" element={<AiVisibilityPage />} />
             <Route path="/projects/:id/competitors" element={<CompetitorsPage />} />
+            <Route path="/projects/:id/settings" element={<ProjectSettingsPage />} />
+            <Route path="/projects/:id/reports/content-performance" element={<ContentPerformancePage />} />
+            <Route path="/projects/:id/reports/comparison" element={<ComparisonReportPage />} />
             <Route path="/keyword-research" element={<KeywordResearchPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
