@@ -224,6 +224,125 @@ def validate_json_ld(html_content: str, url: str, crawl_job_id: str) -> list:
             if len(issues) == issue_count_before:
                 valid_schema_types.add("Article")
 
+        # 4. Product Validation
+        if "Product" in types:
+            issue_count_before = len(issues)
+            p_name = obj.get("name")
+            if not p_name or not str(p_name).strip():
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "critical",
+                    "category": "schema",
+                    "url": url,
+                    "description": "Product schema is missing required 'name' property",
+                    "recommendation": "Add a descriptive name string to the Product object."
+                })
+            offers = obj.get("offers")
+            if not offers:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "schema",
+                    "url": url,
+                    "description": "Product schema is missing 'offers' (Offer / AggregateOffer) property",
+                    "recommendation": "Include price and availability details in an 'offers' block to qualify for Merchant listings."
+                })
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("Product")
+
+        # 5. BreadcrumbList Validation
+        if "BreadcrumbList" in types:
+            issue_count_before = len(issues)
+            items = obj.get("itemListElement")
+            if not items:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "critical",
+                    "category": "schema",
+                    "url": url,
+                    "description": "BreadcrumbList schema is missing 'itemListElement' property",
+                    "recommendation": "Provide an array of ListItem elements representing the breadcrumb trail."
+                })
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("BreadcrumbList")
+
+        # 6. Event Validation
+        if "Event" in types:
+            issue_count_before = len(issues)
+            e_name = obj.get("name")
+            e_date = obj.get("startDate")
+            if not e_name or not str(e_name).strip():
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "critical",
+                    "category": "schema",
+                    "url": url,
+                    "description": "Event schema is missing required 'name' property",
+                    "recommendation": "Provide the title/name of the event."
+                })
+            if not e_date:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "critical",
+                    "category": "schema",
+                    "url": url,
+                    "description": "Event schema is missing required 'startDate' property",
+                    "recommendation": "Provide an ISO 8601 formatted 'startDate'."
+                })
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("Event")
+
+        # 7. Recipe Validation
+        if "Recipe" in types:
+            issue_count_before = len(issues)
+            r_name = obj.get("name")
+            if not r_name or not str(r_name).strip():
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "critical",
+                    "category": "schema",
+                    "url": url,
+                    "description": "Recipe schema is missing required 'name' property",
+                    "recommendation": "Provide a recipe name."
+                })
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("Recipe")
+
+        # 8. VideoObject Validation
+        if "VideoObject" in types:
+            issue_count_before = len(issues)
+            v_name = obj.get("name")
+            v_thumb = obj.get("thumbnailUrl")
+            v_date = obj.get("uploadDate")
+            if not v_name or not v_thumb or not v_date:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "schema",
+                    "url": url,
+                    "description": "VideoObject schema is missing one of required fields: 'name', 'thumbnailUrl', or 'uploadDate'",
+                    "recommendation": "Ensure name, thumbnailUrl, and uploadDate are provided for Video rich snippets."
+                })
+            if len(issues) == issue_count_before:
+                valid_schema_types.add("VideoObject")
+
+        # 9. LocalBusiness / Organization Validation
+        org_types = {"LocalBusiness", "Organization", "Corporation", "Store"}
+        if any(t in org_types for t in types):
+            issue_count_before = len(issues)
+            o_name = obj.get("name")
+            if not o_name or not str(o_name).strip():
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "critical",
+                    "category": "schema",
+                    "url": url,
+                    "description": f"{obj_type} schema is missing required 'name' property",
+                    "recommendation": "Specify the organization/business name."
+                })
+            if len(issues) == issue_count_before:
+                valid_schema_types.add(obj_type if isinstance(obj_type, str) else "Organization")
+
     # Emit a positive result for each valid schema type. The crawler converts
     # these per-page signals into one crawl-level summary per schema type.
     for schema_type in sorted(valid_schema_types):

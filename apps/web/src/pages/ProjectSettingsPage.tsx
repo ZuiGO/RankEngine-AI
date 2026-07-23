@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../lib/api';
 import api from '../lib/api';
 import { Card, Badge, Button } from '../components/ui';
-import { Settings, CheckCircle, Link2, AlertTriangle, RefreshCw, Unlink } from 'lucide-react';
+import { Settings, CheckCircle, Link2, AlertTriangle, RefreshCw, Unlink, Trash2 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -81,8 +81,13 @@ export default function ProjectSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const navigate = useNavigate();
+
   const [disconnecting, setDisconnecting] = useState(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+
+  const [deletingProject, setDeletingProject] = useState(false);
+  const [showDeleteProjectConfirm, setShowDeleteProjectConfirm] = useState(false);
 
   // ── Load status ────────────────────────────────────────────────────
   const loadStatus = async () => {
@@ -166,6 +171,20 @@ export default function ProjectSettingsPage() {
       setStatusError(err?.response?.data?.error || 'Failed to disconnect');
     } finally {
       setDisconnecting(false);
+    }
+  };
+
+  // ── Delete Project ──────────────────────────────────────────────────
+  const handleDeleteProject = async () => {
+    if (!id) return;
+    setDeletingProject(true);
+    setShowDeleteProjectConfirm(false);
+    try {
+      await api.delete(`/projects/${id}`);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setStatusError(err?.response?.data?.error || 'Failed to delete project');
+      setDeletingProject(false);
     }
   };
 
@@ -357,6 +376,34 @@ export default function ProjectSettingsPage() {
         )}
       </Card>
 
+      {/* Danger Zone */}
+      <Card className="p-6 border-rose-500/20 bg-rose-500/5 mt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-9 w-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center flex-shrink-0 text-rose-400">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-rose-400">Danger Zone</h2>
+              <p className="text-xs text-app-text-muted mt-0.5">
+                Delete this project and remove it from your workspace.
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-app-text-muted leading-relaxed mb-4">
+            Deleting a project removes it from your active workspace list and hides all associated audit reports, keyword data, and settings.
+          </p>
+          <Button
+            variant="danger"
+            onClick={() => setShowDeleteProjectConfirm(true)}
+            loading={deletingProject}
+            disabled={deletingProject}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            {deletingProject ? 'Deleting…' : 'Delete Project'}
+          </Button>
+        </Card>
+
       {/* Confirm disconnect dialog */}
       {showDisconnectConfirm && (
         <ConfirmDialog
@@ -366,6 +413,18 @@ export default function ProjectSettingsPage() {
           danger
           onConfirm={handleDisconnect}
           onCancel={() => setShowDisconnectConfirm(false)}
+        />
+      )}
+
+      {/* Confirm delete project dialog */}
+      {showDeleteProjectConfirm && (
+        <ConfirmDialog
+          title="Delete Project?"
+          message="Are you sure you want to delete this project? This will remove the project and its crawl data from your workspace."
+          confirmLabel="Delete Project"
+          danger
+          onConfirm={handleDeleteProject}
+          onCancel={() => setShowDeleteProjectConfirm(false)}
         />
       )}
     </div>

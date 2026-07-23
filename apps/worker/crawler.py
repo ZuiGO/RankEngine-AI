@@ -63,12 +63,14 @@ def extract_outbound_links(html: str, base_url: str, target_hostname: str) -> li
     return outbound
 
 # SEO tag and word count extractor
-def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag: str = "", target_hostname: str = "") -> dict:
+def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag: str = "", target_hostname: str = "", response_headers: dict = None) -> dict:
     soup = BeautifulSoup(html_content, 'html.parser')
     parsed_url = urlparse(url)
     path = parsed_url.path or '/'
     if not target_hostname:
         target_hostname = parsed_url.hostname or ''
+
+    headers_dict = {k.lower(): v for k, v in (response_headers or {}).items()}
 
     # Canonical URL
     canonical_tag = soup.find('link', rel=lambda v: v and 'canonical' in (v if isinstance(v, list) else [v]))
@@ -80,12 +82,20 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
     title_text = title_tag.get_text().strip() if (title_tag and title_tag.get_text().strip()) else None
     title = title_text if title_text else None
 
-    # Meta Description
+    # Meta Description (prefer <meta name="description"> over og:description)
     desc_tag = soup.find('meta', attrs={'name': lambda v: v and v.lower() == 'description'})
     if not desc_tag:
         desc_tag = soup.find('meta', attrs={'property': lambda v: v and v.lower() == 'og:description'})
     desc_content = desc_tag.get('content', '').strip() if (desc_tag and desc_tag.get('content')) else None
     meta_description = desc_content if desc_content else None
+
+    # Detect duplicate <meta name="description"> tags
+    all_desc_tags = soup.find_all('meta', attrs={'name': lambda v: v and v.lower() == 'description'})
+    duplicate_meta_description = len(all_desc_tags) > 1
+
+    # Detect duplicate <title> tags
+    all_title_tags = soup.find_all('title')
+    duplicate_title = len(all_title_tags) > 1
 
     # Headers H1 - H6
     headers = {}
@@ -97,6 +107,15 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
     h1_text = headers.get("h1", [])
     h2_count = len(headers.get("h2", []))
 
+    # Detect skipped heading levels (e.g. H1 -> H3 without H2)
+    heading_levels_present = [i for i in range(1, 7) if headers.get(f'h{i}')]
+    skipped_headings = []
+    for idx in range(len(heading_levels_present) - 1):
+        current = heading_levels_present[idx]
+        nxt = heading_levels_present[idx + 1]
+        if nxt - current > 1:
+            skipped_headings.append((current, nxt))
+
     # Indexability check (meta robots & X-Robots-Tag)
     meta_robots_tag = soup.find('meta', attrs={'name': lambda v: v and v.lower() == 'robots'})
     meta_robots_content = (meta_robots_tag.get('content', '') or '').lower() if meta_robots_tag else ''
@@ -105,7 +124,6 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
     is_indexable = not (meta_noindex or header_noindex)
 
     # Word count from visible body text (excluding script, style, noscript, iframe, nav, footer)
-    # Note: excluding non-content elements provides a clean visible body text word count approximation
     body_node = soup.find('body') or soup
     body_soup = BeautifulSoup(str(body_node), 'html.parser')
     for elem in body_soup(["script", "style", "noscript", "iframe", "nav", "footer"]):
@@ -114,11 +132,14 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
     words = re.findall(r'\b\w+\b', visible_text)
     word_count = len(words)
 
-    # Image counts (total, with non-empty alt, missing/empty alt)
+    # Image counts (total, with non-empty alt, missing/empty alt, next-gen format, lazy loading)
     images = soup.find_all('img')
     image_count = len(images)
     images_with_alt = 0
     images_missing_alt = 0
+    next_gen_image_count = 0
+    lazy_image_count = 0
+
     for img in images:
         alt = img.get('alt')
         if alt is not None and alt.strip() != '':
@@ -126,19 +147,44 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
         else:
             images_missing_alt += 1
 
-    # Internal / External link counts
+        src = (img.get('src') or '').lower()
+        if src.endswith(('.webp', '.avif', '.svg')) or 'image/webp' in src or 'image/avif' in src:
+            next_gen_image_count += 1
+
+        if (img.get('loading') or '').lower() == 'lazy':
+            lazy_image_count += 1
+
+    # Internal / External link counts & rel attributes
     internal_link_count = 0
     external_link_count = 0
+    external_nofollow_count = 0
+    external_sponsored_count = 0
+    external_ugc_count = 0
+    has_contact_link = False
+    has_privacy_link = False
+    has_terms_link = False
+
     for anchor in soup.find_all('a', href=True):
         href = anchor['href'].strip()
         if not href or href.startswith(('javascript:', 'mailto:', 'tel:', '#')):
             continue
+        href_lower = href.lower()
+        if 'contact' in href_lower: has_contact_link = True
+        if 'privacy' in href_lower: has_privacy_link = True
+        if 'terms' in href_lower or 'tos' in href_lower: has_terms_link = True
+
         resolved_href = urljoin(url, href)
         if resolved_href.startswith(('http://', 'https://')):
             if is_internal_link(resolved_href, target_hostname):
                 internal_link_count += 1
             else:
                 external_link_count += 1
+                rel_attr = (anchor.get('rel') or [])
+                rel_list = rel_attr if isinstance(rel_attr, list) else rel_attr.split()
+                rel_list_lower = [r.lower() for r in rel_list]
+                if 'nofollow' in rel_list_lower: external_nofollow_count += 1
+                if 'sponsored' in rel_list_lower: external_sponsored_count += 1
+                if 'ugc' in rel_list_lower: external_ugc_count += 1
 
     # Structured data parsing (<script type="application/ld+json">)
     ld_types = set()
@@ -170,11 +216,112 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
                         collect_ld_types(item)
             collect_ld_types(data)
         except Exception:
-            # Safely ignore malformed or non-JSON content
             pass
 
     structured_data_types = sorted(list(ld_types))
     has_structured_data = len(structured_data_types) > 0
+
+    # ── Open Graph tags ──────────────────────────────────────────────────
+    def og(prop):
+        tag = soup.find('meta', property=lambda v: v and v.lower() == f'og:{prop}')
+        return (tag.get('content', '') or '').strip() if tag else ''
+
+    og_title = og('title')
+    og_description = og('description')
+    og_image = og('image')
+    og_url = og('url')
+
+    # ── Twitter Card tags ─────────────────────────────────────────────────
+    def twitter_meta(name):
+        tag = soup.find('meta', attrs={'name': lambda v: v and v.lower() == f'twitter:{name}'})
+        if not tag:
+            # Some sites use property instead of name
+            tag = soup.find('meta', property=lambda v: v and v.lower() == f'twitter:{name}')
+        return (tag.get('content', '') or '').strip() if tag else ''
+
+    twitter_card = twitter_meta('card')
+    twitter_title = twitter_meta('title')
+    twitter_description = twitter_meta('description')
+    twitter_image = twitter_meta('image')
+
+    # ── HTML hygiene signals ──────────────────────────────────────────────
+    html_tag = soup.find('html')
+    html_lang = (html_tag.get('lang', '') or '').strip() if html_tag else ''
+
+    charset_tag = (
+        soup.find('meta', charset=True) or
+        soup.find('meta', attrs={'http-equiv': lambda v: v and v.lower() == 'content-type'})
+    )
+    has_charset = charset_tag is not None
+
+    viewport_tag = soup.find('meta', attrs={'name': lambda v: v and v.lower() == 'viewport'})
+    has_viewport = viewport_tag is not None
+
+    favicon_tag = soup.find('link', rel=lambda v: v and any(
+        r in (v if isinstance(v, list) else [v])
+        for r in ('icon', 'shortcut icon', 'apple-touch-icon')
+    ))
+    has_favicon = favicon_tag is not None
+
+    # ── URL Structure signals ─────────────────────────────────────────────
+    is_https = url.startswith("https://")
+    url_length = len(url)
+    has_uppercase_url = any(c.isupper() for c in path)
+    has_underscore_url = '_' in path
+    query_str = parsed_url.query.lower()
+    has_session_id = any(param in query_str or param in path.lower() for param in ['phpsessid', 'jsessionid', 'sid=', 'utm_'])
+
+    # ── Security Headers ──────────────────────────────────────────────────
+    has_hsts = 'strict-transport-security' in headers_dict
+    has_csp = 'content-security-policy' in headers_dict
+    has_x_frame_options = 'x-frame-options' in headers_dict
+    has_x_content_type_options = 'x-content-type-options' in headers_dict
+    has_referrer_policy = 'referrer-policy' in headers_dict
+
+    # ── Mixed Content ──────────────────────────────────────────────────────
+    has_mixed_content = False
+    if is_https:
+        for tag in soup.find_all(['img', 'script', 'iframe']):
+            src = (tag.get('src') or '').strip()
+            if src.startswith('http://'):
+                has_mixed_content = True
+                break
+        if not has_mixed_content:
+            for tag in soup.find_all('link', href=True):
+                href = (tag.get('href') or '').strip()
+                if href.startswith('http://'):
+                    has_mixed_content = True
+                    break
+
+    # ── Performance Headers ───────────────────────────────────────────────
+    content_encoding = headers_dict.get('content-encoding', '').lower()
+    has_compression = any(c in content_encoding for c in ['gzip', 'br', 'deflate', 'zstd'])
+    has_cache_control = 'cache-control' in headers_dict or 'expires' in headers_dict
+
+    # ── Analytics Detection ───────────────────────────────────────────────
+    script_texts = " ".join([s.get_text() + " " + (s.get('src') or '') for s in soup.find_all('script')]).lower()
+    has_ga = 'gtag(' in script_texts or 'google-analytics.com' in script_texts or 'ga(' in script_texts
+    has_gtm = 'googletagmanager.com/gtm.js' in script_texts or 'gtm.start' in script_texts
+    ga_script_occurrences = script_texts.count('google-analytics.com') + script_texts.count('googletagmanager.com/gtag')
+
+    # ── Accessibility (Form Labels) ───────────────────────────────────────
+    unlabeled_form_controls = 0
+    for input_elem in soup.find_all(['input', 'select', 'textarea']):
+        if input_elem.get('type') in ['hidden', 'submit', 'button', 'image']:
+            continue
+        elem_id = input_elem.get('id')
+        has_label = False
+        if elem_id and soup.find('label', attrs={'for': elem_id}):
+            has_label = True
+        elif input_elem.find_parent('label'):
+            has_label = True
+        elif input_elem.get('aria-label') or input_elem.get('aria-labelledby') or input_elem.get('title'):
+            has_label = True
+        if not has_label:
+            unlabeled_form_controls += 1
+
+    # ── E-E-A-T Signals ───────────────────────────────────────────────────
+    has_author_byline = any(term in visible_text.lower() for term in ['author', 'written by', 'by ']) or bool(soup.find(class_=lambda v: v and 'author' in str(v).lower()))
 
     return {
         "url": url,
@@ -191,6 +338,7 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
         "h4": headers.get("h4", []),
         "h5": headers.get("h5", []),
         "h6": headers.get("h6", []),
+        "skippedHeadings": skipped_headings,
         "wordCount": word_count,
         "imageCount": image_count,
         "imagesWithAlt": images_with_alt,
@@ -203,6 +351,54 @@ def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag
         "canonical": canonical_url,
         "isIndexable": is_indexable,
         "meta_noindex": not is_indexable,
+        # Open Graph
+        "ogTitle": og_title,
+        "ogDescription": og_description,
+        "ogImage": og_image,
+        "ogUrl": og_url,
+        # Twitter Card
+        "twitterCard": twitter_card,
+        "twitterTitle": twitter_title,
+        "twitterDescription": twitter_description,
+        "twitterImage": twitter_image,
+        # HTML hygiene
+        "htmlLang": html_lang,
+        "hasCharset": has_charset,
+        "hasViewport": has_viewport,
+        "hasFavicon": has_favicon,
+        "duplicateMetaDescription": duplicate_meta_description,
+        "duplicateTitle": duplicate_title,
+        # URL Structure
+        "isHttps": is_https,
+        "urlLength": url_length,
+        "hasUppercaseUrl": has_uppercase_url,
+        "hasUnderscoreUrl": has_underscore_url,
+        "hasSessionId": has_session_id,
+        # Security Headers & Mixed Content
+        "hasHsts": has_hsts,
+        "hasCsp": has_csp,
+        "hasXFrameOptions": has_x_frame_options,
+        "hasXContentTypeOptions": has_x_content_type_options,
+        "hasReferrerPolicy": has_referrer_policy,
+        "hasMixedContent": has_mixed_content,
+        # Performance Headers & Media Formats
+        "hasCompression": has_compression,
+        "hasCacheControl": has_cache_control,
+        "nextGenImageCount": next_gen_image_count,
+        "lazyImageCount": lazy_image_count,
+        # Rel attributes & Links
+        "externalNofollowCount": external_nofollow_count,
+        "externalSponsoredCount": external_sponsored_count,
+        "externalUgcCount": external_ugc_count,
+        "hasContactLink": has_contact_link,
+        "hasPrivacyLink": has_privacy_link,
+        "hasTermsLink": has_terms_link,
+        # Analytics & Accessibility & EEAT
+        "hasGa": has_ga,
+        "hasGtm": has_gtm,
+        "gaScriptOccurrences": ga_script_occurrences,
+        "unlabeledFormControls": unlabeled_form_controls,
+        "hasAuthorByline": has_author_byline,
     }
 
 # --- Core Web Vitals helpers ---
@@ -693,76 +889,533 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
 def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
     issues = []
     total_pages = len(crawled_pages)
+
+    # ── Passed-check counters (summarised once at crawl level to avoid noise) ──
     passed_counts = {
         "http_status": 0,
         "meta_title": 0,
+        "meta_title_length": 0,
         "meta_description": 0,
+        "meta_description_length": 0,
         "single_h1": 0,
+        "heading_order": 0,
+        "word_count": 0,
+        "og_tags": 0,
+        "twitter_card": 0,
+        "html_lang": 0,
+        "charset": 0,
+        "viewport": 0,
+        "favicon": 0,
     }
     schema_passed_counts = {}
 
+    # Collect titles and descriptions for cross-page duplicate detection
+    title_seen: dict[str, list[str]] = {}   # title_text -> [url, ...]
+    desc_seen: dict[str, list[str]] = {}    # desc_text  -> [url, ...]
+
     for page in crawled_pages:
-        url = page.get("url")
+        url = page.get("url", "")
         status = page.get("statusCode", 200)
 
-        # Check HTTP Errors
-        if status >= 400:
+        # ── 1. HTTP Status ──────────────────────────────────────────────────
+        if status == 404:
             issues.append({
                 "crawlJobId": ObjectId(crawl_job_id),
                 "severity": "critical",
-                "category": "meta",
+                "category": "crawlability",
                 "url": url,
-                "description": f"Page returned error status code {status}",
-                "recommendation": "Fix routing errors, database queries, or server-side configurations."
+                "description": "Page returned 404 Not Found",
+                "recommendation": "Fix or redirect this URL. Broken internal links lose link equity and hurt crawl budget.",
+                "whyItMatters": "Googlebot drops 404 pages from the index. Any link equity pointing to this URL is wasted."
+            })
+        elif status == 410:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "crawlability",
+                "url": url,
+                "description": "Page returned 410 Gone — permanently removed",
+                "recommendation": "Intentional 410s are fine. Ensure no internal links still point here.",
+                "whyItMatters": "A 410 tells crawlers the resource is gone forever; faster de-indexing than a 404."
+            })
+        elif status >= 500:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "critical",
+                "category": "crawlability",
+                "url": url,
+                "description": f"Page returned server error status {status}",
+                "recommendation": "Fix the server-side error. 5xx pages cannot be indexed and hurt crawl budget.",
+                "whyItMatters": "Server errors prevent Googlebot from accessing content, leading to ranking drops."
+            })
+        elif status >= 400:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "crawlability",
+                "url": url,
+                "description": f"Page returned client error status {status}",
+                "recommendation": "Investigate this URL and fix or redirect it appropriately.",
+                "whyItMatters": "4xx errors prevent content being served to users and crawlers."
             })
         elif 200 <= status < 400:
             passed_counts["http_status"] += 1
 
-        # Check Title Issues
+        # ── 2. Title — presence ─────────────────────────────────────────────
         title = page.get("metaTitle", "")
-        if not isinstance(title, str) or not title.strip():
+        title_missing = not (isinstance(title, str) and title.strip())
+        if title_missing:
             issues.append({
                 "crawlJobId": ObjectId(crawl_job_id),
-                "severity": "warning",
-                "category": "meta",
+                "severity": "critical",
+                "category": "on-page",
                 "url": url,
-                "description": "Page title is missing or empty",
-                "recommendation": "Add a unique and descriptive meta title tag of 50-60 characters to improve visibility."
+                "description": "Page is missing a <title> tag",
+                "recommendation": "Add a unique, descriptive <title> of 30–60 characters.",
+                "whyItMatters": "The title tag is the single most important on-page signal. Missing titles hurt rankings and CTR."
             })
         else:
             passed_counts["meta_title"] += 1
+            title_key = title.strip().lower()
+            title_seen.setdefault(title_key, []).append(url)
 
-        # Check Description Issues
+            # ── 2a. Title length ──────────────────────────────────────────
+            tlen = len(title.strip())
+            if tlen < 30:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "on-page",
+                    "url": url,
+                    "description": f"Title tag is too short ({tlen} characters, recommended 30–60)",
+                    "recommendation": "Expand the title to at least 30 characters with relevant keywords.",
+                    "whyItMatters": "Short titles leave valuable SERP real estate unused and may look thin to Google."
+                })
+            elif tlen > 60:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "on-page",
+                    "url": url,
+                    "description": f"Title tag is too long ({tlen} characters, recommended 30–60). It will be truncated in SERPs.",
+                    "recommendation": "Shorten the title to 60 characters or fewer to avoid SERP truncation.",
+                    "whyItMatters": "Google typically displays ~60 characters; longer titles are cut off, hurting CTR."
+                })
+            else:
+                passed_counts["meta_title_length"] += 1
+
+            # ── 2b. Duplicate title tag on same page ─────────────────────
+            if page.get("duplicateTitle"):
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "on-page",
+                    "url": url,
+                    "description": "Page contains more than one <title> tag",
+                    "recommendation": "Remove duplicate <title> elements; only one is valid per page.",
+                    "whyItMatters": "Multiple title tags cause unpredictable behaviour — browsers and Googlebot may use any one of them."
+                })
+
+        # ── 3. Meta Description — presence ─────────────────────────────────
         desc = page.get("metaDescription", "")
-        if not isinstance(desc, str) or not desc.strip():
+        desc_missing = not (isinstance(desc, str) and desc.strip())
+        if desc_missing:
             issues.append({
                 "crawlJobId": ObjectId(crawl_job_id),
                 "severity": "warning",
-                "category": "meta",
+                "category": "on-page",
                 "url": url,
                 "description": "Meta description is missing or empty",
-                "recommendation": "Provide a descriptive snippet of 150-160 characters summarizing the page subject."
+                "recommendation": "Write a compelling meta description of 120–160 characters that includes the primary keyword.",
+                "whyItMatters": "Google often uses the meta description as the SERP snippet. A missing one means Google auto-generates it, often poorly."
             })
         else:
             passed_counts["meta_description"] += 1
+            desc_key = desc.strip().lower()
+            desc_seen.setdefault(desc_key, []).append(url)
 
-        # Check H1 Header count
+            # ── 3a. Meta description length ───────────────────────────────
+            dlen = len(desc.strip())
+            if dlen < 120:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "on-page",
+                    "url": url,
+                    "description": f"Meta description is too short ({dlen} characters, recommended 120–160)",
+                    "recommendation": "Expand the meta description to at least 120 characters.",
+                    "whyItMatters": "Short descriptions often get rewritten by Google with uncontrolled snippets."
+                })
+            elif dlen > 160:
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "on-page",
+                    "url": url,
+                    "description": f"Meta description is too long ({dlen} characters, recommended 120–160). It may be truncated in SERPs.",
+                    "recommendation": "Trim the description to 160 characters or fewer.",
+                    "whyItMatters": "Descriptions exceeding 160 chars are typically cut off in SERPs with an ellipsis."
+                })
+            else:
+                passed_counts["meta_description_length"] += 1
+
+            # ── 3b. Duplicate meta description on same page ───────────────
+            if page.get("duplicateMetaDescription"):
+                issues.append({
+                    "crawlJobId": ObjectId(crawl_job_id),
+                    "severity": "warning",
+                    "category": "on-page",
+                    "url": url,
+                    "description": "Page contains multiple <meta name=\"description\"> tags",
+                    "recommendation": "Remove duplicate description meta tags; keep exactly one.",
+                    "whyItMatters": "Multiple description tags create confusion for crawlers about which snippet to display."
+                })
+
+        # ── 4. H1 — presence & uniqueness ──────────────────────────────────
         h1s = page.get("h1", [])
-        if len(h1s) != 1:
-            severity = "critical" if len(h1s) == 0 else "warning"
-            desc_text = "Page lacks an H1 header tag" if len(h1s) == 0 else f"Page contains {len(h1s)} H1 tags (expected exactly 1)"
+        if len(h1s) == 0:
             issues.append({
                 "crawlJobId": ObjectId(crawl_job_id),
-                "severity": severity,
-                "category": "meta",
+                "severity": "critical",
+                "category": "on-page",
                 "url": url,
-                "description": desc_text,
-                "recommendation": "Configure templates to output exactly one H1 header representing primary subject."
+                "description": "Page is missing an H1 heading",
+                "recommendation": "Add a single, keyword-rich H1 that clearly describes the page topic.",
+                "whyItMatters": "The H1 is the primary on-page content signal for search engines. Missing H1s weaken topical relevance."
+            })
+        elif len(h1s) > 1:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "on-page",
+                "url": url,
+                "description": f"Page contains {len(h1s)} H1 tags (expected exactly 1)",
+                "recommendation": "Consolidate into a single H1. Additional headings should use H2–H6.",
+                "whyItMatters": "Multiple H1s dilute the topical signal. Only one unambiguous H1 should describe the primary topic."
             })
         else:
             passed_counts["single_h1"] += 1
 
-        # Collect schema issues found during crawl (attached per-page by worker)
+        # ── 5. Heading order / skipped levels ──────────────────────────────
+        skipped = page.get("skippedHeadings", [])
+        if skipped:
+            pairs = ", ".join(f"H{a}→H{b}" for a, b in skipped)
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "on-page",
+                "url": url,
+                "description": f"Heading hierarchy skips levels: {pairs}",
+                "recommendation": "Ensure heading levels are used in order (H1, H2, H3…). Never skip from H1 to H3.",
+                "whyItMatters": "A logical heading hierarchy improves accessibility and helps search engines understand content structure."
+            })
+        else:
+            passed_counts["heading_order"] += 1
+
+        # ── 6. Thin content ─────────────────────────────────────────────────
+        wc = page.get("wordCount", 0)
+        if wc < 100:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "critical",
+                "category": "content",
+                "url": url,
+                "description": f"Page has very thin content ({wc} words)",
+                "recommendation": "Add substantial content (300+ words) that satisfies user search intent.",
+                "whyItMatters": "Extremely thin pages are likely to be rated as low-quality and may not rank or may be excluded from indexing."
+            })
+        elif wc < 300:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "content",
+                "url": url,
+                "description": f"Page may have thin content ({wc} words)",
+                "recommendation": "Consider expanding this page to at least 300 words to improve content quality signals.",
+                "whyItMatters": "Low word-count pages often underperform in competitive queries. Richer content satisfies search intent better."
+            })
+        else:
+            passed_counts["word_count"] += 1
+
+        # ── 7. Open Graph tags ──────────────────────────────────────────────
+        og_title = page.get("ogTitle", "")
+        og_desc = page.get("ogDescription", "")
+        og_image = page.get("ogImage", "")
+        og_url_val = page.get("ogUrl", "")
+        og_missing = []
+        if not og_title: og_missing.append("og:title")
+        if not og_desc:  og_missing.append("og:description")
+        if not og_image: og_missing.append("og:image")
+        if not og_url_val: og_missing.append("og:url")
+
+        if og_missing:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "social",
+                "url": url,
+                "description": f"Missing Open Graph tags: {', '.join(og_missing)}",
+                "recommendation": "Add all four core OG tags (<meta property=\"og:title|description|image|url\">).",
+                "whyItMatters": "Open Graph tags control how pages appear when shared on Facebook, LinkedIn, and Slack. Missing tags produce poor-looking previews."
+            })
+        else:
+            passed_counts["og_tags"] += 1
+
+        # ── 8. Twitter Card ─────────────────────────────────────────────────
+        twitter_card = page.get("twitterCard", "")
+        twitter_title = page.get("twitterTitle", "")
+        twitter_desc = page.get("twitterDescription", "")
+        twitter_image = page.get("twitterImage", "")
+        tw_missing = []
+        if not twitter_card:  tw_missing.append("twitter:card")
+        if not twitter_title: tw_missing.append("twitter:title")
+        if not twitter_desc:  tw_missing.append("twitter:description")
+        if not twitter_image: tw_missing.append("twitter:image")
+
+        if tw_missing:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "social",
+                "url": url,
+                "description": f"Missing Twitter Card tags: {', '.join(tw_missing)}",
+                "recommendation": "Add Twitter Card meta tags so pages render rich previews on X (Twitter).",
+                "whyItMatters": "Without Twitter Card tags, links shared on X show as plain text with no image or description."
+            })
+        else:
+            passed_counts["twitter_card"] += 1
+
+        # ── 9. HTML lang attribute ──────────────────────────────────────────
+        html_lang = page.get("htmlLang", "")
+        if not html_lang:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "accessibility",
+                "url": url,
+                "description": "<html> element is missing the lang attribute",
+                "recommendation": "Add lang=\"en\" (or the appropriate language code) to the root <html> element.",
+                "whyItMatters": "Missing lang attribute breaks screen readers, fails WCAG 2.1, and may confuse Google's language-targeting."
+            })
+        else:
+            passed_counts["html_lang"] += 1
+
+        # ── 10. Meta charset ────────────────────────────────────────────────
+        if not page.get("hasCharset"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "html",
+                "url": url,
+                "description": "Page is missing a <meta charset> declaration",
+                "recommendation": "Add <meta charset=\"UTF-8\"> as the first child of <head>.",
+                "whyItMatters": "Without a charset declaration browsers may mis-render special characters, and security scanners flag it as a risk."
+            })
+        else:
+            passed_counts["charset"] += 1
+
+        # ── 11. Viewport meta (mobile) ──────────────────────────────────────
+        if not page.get("hasViewport"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "critical",
+                "category": "mobile",
+                "url": url,
+                "description": "Page is missing <meta name=\"viewport\"> tag",
+                "recommendation": "Add <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">.",
+                "whyItMatters": "Without a viewport meta tag the page is not mobile-friendly. Google uses mobile-first indexing — this directly impacts rankings."
+            })
+        else:
+            passed_counts["viewport"] += 1
+
+        # ── 12. Favicon ─────────────────────────────────────────────────────
+        if not page.get("hasFavicon"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "html",
+                "url": url,
+                "description": "Page is missing a favicon link tag",
+                "recommendation": "Add <link rel=\"icon\" href=\"/favicon.ico\"> (or PNG/SVG equivalent) in <head>.",
+                "whyItMatters": "Favicons improve brand recognition in browser tabs and bookmarks. Some structured data validators also check for them."
+            })
+        else:
+            passed_counts["favicon"] += 1
+
+        # ── 13. URL Analysis ────────────────────────────────────────────────
+        if not page.get("isHttps"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "critical",
+                "category": "security",
+                "url": url,
+                "description": "Page is served over HTTP instead of HTTPS",
+                "recommendation": "Migrate page to HTTPS with a valid SSL certificate.",
+                "whyItMatters": "HTTPS is a confirmed Google ranking signal. HTTP pages are marked 'Not Secure' by browsers."
+            })
+        else:
+            passed_counts["is_https"] = passed_counts.get("is_https", 0) + 1
+
+        if page.get("urlLength", 0) > 115:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "url",
+                "url": url,
+                "description": f"URL length is excessively long ({page.get('urlLength')} characters, recommended < 115)",
+                "recommendation": "Shorten URL structure to keep paths concise and readable.",
+                "whyItMatters": "Long URLs get truncated in search results and reduce user trust."
+            })
+
+        if page.get("hasUppercaseUrl"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "url",
+                "url": url,
+                "description": "URL contains uppercase letters",
+                "recommendation": "Convert URL paths to lowercase. Web servers treat paths case-sensitively, risking duplicate content.",
+                "whyItMatters": "Uppercase URLs can lead to duplicate indexing issues on case-sensitive servers."
+            })
+
+        if page.get("hasUnderscoreUrl"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "url",
+                "url": url,
+                "description": "URL uses underscores instead of hyphens",
+                "recommendation": "Use hyphens (-) to separate words in URLs instead of underscores (_).",
+                "whyItMatters": "Google treats hyphens as word separators, but combines words joined by underscores."
+            })
+
+        if page.get("hasSessionId"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "critical",
+                "category": "url",
+                "url": url,
+                "description": "URL contains session IDs or tracking parameter pollution",
+                "recommendation": "Remove session IDs and tracking parameters (e.g. PHPSESSID, sid) from internal links and use canonical tags.",
+                "whyItMatters": "Session parameters create infinite URL variations, wasting crawl budget and causing duplicate content."
+            })
+
+        # ── 14. Security Headers & Mixed Content ────────────────────────────
+        if not page.get("hasHsts"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "security",
+                "url": url,
+                "description": "Page is missing HTTP Strict Transport Security (HSTS) header",
+                "recommendation": "Add 'Strict-Transport-Security: max-age=31536000; includeSubDomains' header.",
+                "whyItMatters": "HSTS forces browsers to use HTTPS, protecting users against man-in-the-middle attacks."
+            })
+        else:
+            passed_counts["hsts"] = passed_counts.get("hsts", 0) + 1
+
+        if not page.get("hasCsp"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "security",
+                "url": url,
+                "description": "Page is missing Content-Security-Policy (CSP) header",
+                "recommendation": "Configure a Content-Security-Policy header to prevent XSS and data injection attacks.",
+                "whyItMatters": "CSP protects your site and visitors against cross-site scripting vulnerabilities."
+            })
+
+        if not page.get("hasXFrameOptions"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "security",
+                "url": url,
+                "description": "Page is missing X-Frame-Options header",
+                "recommendation": "Set X-Frame-Options: SAMEORIGIN or DENY to prevent clickjacking.",
+                "whyItMatters": "Prevents unauthorized websites from embedding your pages inside iframes."
+            })
+
+        if not page.get("hasXContentTypeOptions"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "security",
+                "url": url,
+                "description": "Page is missing X-Content-Type-Options header",
+                "recommendation": "Set 'X-Content-Type-Options: nosniff' header.",
+                "whyItMatters": "Prevents browsers from MIME-sniffing responses away from the declared content-type."
+            })
+
+        if page.get("hasMixedContent"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "critical",
+                "category": "security",
+                "url": url,
+                "description": "Page contains mixed content (HTTP resources loaded over HTTPS)",
+                "recommendation": "Change all resource links (images, scripts, styles) to use relative URLs or HTTPS.",
+                "whyItMatters": "Browsers block insecure HTTP assets on HTTPS pages, breaking UI elements or scripts."
+            })
+
+        # ── 15. Performance Headers ─────────────────────────────────────────
+        if not page.get("hasCompression"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "performance",
+                "url": url,
+                "description": "Page response is not compressed (missing gzip/brotli)",
+                "recommendation": "Enable gzip or Brotli compression on your web server.",
+                "whyItMatters": "Compressed responses transfer up to 70% faster, improving load time and Core Web Vitals."
+            })
+
+        if not page.get("hasCacheControl"):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "performance",
+                "url": url,
+                "description": "Page is missing Cache-Control or Expires headers",
+                "recommendation": "Set explicit Cache-Control headers for static assets.",
+                "whyItMatters": "Browser caching reduces server load and speeds up repeat visits."
+            })
+
+        # ── 16. Analytics & Accessibility & EEAT ───────────────────────────
+        if not (page.get("hasGa") or page.get("hasGtm")):
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "analytics",
+                "url": url,
+                "description": "Page is missing Google Analytics / GTM tracking tag",
+                "recommendation": "Install GA4 or Google Tag Manager to track user engagement and conversions.",
+                "whyItMatters": "Without analytics tracking, you lack visibility into search traffic performance."
+            })
+
+        if page.get("gaScriptOccurrences", 0) > 1:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "analytics",
+                "url": url,
+                "description": "Page contains duplicate Google Analytics tracking scripts",
+                "recommendation": "Remove extra analytics script tags to prevent double-counting visits.",
+                "whyItMatters": "Duplicate tracking inflates session metrics and skews bounce rate data."
+            })
+
+        if page.get("unlabeledFormControls", 0) > 0:
+            issues.append({
+                "crawlJobId": ObjectId(crawl_job_id),
+                "severity": "warning",
+                "category": "accessibility",
+                "url": url,
+                "description": f"Page contains {page.get('unlabeledFormControls')} form input(s) missing associated <label> or aria-label",
+                "recommendation": "Add explicit <label for=\"...\"> or aria-label attributes to all form controls.",
+                "whyItMatters": "Unlabeled form inputs fail WCAG accessibility standards and block screen-reader users."
+            })
+
+        # ── 17. Collect schema issues from per-page validation ───────────────
         for schema_issue in page.get("schemaIssues", []):
             if schema_issue.get("severity") == "passed":
                 description = schema_issue.get("description", "Valid structured data")
@@ -770,23 +1423,70 @@ def identify_raw_seo_issues(crawled_pages: list, crawl_job_id: str) -> list:
             else:
                 issues.append(schema_issue)
 
-    # Passed checks are stored as one crawl-level summary per check type. This
-    # keeps a 5,000-page audit from flooding the checklist and LLM context.
-    passed_summaries = [
-        ("http_status", "returned a successful HTTP status"),
-        ("meta_title", "have a meta title present and well-formed"),
-        ("meta_description", "have a meta description present and well-formed"),
-        ("single_h1", "have exactly one H1 tag"),
+    # ── Cross-page duplicate title detection ────────────────────────────────
+    dup_title_urls = [urls for urls in title_seen.values() if len(urls) > 1]
+    if dup_title_urls:
+        total_dup_pages = sum(len(u) for u in dup_title_urls)
+        sample_titles = list(title_seen.keys())
+        # Create one crawl-level issue summarising all duplicates
+        issues.append({
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": "warning",
+            "category": "on-page",
+            "url": "N/A",
+            "description": f"{total_dup_pages} pages share duplicate title tags across {len(dup_title_urls)} duplicate groups",
+            "recommendation": "Each page must have a unique <title> tag. Review and differentiate titles for pages sharing the same text.",
+            "whyItMatters": "Duplicate titles prevent search engines from distinguishing pages, causing keyword cannibalisation and weaker individual rankings.",
+            "details": [
+                {"title": title_text, "urls": urls}
+                for title_text, urls in title_seen.items() if len(urls) > 1
+            ]
+        })
+
+    # ── Cross-page duplicate meta description detection ─────────────────────
+    dup_desc_urls = [urls for urls in desc_seen.values() if len(urls) > 1]
+    if dup_desc_urls:
+        total_dup_pages = sum(len(u) for u in dup_desc_urls)
+        issues.append({
+            "crawlJobId": ObjectId(crawl_job_id),
+            "severity": "warning",
+            "category": "on-page",
+            "url": "N/A",
+            "description": f"{total_dup_pages} pages share duplicate meta descriptions across {len(dup_desc_urls)} duplicate groups",
+            "recommendation": "Write unique meta descriptions for every page. Templated descriptions dilute click-through signals.",
+            "whyItMatters": "Duplicate descriptions mean Google rewrites them all, losing your carefully crafted snippets.",
+            "details": [
+                {"description": desc_text, "urls": urls}
+                for desc_text, urls in desc_seen.items() if len(urls) > 1
+            ]
+        })
+
+    # ── Passed-check crawl-level summaries ──────────────────────────────────
+    passed_summary_defs = [
+        ("http_status",            "meta",        "returned a successful HTTP status (2xx)"),
+        ("meta_title",             "on-page",     "have a <title> tag present"),
+        ("meta_title_length",      "on-page",     "have a <title> within the recommended 30–60 character range"),
+        ("meta_description",       "on-page",     "have a meta description present"),
+        ("meta_description_length","on-page",     "have a meta description within the recommended 120–160 character range"),
+        ("single_h1",              "on-page",     "have exactly one H1 tag"),
+        ("heading_order",          "on-page",     "have correct heading hierarchy (no skipped levels)"),
+        ("word_count",             "content",     "have sufficient content (300+ words)"),
+        ("og_tags",                "social",      "have all four core Open Graph tags"),
+        ("twitter_card",           "social",      "have all four Twitter Card meta tags"),
+        ("html_lang",              "accessibility","have a lang attribute on the <html> element"),
+        ("charset",                "html",        "declare a meta charset"),
+        ("viewport",               "mobile",      "have a viewport meta tag"),
+        ("favicon",                "html",        "have a favicon link tag"),
     ]
-    for check_type, outcome in passed_summaries:
-        passed_count = passed_counts[check_type]
-        if passed_count:
+    for check_key, category, outcome in passed_summary_defs:
+        count = passed_counts.get(check_key, 0)
+        if count:
             issues.append({
                 "crawlJobId": ObjectId(crawl_job_id),
                 "severity": "passed",
-                "category": "meta",
+                "category": category,
                 "url": "N/A",
-                "description": f"{passed_count} of {total_pages} crawled pages {outcome}",
+                "description": f"{count} of {total_pages} crawled pages {outcome}",
                 "recommendation": "No action needed."
             })
 
@@ -830,7 +1530,7 @@ async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | 
                 raise IOError("CAPTCHA challenge block detected on page")
 
             # Success: Parse page SEO data
-            seo_data = extract_seo_data(html, url, status_code, x_robots_tag=x_robots_tag)
+            seo_data = extract_seo_data(html, url, status_code, x_robots_tag=x_robots_tag, response_headers=response_headers)
             seo_data["html"] = html  # Attached temporarily for link extraction + schema validation
             seo_data["x_robots_tag"] = x_robots_tag
 

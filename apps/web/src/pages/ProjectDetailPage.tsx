@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { SearchCheck, MessageSquare } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { SearchCheck, MessageSquare, Trash2, Settings } from 'lucide-react';
 import api from '../lib/api';
 import { Card, CardBody, Badge, Button, ScoreReveal, StatGauge, EmptyState } from '../components/ui';
 import ChatPanel from '../components/ChatPanel';
@@ -406,6 +406,11 @@ export default function ProjectDetailPage() {
 
   const [chatOpen, setChatOpen] = useState(false);
 
+  const navigate = useNavigate();
+
+  const [deletingProject, setDeletingProject] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const migPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -571,6 +576,20 @@ export default function ProjectDetailPage() {
       }
     } finally {
       setMigrationLoading(false);
+    }
+  };
+
+  // ── Delete Project ──────────────────────────────────────────────────
+  const handleDeleteProject = async () => {
+    if (!id) return;
+    setDeletingProject(true);
+    setShowDeleteConfirm(false);
+    try {
+      await api.delete(`/projects/${id}`);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Delete project failed:', err);
+      setDeletingProject(false);
     }
   };
 
@@ -768,6 +787,20 @@ export default function ProjectDetailPage() {
             <MessageSquare className="h-4 w-4 text-app-signal" />
             AI Copilot
           </Button>
+          <Link
+            to={`/projects/${id}/settings`}
+            className="p-2.5 rounded-xl border border-app-border bg-app-surface text-app-text-muted hover:text-white hover:border-slate-700 transition-all"
+            title="Project Settings"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="p-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all"
+            title="Delete Project"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
@@ -1085,6 +1118,42 @@ export default function ProjectDetailPage() {
           </div>
           <div className="flex-1 overflow-hidden">
             <ChatPanel projectId={id!} />
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-app-surface border border-app-border rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
+              <div className="h-10 w-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Delete Project</h3>
+                <p className="text-xs text-app-text-muted">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-xs text-app-text-muted leading-relaxed">
+              Are you sure you want to delete <strong className="text-white">{project.name}</strong>? This will remove the project and its crawl data from your active workspace.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-xs text-app-text-muted hover:text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <Button
+                variant="danger"
+                className="text-xs px-4 py-2"
+                onClick={handleDeleteProject}
+                loading={deletingProject}
+                disabled={deletingProject}
+              >
+                {deletingProject ? 'Deleting…' : 'Delete Project'}
+              </Button>
+            </div>
           </div>
         </div>
       )}
