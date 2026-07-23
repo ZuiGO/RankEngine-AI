@@ -19,25 +19,13 @@ jest.mock('bullmq', () => {
   };
 });
 
-// Setup mock env variables
-process.env.MONGODB_URI =
-  process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_schema_checklist_api';
-process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
-process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
-
-// Require app & models
-const app = require('../src/app').default;
-const { User } = require('../src/models/User');
-const { Organization } = require('../src/models/Organization');
-const { Project } = require('../src/models/Project');
-const { CrawlJob } = require('../src/models/CrawlJob');
-const { AuditIssue } = require('../src/models/AuditIssue');
+import app from '../src/app';
+import { Project } from '../src/models/Project';
+import { CrawlJob } from '../src/models/CrawlJob';
+import { AuditIssue } from '../src/models/AuditIssue';
 
 const request = supertest(app);
 
-let userToken: string;
-let userId: string;
 let crawlJobId: string;
 
 beforeAll(async () => {
@@ -51,27 +39,10 @@ beforeAll(async () => {
   }
   await mongoose.connect(uri);
 
-  // Register User
-  const res = await request
-    .post('/api/auth/register')
-    .send({
-      email: 'schema-user@rankengine.ai',
-      password: 'password123',
-      role: 'agency_owner',
-      companyName: 'Schema Agency',
-    })
-    .expect(201);
-  userToken = res.body.token;
-  userId = res.body.user.id;
-
-  // Look up the personal org auto-created on registration
-  const org = await Organization.findOne({ ownerId: userId });
-
   // Create Project
   const project = new Project({
     name: 'Schema Project',
     domain: 'https://site.com',
-    organizationId: org!._id,
   });
   await project.save();
 
@@ -122,7 +93,6 @@ describe('Checklist Schema Integration REST API', () => {
   it('should return checklist grouped with a separate schema issues section', async () => {
     const res = await request
       .get(`/api/crawl-jobs/${crawlJobId}/checklist`)
-      .set('Authorization', `Bearer ${userToken}`)
       .expect(200);
 
     expect(res.body).toHaveProperty('checklist');

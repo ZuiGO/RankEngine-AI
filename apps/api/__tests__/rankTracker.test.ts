@@ -1,10 +1,9 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { Project } from '../src/models/Project';
-import { Organization } from '../src/models/Organization';
-import { Membership } from '../src/models/Membership';
 import { TrackedKeyword } from '../src/models/TrackedKeyword';
 import { RankSnapshot } from '../src/models/RankSnapshot';
+import { collectAllRankSnapshots } from '../src/services/rankTrackerService';
 
 let mongoServer: MongoMemoryServer;
 
@@ -16,13 +15,6 @@ jest.mock('bullmq', () => {
     QueueEvents: jest.fn(),
   };
 });
-
-process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_rank_tracker';
-process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
-process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
-
-const { collectAllRankSnapshots } = require('../src/services/rankTrackerService');
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
@@ -48,17 +40,9 @@ describe('Rank Tracker Scheduled Job', () => {
     await Project.deleteMany({});
     await TrackedKeyword.deleteMany({});
     await RankSnapshot.deleteMany({});
-    await Organization.deleteMany({});
-    await Membership.deleteMany({});
-
-    const org = await Organization.create({
-      name: 'Rank Test Org',
-      ownerId: new mongoose.Types.ObjectId(),
-    });
 
     project1 = new Project({
       name: 'Search Tech Project',
-      organizationId: org._id,
       domain: 'https://searchtech.com',
     });
     await project1.save();

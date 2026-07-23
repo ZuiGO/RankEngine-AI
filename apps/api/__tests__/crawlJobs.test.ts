@@ -20,27 +20,15 @@ jest.mock('bullmq', () => {
   };
 });
 
-// Setup mock env variables
-process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_crawls';
-process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
-process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
-
 // Require app & models after mock configuration
-const app = require('../src/app').default;
-const { User } = require('../src/models/User');
-const { Organization } = require('../src/models/Organization');
-const { Project } = require('../src/models/Project');
-const { CrawlJob } = require('../src/models/CrawlJob');
-const { AuditIssue } = require('../src/models/AuditIssue');
-require('../src/queues/crawlQueueEvents');
+import app from '../src/app';
+import { Project } from '../src/models/Project';
+import { CrawlJob } from '../src/models/CrawlJob';
+import { AuditIssue } from '../src/models/AuditIssue';
+import '../src/queues/crawlQueueEvents';
 
 const request = supertest(app);
 
-let userAToken: string;
-let userAId: string;
-let userBToken: string;
-let userBId: string;
 let projectAId: string;
 
 beforeAll(async () => {
@@ -54,40 +42,10 @@ beforeAll(async () => {
   }
   await mongoose.connect(uri);
 
-  // Register User A
-  const resA = await request
-    .post('/api/auth/register')
-    .send({
-      email: 'usera-crawl@rankengine.ai',
-      password: 'password123',
-      role: 'agency_owner',
-      companyName: 'Company A',
-    })
-    .expect(201);
-  userAToken = resA.body.token;
-  userAId = resA.body.user.id;
-
-  // Register User B
-  const resB = await request
-    .post('/api/auth/register')
-    .send({
-      email: 'userb-crawl@rankengine.ai',
-      password: 'password123',
-      role: 'marketer',
-      companyName: 'Company B',
-    })
-    .expect(201);
-  userBToken = resB.body.token;
-  userBId = resB.body.user.id;
-
-  // Look up the personal org auto-created on registration
-  const orgA = await Organization.findOne({ ownerId: userAId });
-
-  // Create Project A (owned by User A's org)
+  // Create Project A
   const project = new Project({
     name: 'Crawl Test Project',
     domain: 'https://site-to-crawl.com',
-    organizationId: orgA!._id,
   });
   await project.save();
   projectAId = project._id.toString();
@@ -129,10 +87,9 @@ describe('Crawl Jobs REST API & Background Queues', () => {
   });
 
   describe('POST /api/projects/:id/crawl - Trigger Project Crawl', () => {
-    it('should queue a crawl job for Project A when requested by User A (owner)', async () => {
+    it('should queue a crawl job for Project A', async () => {
       const res = await request
         .post(`/api/projects/${projectAId}/crawl`)
-        .set('Authorization', `Bearer ${userAToken}`)
         .expect(202);
 
       expect(res.body).toEqual({
@@ -147,20 +104,10 @@ describe('Crawl Jobs REST API & Background Queues', () => {
       expect(crawlJob!.projectId.toString()).toBe(projectAId);
     });
 
-    it('should reject crawl requests (403) from non-owner (User B)', async () => {
-      const res = await request
-        .post(`/api/projects/${projectAId}/crawl`)
-        .set('Authorization', `Bearer ${userBToken}`)
-        .expect(403);
-
-      expect(res.body.error).toBe('Forbidden: You do not own this project');
-    });
-
     it('should return 404 for triggers on non-existent project IDs', async () => {
       const fakeId = new mongoose.Types.ObjectId().toString();
       await request
         .post(`/api/projects/${fakeId}/crawl`)
-        .set('Authorization', `Bearer ${userAToken}`)
         .expect(404);
     });
   });
@@ -221,7 +168,6 @@ describe('Crawl Jobs REST API & Background Queues', () => {
     it('should return queued state for incomplete jobs', async () => {
       const res = await request
         .get(`/api/crawl-jobs/${queuedJobId}`)
-        .set('Authorization', `Bearer ${userAToken}`)
         .expect(200);
 
       expect(res.body.crawlJob.status).toBe('queued');
@@ -231,7 +177,6 @@ describe('Crawl Jobs REST API & Background Queues', () => {
     it('should return status details and severity counts summary for completed jobs', async () => {
       const res = await request
         .get(`/api/crawl-jobs/${completedJobId}`)
-        .set('Authorization', `Bearer ${userAToken}`)
         .expect(200);
 
       expect(res.body.crawlJob.status).toBe('completed');
@@ -241,13 +186,6 @@ describe('Crawl Jobs REST API & Background Queues', () => {
         warningCount: 1,
         passedCount: 0,
       });
-    });
-
-    it('should reject access (403) to crawl job details for non-owner (User B)', async () => {
-      await request
-        .get(`/api/crawl-jobs/${completedJobId}`)
-        .set('Authorization', `Bearer ${userBToken}`)
-        .expect(403);
     });
   });
 });

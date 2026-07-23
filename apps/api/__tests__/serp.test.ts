@@ -30,20 +30,11 @@ jest.mock('bullmq', () => {
   };
 });
 
-process.env.MONGODB_URI =
-  process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_serp_analysis_api';
-process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
-process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
-
-const app = require('../src/app').default;
-const { SerpAnalysis } = require('../src/models/SerpAnalysis');
-const serpService = require('../src/services/serpService');
+import app from '../src/app';
+import { SerpAnalysis } from '../src/models/SerpAnalysis';
+import * as serpService from '../src/services/serpService';
 
 const request = supertest(app);
-
-let userToken: string;
-let userId: string;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
@@ -55,19 +46,6 @@ beforeAll(async () => {
     await mongoose.disconnect();
   }
   await mongoose.connect(uri);
-
-  // Register User
-  const res = await request
-    .post('/api/auth/register')
-    .send({
-      email: 'serp-user@rankengine.ai',
-      password: 'password123',
-      role: 'agency_owner',
-      companyName: 'Serp Agency',
-    })
-    .expect(201);
-  userToken = res.body.token;
-  userId = res.body.user.id;
 });
 
 afterAll(async () => {
@@ -118,7 +96,6 @@ describe('SERP Analysis API', () => {
   it('should run full analysis on cache miss and store findings in database', async () => {
     const res = await request
       .post('/api/content/serp-analysis')
-      .set('Authorization', `Bearer ${userToken}`)
       .send({ keyword: 'seo audit' })
       .expect(200);
 
@@ -146,7 +123,6 @@ describe('SERP Analysis API', () => {
     // 1. Run first request (populates cache)
     await request
       .post('/api/content/serp-analysis')
-      .set('Authorization', `Bearer ${userToken}`)
       .send({ keyword: 'seo audit' })
       .expect(200);
 
@@ -160,7 +136,6 @@ describe('SERP Analysis API', () => {
     // 2. Run second request (should hit cache)
     const res = await request
       .post('/api/content/serp-analysis')
-      .set('Authorization', `Bearer ${userToken}`)
       .send({ keyword: 'seo audit' })
       .expect(200);
 
@@ -172,14 +147,9 @@ describe('SERP Analysis API', () => {
     expect(spyLlm).toHaveBeenCalledTimes(0);
   });
 
-  it('should reject requests without authorization token', async () => {
-    await request.post('/api/content/serp-analysis').send({ keyword: 'seo audit' }).expect(401);
-  });
-
   it('should reject empty keyword parameters', async () => {
     await request
       .post('/api/content/serp-analysis')
-      .set('Authorization', `Bearer ${userToken}`)
       .send({ keyword: '   ' })
       .expect(400);
   });

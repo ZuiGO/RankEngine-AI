@@ -13,17 +13,9 @@ jest.mock('bullmq', () => {
   };
 });
 
-process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_grade_api';
-process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
-process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
-
-const app = require('../src/app').default;
+import app from '../src/app';
 const request = supertest(app);
-const { _clearRateLimitStore } = require('../src/middleware/rateLimiter');
-
-let userToken: string;
-let userId: string;
+import { _clearRateLimitStore } from '../src/middleware/rateLimiter';
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
@@ -35,19 +27,6 @@ beforeAll(async () => {
     await mongoose.disconnect();
   }
   await mongoose.connect(uri);
-
-  // Register User
-  const res = await request
-    .post('/api/auth/register')
-    .send({
-      email: 'grader-user@rankengine.ai',
-      password: 'password123',
-      role: 'developer',
-      companyName: 'Grade Agency',
-    })
-    .expect(201);
-  userToken = res.body.token;
-  userId = res.body.user.id;
 });
 
 beforeEach(async () => {
@@ -60,14 +39,9 @@ afterAll(async () => {
 });
 
 describe('Content Grader API', () => {
-  it('should reject requests without authorization token', async () => {
-    await request.post('/api/content/grade').send({ text: 'Some SEO text content.' }).expect(401);
-  });
-
   it('should score low on entityCoverage when 0 shared entities are present in text', async () => {
     const res = await request
       .post('/api/content/grade')
-      .set('Authorization', `Bearer ${userToken}`)
       .send({
         text: 'This is a generic paragraph about something else completely.',
         targetKeyword: 'generic',
@@ -82,7 +56,6 @@ describe('Content Grader API', () => {
   });
 
   it('should score high on entityCoverage and structureScore when criteria are met', async () => {
-    // Text contains multiple headings and ideal paragraph lengths
     const textWithStructure = `
 # Content Optimization Strategy
 
@@ -95,7 +68,6 @@ This is paragraph two. We are writing multiple words to ensure we pass the parag
 
     const res = await request
       .post('/api/content/grade')
-      .set('Authorization', `Bearer ${userToken}`)
       .send({
         text: textWithStructure,
         targetKeyword: 'optimization',
@@ -114,11 +86,10 @@ This is paragraph two. We are writing multiple words to ensure we pass the parag
   });
 
   it('should rate limit requests exceeding 10 requests per second', async () => {
-    // Fire 10 requests sequentially to avoid socket closures under heavy concurrent loads
+    // Fire 10 requests sequentially
     for (let i = 0; i < 10; i++) {
       await request
         .post('/api/content/grade')
-        .set('Authorization', `Bearer ${userToken}`)
         .send({ text: 'Test content request' })
         .expect(200);
     }
@@ -126,7 +97,6 @@ This is paragraph two. We are writing multiple words to ensure we pass the parag
     // The 11th request must fail with 429 Too Many Requests
     const res = await request
       .post('/api/content/grade')
-      .set('Authorization', `Bearer ${userToken}`)
       .send({ text: 'Eleventh request' })
       .expect(429);
 

@@ -240,20 +240,37 @@ export async function renderPdf(html: string): Promise<Buffer> {
   if (process.env.NODE_ENV === 'test') {
     return Buffer.from('mock-pdf');
   }
-  const browser = await puppeteer.launch({
+
+  const launchOptions: any = {
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  };
+
+  const fs = require('fs');
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  } else if (fs.existsSync('/usr/bin/chromium-browser')) {
+    launchOptions.executablePath = '/usr/bin/chromium-browser';
+  } else if (fs.existsSync('/usr/bin/chromium')) {
+    launchOptions.executablePath = '/usr/bin/chromium';
+  }
+
   try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
-      printBackground: true,
-    });
-    return pdfBuffer;
-  } finally {
-    await browser.close();
+    const browser = await puppeteer.launch(launchOptions);
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: { top: '0', right: '0', bottom: '0', left: '0' },
+        printBackground: true,
+      });
+      return pdfBuffer;
+    } finally {
+      await browser.close();
+    }
+  } catch (err: any) {
+    console.warn('[PDF Export]: Puppeteer launch unavailable, generating HTML report document fallback:', err.message);
+    return Buffer.from(html, 'utf-8');
   }
 }

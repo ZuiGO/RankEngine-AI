@@ -23,6 +23,10 @@ RUN npm run build --workspace=apps/api
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
 
 # Copy root package files and workspace definitions
 COPY package.json package-lock.json ./

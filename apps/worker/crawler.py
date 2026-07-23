@@ -159,15 +159,18 @@ async def measure_page_cwv(browser, url: str) -> dict:
     page = await context.new_page()
 
     try:
-        await page.goto(url, timeout=15000, wait_until="load")
-        await page.add_script_tag(url="https://unpkg.com/web-vitals@4/dist/web-vitals.iife.js")
+        await page.goto(url, timeout=10000, wait_until="domcontentloaded")
+        try:
+            await page.add_script_tag(url="https://unpkg.com/web-vitals@4/dist/web-vitals.iife.js")
+        except Exception:
+            pass
 
         metrics = await page.evaluate("""() => {
             return new Promise((resolve) => {
                 let lcp = 0, cls = 0, tbt = 0;
 
-                try { webVitals.onLCP((m) => { lcp = m.value; }); } catch(e) {}
-                try { webVitals.onCLS((m) => { cls = m.value; }); } catch(e) {}
+                try { if (window.webVitals) webVitals.onLCP((m) => { lcp = m.value; }); } catch(e) {}
+                try { if (window.webVitals) webVitals.onCLS((m) => { cls = m.value; }); } catch(e) {}
 
                 let tbtObserver;
                 try {
@@ -182,7 +185,7 @@ async def measure_page_cwv(browser, url: str) -> dict:
                 setTimeout(() => {
                     if (tbtObserver) tbtObserver.disconnect();
                     resolve({ lcp, cls, tbt });
-                }, 8000);
+                }, 1500);
             });
         }""")
 
@@ -515,7 +518,12 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
         # Create workers to run concurrently
         workers = [asyncio.create_task(worker()) for _ in range(max_concurrency)]
 
-        await stop_event.wait()
+        while not stop_event.is_set():
+            if queue.empty() and queue._unfinished_tasks == 0:
+                stop_event.set()
+                break
+            await asyncio.sleep(0.2)
+
         await queue.join()
 
         # Cancel active workers
@@ -572,6 +580,18 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
         await generate_internal_link_suggestions(crawl_job_id, crawled_pages)
     except Exception as e:
         log_json("ERROR", "link_suggestion_failed", crawlJobId=crawl_job_id, error=str(e))
+
+    await db.crawljobs.update_one(
+        {"_id": ObjectId(crawl_job_id)},
+        {
+            "$set": {
+                "status": "completed",
+                "pageCount": len(crawled_pages),
+                "rawResultsRef": str(crawl_result_id),
+                "completedAt": datetime.datetime.now(datetime.timezone.utc)
+            }
+        }
+    )
 
     log_json(
         "INFO",

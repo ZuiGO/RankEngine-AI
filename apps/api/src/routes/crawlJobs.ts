@@ -95,6 +95,11 @@ router.get('/:id/checklist', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid crawl job ID format' });
     }
 
+    const crawlJob = await CrawlJob.findById(id);
+    if (!crawlJob) {
+      return res.status(404).json({ error: 'Crawl job not found' });
+    }
+
     const page = Math.max(1, parseInt(String(req.query.page || '1'), 10));
     const limit = Math.min(200, Math.max(1, parseInt(String(req.query.limit || '50'), 10)));
     const skip = (page - 1) * limit;

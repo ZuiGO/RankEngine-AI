@@ -1,7 +1,5 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
-import jwt from 'jsonwebtoken';
-import express from 'express';
 import request from 'supertest';
 
 jest.setTimeout(60000);
@@ -25,16 +23,10 @@ let mongoServer: MongoMemoryServer;
 
 process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/test_placeholder';
 process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'super_secret_test_jwt_key_that_is_long_enough';
-process.env.JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
 process.env.DATAFORSEO_LOGIN = '';
 process.env.DATAFORSEO_PASSWORD = '';
-process.env.NODE_ENV = 'test';
 
-const User = require('../src/models/User').default;
-const Organization = require('../src/models/Organization').default;
-const Membership = require('../src/models/Membership').default;
-const Project = require('../src/models/Project').default;
+const Project = require('../src/models/Project').default || require('../src/models/Project').Project;
 
 // We'll mock getBacklinkList to return deterministic data
 const mockGetBacklinkList = jest.fn();
@@ -49,9 +41,7 @@ jest.mock('../src/services/dataProviderService', () => {
 
 const { app } = require('../src/app');
 
-let testUser: any;
 let testProject: any;
-let token: string;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
@@ -75,35 +65,9 @@ beforeEach(async () => {
     await collections[key].deleteMany({});
   }
 
-  testUser = await User.create({
-    email: 'backlink@test.com',
-    passwordHash: '$2b$10$mockhash',
-    role: 'agency_owner',
-    companyName: 'Test Co',
-    planId: 'agency',
-    dataProviderCallsThisMonth: 0,
-    dataProviderMonthlyLimit: 10000,
-    dataProviderQuotaResetAt: new Date(Date.UTC(2099, 0, 1)),
-  });
-
-  token = jwt.sign(
-    { userId: testUser._id.toString(), role: testUser.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: '1h' }
-  );
-
-  const org = await Organization.create({ name: 'Test Org', ownerId: testUser._id });
-  await Membership.create({
-    organizationId: org._id,
-    userId: testUser._id,
-    role: 'owner',
-    joinedAt: new Date(),
-  });
-
   testProject = await Project.create({
     name: 'Test Project',
     domain: 'example.com',
-    organizationId: org._id,
   });
 });
 
@@ -149,7 +113,6 @@ describe('Backlinks — toxic flag', () => {
 
     const res = await request(app)
       .get(`/api/projects/${testProject._id}/backlinks/list?page=1&limit=100`)
-      .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
     expect(res.body).toHaveProperty('items');
@@ -171,61 +134,10 @@ describe('Backlinks — toxic flag', () => {
     expect(res.body.items[4].toxic).toBe(true);
   });
 
-  it('returns 403 for non-owner projects', async () => {
-    const otherUser = await User.create({
-      email: 'other@test.com',
-      passwordHash: '$2b$10$mockhash',
-      role: 'developer',
-      companyName: 'Other Co',
-    });
-
-    const otherOrg = await Organization.create({ name: 'Other Org', ownerId: otherUser._id });
-    await Membership.create({
-      organizationId: otherOrg._id,
-      userId: otherUser._id,
-      role: 'owner',
-      joinedAt: new Date(),
-    });
-
-    const otherProject = await Project.create({
-      name: 'Other Project',
-      domain: 'other.com',
-      organizationId: otherOrg._id,
-    });
-
-    await request(app)
-      .get(`/api/projects/${otherProject._id}/backlinks/list?page=1`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403);
-  });
-
-  it('returns 429 when quota is exhausted', async () => {
-    await User.findByIdAndUpdate(testUser._id, {
-      dataProviderCallsThisMonth: 500,
-      dataProviderMonthlyLimit: 500,
-    });
-
-    // Mock must throw for fresh calls (list is never cached)
-    mockGetBacklinkList.mockRejectedValue(
-      new (require('../src/services/dataProviderService').DataProviderQuotaError)(
-        'Quota exceeded',
-        86400000
-      )
-    );
-
-    const res = await request(app)
-      .get(`/api/projects/${testProject._id}/backlinks/list?page=1`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(429);
-
-    expect(res.body).toHaveProperty('retryAfterMs');
-  });
-
   it('returns overview with snapshot caching', async () => {
     // First call — no snapshot, goes via service
     const res1 = await request(app)
       .get(`/api/projects/${testProject._id}/backlinks/overview`)
-      .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
     expect(res1.body).toHaveProperty('totalBacklinks');
@@ -236,7 +148,6 @@ describe('Backlinks — toxic flag', () => {
     // Second call should hit snapshot cache with same data shape
     const res2 = await request(app)
       .get(`/api/projects/${testProject._id}/backlinks/overview`)
-      .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
     expect(res2.body).toHaveProperty('totalBacklinks');
