@@ -29,6 +29,11 @@ const envSchema = z.object({
   DATAFORSEO_LOGIN: z.string().default(''),
   DATAFORSEO_PASSWORD: z.string().default(''),
 
+  GOOGLE_OAUTH_CLIENT_ID: z.string().default(''),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().default(''),
+  GOOGLE_OAUTH_REDIRECT_URI: z.string().default(''),
+  GOOGLE_TOKEN_ENCRYPTION_KEY: z.string().default(''),
+
   STORAGE_PATH: z.string().default('./data/reports'),
 
   DOWNLOAD_TOKEN_TTL_MS: z.coerce.number().default(3600000),

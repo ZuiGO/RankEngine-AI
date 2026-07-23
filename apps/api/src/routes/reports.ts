@@ -7,6 +7,10 @@ import { AuditIssue } from '../models/AuditIssue';
 import { Report } from '../models/Report';
 import { buildReportPayload, generateReportHtml, renderPdf } from '../services/pdfExportService';
 import { saveFile, getFileStream, generateDownloadToken } from '../services/storageService';
+import ContentPerformanceReportModel from '../models/ContentPerformanceReport';
+import { computeReport } from '../services/contentPerformanceService';
+import BeforeAfterComparisonReportModel from '../models/BeforeAfterComparisonReport';
+import { computeComparisonReport } from '../services/comparisonReportService';
 
 const router = Router();
 
@@ -245,6 +249,147 @@ router.get('/:id/reports', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('List reports error:', error);
     res.status(500).json({ error: 'Failed to list reports' });
+  }
+});
+// POST /api/projects/:id/reports/content-performance/generate
+router.post('/:id/reports/content-performance/generate', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
+    const project = await Project.findOne({ _id: id, deletedAt: null });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const requestedCrawlJobId: string | undefined = req.body.crawlJobId;
+    let crawlJob;
+
+    if (requestedCrawlJobId) {
+      if (!mongoose.Types.ObjectId.isValid(requestedCrawlJobId)) {
+        return res.status(400).json({ error: 'Invalid crawlJobId format' });
+      }
+      crawlJob = await CrawlJob.findOne({ _id: requestedCrawlJobId, projectId: id, status: 'completed' });
+    } else {
+      crawlJob = await CrawlJob.findOne({ projectId: id, status: 'completed' }).sort({ completedAt: -1 });
+    }
+
+    if (!crawlJob) {
+      return res.status(404).json({ error: 'No completed crawl job found for this project' });
+    }
+
+    const report = await computeReport(crawlJob._id.toString());
+    return res.status(200).json(report);
+  } catch (error: any) {
+    console.error('Content performance report generation error:', error);
+    return res.status(500).json({ error: error.message || 'Failed to generate content performance report' });
+  }
+});
+
+// GET /api/projects/:id/reports/content-performance/:reportId
+router.get('/:id/reports/content-performance/:reportId', async (req: Request, res: Response) => {
+  try {
+    const { id, reportId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(reportId)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+
+    const doc = await ContentPerformanceReportModel.findOne({ _id: reportId, projectId: id }).lean();
+    if (!doc) {
+      return res.status(404).json({ error: 'Content performance report not found' });
+    }
+
+    const report = {
+      reportId: doc._id.toString(),
+      projectId: doc.projectId,
+      crawlJobId: doc.crawlJobId,
+      generatedAt: doc.generatedAt.toISOString(),
+      siteUrl: doc.siteUrl,
+      overallScore: doc.overallScore,
+      pageCount: doc.pageCount,
+      pages: doc.pages,
+      summary: doc.summary,
+      gaConnected: doc.gaConnected,
+      gscConnected: doc.gscConnected,
+    };
+
+    return res.json(report);
+  } catch (error: any) {
+    console.error('Fetch content performance report error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// POST /api/projects/:id/reports/comparison/generate
+router.post('/:id/reports/comparison/generate', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
+    const project = await Project.findOne({ _id: id, deletedAt: null });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const oldUrl = req.body.oldUrl || (project as any).liveDomain || project.domain;
+    const newUrl = req.body.newUrl || project.stagingDomain || project.domain;
+    const { oldCrawlJobId, newCrawlJobId, pathOverrides } = req.body;
+
+    const report = await computeComparisonReport({
+      projectId: id,
+      oldUrl,
+      newUrl,
+      oldCrawlJobId,
+      newCrawlJobId,
+      pathOverrides,
+    });
+
+    return res.status(200).json(report);
+  } catch (error: any) {
+    console.error('Comparison report generation error:', error);
+    return res.status(500).json({ error: error.message || 'Failed to generate comparison report' });
+  }
+});
+
+// GET /api/projects/:id/reports/comparison/:reportId
+router.get('/:id/reports/comparison/:reportId', async (req: Request, res: Response) => {
+  try {
+    const { id, reportId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(reportId)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+
+    const doc = await BeforeAfterComparisonReportModel.findOne({ _id: reportId, projectId: id }).lean();
+    if (!doc) {
+      return res.status(404).json({ error: 'Comparison report not found' });
+    }
+
+    const report = {
+      reportId: doc._id.toString(),
+      projectId: doc.projectId,
+      generatedAt: doc.generatedAt.toISOString(),
+      oldSiteUrl: doc.oldSiteUrl,
+      newSiteUrl: doc.newSiteUrl,
+      oldCrawlJobId: doc.oldCrawlJobId,
+      newCrawlJobId: doc.newCrawlJobId,
+      overallScoreBefore: doc.overallScoreBefore,
+      overallScoreAfter: doc.overallScoreAfter,
+      pagesImproved: doc.pagesImproved,
+      pagesRegressed: doc.pagesRegressed,
+      pagesUnchanged: doc.pagesUnchanged,
+      pagesAdded: doc.pagesAdded,
+      pagesRemoved: doc.pagesRemoved,
+      pages: doc.pages,
+      note: doc.note,
+    };
+
+    return res.json(report);
+  } catch (error: any) {
+    console.error('Fetch comparison report error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

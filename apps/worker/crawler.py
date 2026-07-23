@@ -63,59 +63,146 @@ def extract_outbound_links(html: str, base_url: str, target_hostname: str) -> li
     return outbound
 
 # SEO tag and word count extractor
-def extract_seo_data(html_content: str, url: str, status_code: int) -> dict:
+def extract_seo_data(html_content: str, url: str, status_code: int, x_robots_tag: str = "", target_hostname: str = "") -> dict:
     soup = BeautifulSoup(html_content, 'html.parser')
-    
-    # Canonical
-    canonical_tag = soup.find('link', rel='canonical')
-    canonical = canonical_tag.get('href') if canonical_tag else None
-    
-    # Meta Title
+    parsed_url = urlparse(url)
+    path = parsed_url.path or '/'
+    if not target_hostname:
+        target_hostname = parsed_url.hostname or ''
+
+    # Canonical URL
+    canonical_tag = soup.find('link', rel=lambda v: v and 'canonical' in (v if isinstance(v, list) else [v]))
+    canonical_attr = canonical_tag.get('href', '').strip() if (canonical_tag and canonical_tag.get('href')) else None
+    canonical_url = canonical_attr if canonical_attr else None
+
+    # Title
     title_tag = soup.find('title')
-    meta_title_tag = soup.find('meta', attrs={'name': 'title'})
-    meta_title_attr = meta_title_tag.get('content') if meta_title_tag else None
-    meta_title = title_tag.get_text().strip() if title_tag else (meta_title_attr or '')
-    
+    title_text = title_tag.get_text().strip() if (title_tag and title_tag.get_text().strip()) else None
+    title = title_text if title_text else None
+
     # Meta Description
-    desc_tag = soup.find('meta', attrs={'name': 'description'})
+    desc_tag = soup.find('meta', attrs={'name': lambda v: v and v.lower() == 'description'})
     if not desc_tag:
-        desc_tag = soup.find('meta', attrs={'property': 'og:description'})
-    meta_description = desc_tag.get('content').strip() if desc_tag else ''
+        desc_tag = soup.find('meta', attrs={'property': lambda v: v and v.lower() == 'og:description'})
+    desc_content = desc_tag.get('content', '').strip() if (desc_tag and desc_tag.get('content')) else None
+    meta_description = desc_content if desc_content else None
 
     # Headers H1 - H6
     headers = {}
     for i in range(1, 7):
         tag_name = f'h{i}'
         found_tags = soup.find_all(tag_name)
-        headers[tag_name] = [t.get_text().strip() for t in found_tags if t.get_text()]
+        headers[tag_name] = [t.get_text().strip() for t in found_tags if t.get_text().strip()]
 
-    # Meta Robots noindex
-    meta_robots_tag = soup.find('meta', attrs={'name': 'robots'})
+    h1_text = headers.get("h1", [])
+    h2_count = len(headers.get("h2", []))
+
+    # Indexability check (meta robots & X-Robots-Tag)
+    meta_robots_tag = soup.find('meta', attrs={'name': lambda v: v and v.lower() == 'robots'})
     meta_robots_content = (meta_robots_tag.get('content', '') or '').lower() if meta_robots_tag else ''
     meta_noindex = 'noindex' in meta_robots_content
+    header_noindex = 'noindex' in (x_robots_tag or '').lower()
+    is_indexable = not (meta_noindex or header_noindex)
 
-    # Extract word count from visible text
-    for script_or_style in soup(["script", "style", "noscript", "iframe"]):
-        script_or_style.decompose()
-        
-    text = soup.get_text()
-    words = re.findall(r'\b\w+\b', text)
+    # Word count from visible body text (excluding script, style, noscript, iframe, nav, footer)
+    # Note: excluding non-content elements provides a clean visible body text word count approximation
+    body_node = soup.find('body') or soup
+    body_soup = BeautifulSoup(str(body_node), 'html.parser')
+    for elem in body_soup(["script", "style", "noscript", "iframe", "nav", "footer"]):
+        elem.decompose()
+    visible_text = body_soup.get_text()
+    words = re.findall(r'\b\w+\b', visible_text)
     word_count = len(words)
+
+    # Image counts (total, with non-empty alt, missing/empty alt)
+    images = soup.find_all('img')
+    image_count = len(images)
+    images_with_alt = 0
+    images_missing_alt = 0
+    for img in images:
+        alt = img.get('alt')
+        if alt is not None and alt.strip() != '':
+            images_with_alt += 1
+        else:
+            images_missing_alt += 1
+
+    # Internal / External link counts
+    internal_link_count = 0
+    external_link_count = 0
+    for anchor in soup.find_all('a', href=True):
+        href = anchor['href'].strip()
+        if not href or href.startswith(('javascript:', 'mailto:', 'tel:', '#')):
+            continue
+        resolved_href = urljoin(url, href)
+        if resolved_href.startswith(('http://', 'https://')):
+            if is_internal_link(resolved_href, target_hostname):
+                internal_link_count += 1
+            else:
+                external_link_count += 1
+
+    # Structured data parsing (<script type="application/ld+json">)
+    ld_types = set()
+    ld_scripts = soup.find_all('script', type=lambda v: v and 'application/ld+json' in v.lower())
+    for s in ld_scripts:
+        content = (s.string or s.get_text() or '').strip()
+        if not content:
+            continue
+        try:
+            data = json.loads(content)
+            def collect_ld_types(obj):
+                if isinstance(obj, dict):
+                    if '@type' in obj:
+                        t = obj['@type']
+                        if isinstance(t, str):
+                            ld_types.add(t)
+                        elif isinstance(t, list):
+                            for item in t:
+                                if isinstance(item, str):
+                                    ld_types.add(item)
+                    if '@graph' in obj and isinstance(obj['@graph'], list):
+                        for node in obj['@graph']:
+                            collect_ld_types(node)
+                    for k, v in obj.items():
+                        if k not in ('@type', '@graph'):
+                            collect_ld_types(v)
+                elif isinstance(obj, list):
+                    for item in obj:
+                        collect_ld_types(item)
+            collect_ld_types(data)
+        except Exception:
+            # Safely ignore malformed or non-JSON content
+            pass
+
+    structured_data_types = sorted(list(ld_types))
+    has_structured_data = len(structured_data_types) > 0
 
     return {
         "url": url,
+        "path": path,
         "statusCode": status_code,
-        "h1": headers.get("h1", []),
+        "title": title,
+        "metaTitle": title or '',
+        "metaDescription": meta_description,
+        "h1Text": h1_text,
+        "h1": h1_text,
+        "h2Count": h2_count,
         "h2": headers.get("h2", []),
         "h3": headers.get("h3", []),
         "h4": headers.get("h4", []),
         "h5": headers.get("h5", []),
         "h6": headers.get("h6", []),
-        "canonical": canonical,
-        "metaTitle": meta_title,
-        "metaDescription": meta_description,
         "wordCount": word_count,
-        "meta_noindex": meta_noindex,
+        "imageCount": image_count,
+        "imagesWithAlt": images_with_alt,
+        "imagesMissingAlt": images_missing_alt,
+        "internalLinkCount": internal_link_count,
+        "externalLinkCount": external_link_count,
+        "hasStructuredData": has_structured_data,
+        "structuredDataTypes": structured_data_types,
+        "canonicalUrl": canonical_url,
+        "canonical": canonical_url,
+        "isIndexable": is_indexable,
+        "meta_noindex": not is_indexable,
     }
 
 # --- Core Web Vitals helpers ---
@@ -743,7 +830,7 @@ async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | 
                 raise IOError("CAPTCHA challenge block detected on page")
 
             # Success: Parse page SEO data
-            seo_data = extract_seo_data(html, url, status_code)
+            seo_data = extract_seo_data(html, url, status_code, x_robots_tag=x_robots_tag)
             seo_data["html"] = html  # Attached temporarily for link extraction + schema validation
             seo_data["x_robots_tag"] = x_robots_tag
 

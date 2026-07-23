@@ -94,7 +94,7 @@ export const rateLimiter = (limit: number, windowMs: number) => {
     limit,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
-    keyGenerator: (req: Request) => req.ip || (req.headers['x-forwarded-for'] as string) || 'anonymous',
+    keyGenerator: (req: Request) => (req.headers['x-forwarded-for'] as string) || req.ip || 'anonymous',
     message: {
       error: 'Too many requests, please try again later.',
     },

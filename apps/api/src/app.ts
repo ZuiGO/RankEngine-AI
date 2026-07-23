@@ -26,6 +26,7 @@ import keywordClusteringRouter from './routes/keywordClustering';
 import cwvRouter from './routes/cwv';
 import internalLinksRouter from './routes/internalLinks';
 import chatRouter from './routes/chat';
+import googleIntegrationRouter from './routes/googleIntegration';
 
 const app = express();
 
@@ -67,6 +68,7 @@ app.use('/api/projects', contentWriterRouter);
 app.use('/api/projects', cwvRouter);
 app.use('/api/projects', internalLinksRouter);
 app.use('/api/projects', chatRouter);
+app.use('/api', googleIntegrationRouter);
 
 // ── Paid External API Routes (DataForSEO / SERP API / Heavy ops) ────────────
 // Protected by route-scoped rate limiting (100 req / 15 min per IP)

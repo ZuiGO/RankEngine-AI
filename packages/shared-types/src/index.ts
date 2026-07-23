@@ -36,3 +36,5 @@ export interface HealthCheckResponse {
     redis: 'connected' | 'disconnected';
   };
 }
+
+export * from './seoReports';
