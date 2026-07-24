@@ -23,6 +23,7 @@ interface CrawlJob {
   createdAt: string;
   completedAt?: string;
   healthScore?: number;
+  errorMessage?: string;
 }
 
 interface AuditIssue {
@@ -274,30 +275,65 @@ function HealthScoreGauge({ score, previous }: { score: number; previous: number
 }
 
 /** Crawl progress bar while status is queued/running */
-function CrawlProgressBar({ job }: { job: CrawlJob }) {
+function CrawlProgressBar({ job, onCancel }: { job: CrawlJob; onCancel?: () => void }) {
   const isRunning = job.status === 'running' || job.status === 'queued';
-  const pct = job.status === 'completed' ? 100 : Math.min((job.pageCount / 50) * 100, 95);
+  const [cancelling, setCancelling] = useState(false);
+  
+  let pct = 0;
+  if (job.status === 'completed') {
+    pct = 100;
+  } else if (job.status === 'failed') {
+    pct = 100;
+  } else if (job.status === 'queued') {
+    pct = 10;
+  } else if (job.pageCount === 0) {
+    pct = 20;
+  } else {
+    // Dynamic progress curve based on page count
+    pct = Math.min(95, Math.round(20 + Math.min(60, job.pageCount * 8) + (job.pageCount > 5 ? Math.min(15, (job.pageCount - 5) * 3) : 0)));
+  }
 
   return (
-    <Card className="rounded-xl">
+    <Card className="rounded-xl border-app-signal/20">
       <CardBody className="p-4 space-y-2">
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             {isRunning && (
-              <span className="h-2 w-2 rounded-full bg-app-signal animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-app-signal animate-pulse flex-shrink-0" />
             )}
-            <span className="font-medium text-app-text">
-              {job.status === 'queued' && 'Audit queued…'}
-              {job.status === 'running' && `Crawling — ${job.pageCount} pages scanned`}
-              {job.status === 'completed' && `Completed — ${job.pageCount} pages scanned`}
-              {job.status === 'failed' && 'Audit failed'}
+            <span className="font-medium text-white">
+              {job.status === 'queued' && 'Audit queued — initializing crawler…'}
+              {job.status === 'running' && (job.pageCount === 0 ? 'Crawling — inspecting homepage…' : `Crawling — ${job.pageCount} page${job.pageCount > 1 ? 's' : ''} scanned`)}
+              {job.status === 'completed' && `Audit completed — ${job.pageCount} page${job.pageCount > 1 ? 's' : ''} scanned`}
+              {job.status === 'failed' && (job.errorMessage ? `Audit stopped (${job.errorMessage})` : 'Audit failed')}
             </span>
           </div>
-          <span className="text-app-text-muted font-mono">{Math.round(pct)}%</span>
+          <div className="flex items-center gap-3">
+            {isRunning && onCancel && (
+              <button
+                onClick={async () => {
+                  setCancelling(true);
+                  try {
+                    await api.post(`/crawl-jobs/${job._id}/cancel`);
+                    if (onCancel) onCancel();
+                  } catch {
+                    // silent ignore
+                  } finally {
+                    setCancelling(false);
+                  }
+                }}
+                disabled={cancelling}
+                className="px-2 py-0.5 text-2xs font-semibold rounded bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/30 transition-all disabled:opacity-50"
+              >
+                {cancelling ? 'Stopping…' : 'Stop Audit'}
+              </button>
+            )}
+            <span className="text-app-signal font-mono font-bold">{Math.round(pct)}%</span>
+          </div>
         </div>
-        <div className="w-full bg-app-surface-raised h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-app-surface-raised h-2 rounded-full overflow-hidden border border-app-border/40">
           <div
-            className={`h-full rounded-full transition-all duration-700 ${
+            className={`h-full rounded-full transition-all duration-500 ease-out ${
               job.status === 'failed'
                 ? 'bg-rose-500'
                 : job.status === 'completed'
@@ -449,7 +485,7 @@ export default function ProjectDetailPage() {
           clearInterval(pollRef.current!);
           pollRef.current = null;
         }
-      }, 3000);
+      }, 1200);
     },
     [fetchChecklist]
   );
@@ -473,7 +509,7 @@ export default function ProjectDetailPage() {
         clearInterval(migPollRef.current!);
         migPollRef.current = null;
       }
-    }, 3000);
+    }, 1200);
   }, []);
 
   // ── Load project and latest crawl status ───────────────────────────────
@@ -910,7 +946,14 @@ export default function ProjectDetailPage() {
         {/* Live progress bar */}
         {activeJob && (activeJob.status === 'running' || activeJob.status === 'queued') && (
           <div className="mb-4">
-            <CrawlProgressBar job={activeJob} />
+            <CrawlProgressBar
+              job={activeJob}
+              onCancel={() => {
+                if (pollRef.current) clearInterval(pollRef.current);
+                pollRef.current = null;
+                setActiveJob((prev) => (prev ? { ...prev, status: 'failed', errorMessage: 'Cancelled by user' } : null));
+              }}
+            />
           </div>
         )}
 

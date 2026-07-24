@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import axios from 'axios';
 import config from '../config';
 import { IProject } from '../models/Project';
 
@@ -72,23 +73,20 @@ export async function getFreshAccessToken(project: IProject): Promise<string> {
     refresh_token: refreshToken,
   });
 
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: params.toString(),
-  });
+  const response = await axios.post<{ access_token?: string }>(
+    'https://oauth2.googleapis.com/token',
+    params.toString(),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      timeout: 10000,
+    }
+  );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Google token refresh failed: ${response.status} ${errorText}`);
-  }
-
-  const data = (await response.json()) as { access_token?: string };
-  if (!data.access_token) {
+  if (!response.data?.access_token) {
     throw new Error('Google token response did not contain access_token');
   }
 
-  return data.access_token;
+  return response.data.access_token;
 }

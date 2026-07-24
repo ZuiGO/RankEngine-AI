@@ -9,6 +9,7 @@ export interface ICrawlJob extends Document {
   type: CrawlJobType;
   startedAt?: Date;
   completedAt?: Date;
+  createdAt?: Date;
   pageCount: number;
   rawResultsRef?: string;
   errorMessage?: string;
@@ -55,7 +56,7 @@ const CrawlJobSchema = new Schema<ICrawlJob>({
     min: 0,
     max: 100,
   },
-});
+}, { timestamps: true });
 
 // Indexes: compound on projectId + status, and single index on status
 CrawlJobSchema.index({ projectId: 1, status: 1 });

@@ -23,6 +23,12 @@ router.post('/keyword-research', async (req: Request, res: Response) => {
     const { seedKeyword, locationCode } = validation.data;
     const results = await getKeywordIdeas(seedKeyword, locationCode);
 
+    try {
+      await KeywordResearchQuery.create({ seedKeyword, locationCode, timestamp: new Date() });
+    } catch (histErr) {
+      console.warn('[KeywordResearch] Could not save history query:', histErr);
+    }
+
     return res.json({ seedKeyword, results, isMockData: isUsingMockProvider() });
   } catch (error) {
     if (error instanceof DataProviderQuotaError) {

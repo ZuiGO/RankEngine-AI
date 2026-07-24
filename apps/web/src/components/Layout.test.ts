@@ -214,7 +214,6 @@ describe('LABEL_ROUTE_MAP covers every project-scoped nav item', () => {
     'AI Visibility': '/ai-visibility',
     'Overview & Gap Analysis': '/competitors',
     'Internal Linking': '/internal-links',
-    'AI Chat': '/chat',
   };
 
   for (const group of NAV_GROUPS) {

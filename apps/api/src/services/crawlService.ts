@@ -62,3 +62,26 @@ export const enqueueMigrationCheck = async (
 
   return { crawlJobId: crawlJobIdStr };
 };
+
+export const cancelCrawlJob = async (crawlJobId: string): Promise<boolean> => {
+  const crawlJob = await CrawlJob.findById(crawlJobId);
+  if (!crawlJob) return false;
+
+  // 1. Remove job from BullMQ queue if still queued/waiting
+  try {
+    const job = await crawlQueue.getJob(crawlJobId);
+    if (job) {
+      await job.remove();
+    }
+  } catch (err) {
+    // Ignore queue removal errors if job was already active or dequeued
+  }
+
+  // 2. Mark status as failed in MongoDB
+  crawlJob.status = 'failed';
+  crawlJob.errorMessage = 'Cancelled by user';
+  crawlJob.completedAt = new Date();
+  await crawlJob.save();
+
+  return true;
+};

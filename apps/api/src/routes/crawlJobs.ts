@@ -134,4 +134,27 @@ router.get('/:id/checklist', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/crawl-jobs/:id/cancel - Stop/cancel an ongoing or queued audit
+router.post('/:id/cancel', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid crawl job ID format' });
+    }
+
+    const { cancelCrawlJob } = await import('../services/crawlService');
+    const success = await cancelCrawlJob(id);
+
+    if (!success) {
+      return res.status(404).json({ error: 'Crawl job not found' });
+    }
+
+    const updatedJob = await CrawlJob.findById(id);
+    return res.json({ message: 'Audit job cancelled successfully', crawlJob: updatedJob });
+  } catch (error) {
+    console.error('Cancel crawl job error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

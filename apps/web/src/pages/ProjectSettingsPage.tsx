@@ -306,60 +306,79 @@ export default function ProjectSettingsPage() {
               )}
             </div>
 
-            {/* Property/Site picker */}
-            {propertiesLoading ? (
-              <div className="flex items-center gap-2 text-xs text-app-text-muted animate-pulse">
-                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                Loading available properties…
-              </div>
-            ) : propertiesError ? (
-              <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
-                <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
-                {propertiesError}
-              </div>
-            ) : properties ? (
-              <div className="space-y-4">
-                {/* GA4 Property */}
-                <div>
-                  <label className="block text-xs font-semibold text-app-text mb-2">
-                    GA4 Property
-                  </label>
-                  {properties.gaProperties.length === 0 ? (
-                    <p className="text-xs text-app-text-muted">No GA4 properties found for this Google account.</p>
-                  ) : (
-                    <select
-                      value={selectedGaProperty}
-                      onChange={(e) => setSelectedGaProperty(e.target.value)}
-                      className="w-full text-sm bg-app-base border border-app-border rounded-lg px-3 py-2 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors"
-                    >
-                      <option value="">— None —</option>
-                      {properties.gaProperties.map((p) => (
-                        <option key={p.id} value={p.id}>{p.displayName} ({p.id})</option>
-                      ))}
-                    </select>
-                  )}
+            {/* Always show Property & Site configuration when connected */}
+            <div className="space-y-5 pt-2 border-t border-app-border">
+              {propertiesLoading && (
+                <div className="flex items-center gap-2 text-xs text-app-text-muted animate-pulse py-2">
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  Searching connected Google account for GA4 properties & GSC sites…
                 </div>
+              )}
 
-                {/* Search Console Site */}
-                <div>
-                  <label className="block text-xs font-semibold text-app-text mb-2">
-                    Search Console Site
-                  </label>
-                  {properties.gscSites.length === 0 ? (
-                    <p className="text-xs text-app-text-muted">No Search Console sites found for this Google account.</p>
-                  ) : (
-                    <select
-                      value={selectedGscSite}
-                      onChange={(e) => setSelectedGscSite(e.target.value)}
-                      className="w-full text-sm bg-app-base border border-app-border rounded-lg px-3 py-2 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors"
-                    >
-                      <option value="">— None —</option>
-                      {properties.gscSites.map((s) => (
-                        <option key={s.siteUrl} value={s.siteUrl}>{s.siteUrl} ({s.permissionLevel})</option>
-                      ))}
-                    </select>
-                  )}
+              {propertiesError && (
+                <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                  <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+                  {propertiesError}
                 </div>
+              )}
+
+              {/* GA4 Property */}
+              <div>
+                <label className="block text-xs font-semibold text-white mb-1.5">
+                  GA4 Property ID
+                </label>
+                {properties && properties.gaProperties.length > 0 ? (
+                  <select
+                    value={selectedGaProperty}
+                    onChange={(e) => setSelectedGaProperty(e.target.value)}
+                    className="w-full text-sm bg-app-base border border-app-border rounded-lg px-3 py-2 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors mb-2"
+                  >
+                    <option value="">— Select from account —</option>
+                    {properties.gaProperties.map((p) => (
+                      <option key={p.id} value={p.id}>{(p as any).name || (p as any).displayName || p.id} ({p.id})</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-xs text-app-text-muted mb-2">No GA4 properties auto-discovered for this account. You can enter your Property ID manually below:</p>
+                )}
+                <input
+                  type="text"
+                  placeholder="e.g. 123456789"
+                  value={selectedGaProperty}
+                  onChange={(e) => setSelectedGaProperty(e.target.value)}
+                  className="w-full text-sm bg-app-base border border-app-border rounded-lg px-3 py-2 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors placeholder:text-app-text-muted/50"
+                />
+                <p className="text-[11px] text-app-text-muted mt-1">Numeric GA4 Property ID from Google Analytics Admin panel.</p>
+              </div>
+
+              {/* Search Console Site */}
+              <div>
+                <label className="block text-xs font-semibold text-white mb-1.5">
+                  Search Console Site URL
+                </label>
+                {properties && properties.gscSites.length > 0 ? (
+                  <select
+                    value={selectedGscSite}
+                    onChange={(e) => setSelectedGscSite(e.target.value)}
+                    className="w-full text-sm bg-app-base border border-app-border rounded-lg px-3 py-2 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors mb-2"
+                  >
+                    <option value="">— Select from account —</option>
+                    {properties.gscSites.map((s) => (
+                      <option key={s.siteUrl} value={s.siteUrl}>{s.siteUrl} ({s.permissionLevel})</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-xs text-app-text-muted mb-2">No Search Console sites auto-discovered for this account. You can enter your Site URL manually below:</p>
+                )}
+                <input
+                  type="text"
+                  placeholder="e.g. https://yourdomain.com/ or sc-domain:yourdomain.com"
+                  value={selectedGscSite}
+                  onChange={(e) => setSelectedGscSite(e.target.value)}
+                  className="w-full text-sm bg-app-base border border-app-border rounded-lg px-3 py-2 text-app-text outline-none focus:border-app-signal focus:ring-1 focus:ring-app-signal/50 transition-colors placeholder:text-app-text-muted/50"
+                />
+                <p className="text-[11px] text-app-text-muted mt-1">Exact Search Console property URL (e.g. https://yourdomain.com/ or sc-domain:yourdomain.com).</p>
+              </div>
 
                 <Button
                   variant="primary"
@@ -371,7 +390,6 @@ export default function ProjectSettingsPage() {
                   Save Integration Settings
                 </Button>
               </div>
-            ) : null}
           </div>
         )}
       </Card>

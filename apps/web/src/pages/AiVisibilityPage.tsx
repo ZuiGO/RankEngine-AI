@@ -102,6 +102,16 @@ export default function AiVisibilityPage() {
     }
   };
 
+  const handleDeletePrompt = async (promptId: string) => {
+    if (!id || !window.confirm('Are you sure you want to delete this prompt?')) return;
+    try {
+      await api.delete(`/projects/${id}/ai-visibility/prompts/${promptId}`);
+      fetchData();
+    } catch {
+      setError('Failed to delete prompt.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -260,6 +270,7 @@ export default function AiVisibilityPage() {
                     <th key={eng.key} className="p-4 text-center">{eng.label}</th>
                   ))}
                   <th className="p-4 text-center">Context</th>
+                  <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-app-border/80">
@@ -307,6 +318,17 @@ export default function AiVisibilityPage() {
                           className="text-2xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
                         >
                           {isExpanded ? 'Hide' : 'View context'}
+                        </button>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => handleDeletePrompt(prompt._id)}
+                          title="Delete prompt"
+                          className="p-1 text-app-text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </td>
                     </tr>

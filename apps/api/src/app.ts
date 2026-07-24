@@ -2,9 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
+import dns from 'dns';
 import mongoose from 'mongoose';
 import Redis from 'ioredis';
 import config from './config';
+
+dns.setDefaultResultOrder('ipv4first');
 
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';

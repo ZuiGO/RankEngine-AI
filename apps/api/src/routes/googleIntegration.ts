@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
+import axios from 'axios';
 import { z } from 'zod';
 import { GoogleIntegrationStatus } from '@rankengine/shared-types';
 import config from '../config';
@@ -46,7 +47,7 @@ export function verifyOAuthState(state: string): { projectId: string } | null {
 }
 
 // ── GET /api/integrations/google/connect ────────────────────────────────────
-router.get('/connect', async (req: Request, res: Response) => {
+router.get(['/integrations/google/connect', '/connect'], async (req: Request, res: Response) => {
   try {
     const projectId = req.query.projectId as string;
     if (!projectId || !isValidObjectId(projectId)) {
@@ -82,14 +83,19 @@ router.get('/connect', async (req: Request, res: Response) => {
   }
 });
 
+const getFrontendUrl = (): string => {
+  const primary = (config.CORS_ORIGIN || 'http://localhost:5173').split(',')[0].trim();
+  return primary.replace(/\/+$/, '');
+};
+
 // ── GET /api/integrations/google/callback ───────────────────────────────────
-router.get('/callback', async (req: Request, res: Response) => {
+router.get(['/integrations/google/callback', '/callback'], async (req: Request, res: Response) => {
   try {
     const { code, state, error: oauthError } = req.query;
 
     if (oauthError) {
       console.warn('[Google OAuth Callback] Consent denied or error:', oauthError);
-      return res.redirect(`${config.CORS_ORIGIN}/projects?google_error=${encodeURIComponent(String(oauthError))}`);
+      return res.redirect(`${getFrontendUrl()}/projects?google_error=${encodeURIComponent(String(oauthError))}`);
     }
 
     if (!code || !state) {
@@ -99,13 +105,13 @@ router.get('/callback', async (req: Request, res: Response) => {
     const verified = verifyOAuthState(String(state));
     if (!verified) {
       console.warn('[Google OAuth Callback] Invalid or tampered OAuth state parameter:', state);
-      return res.redirect(`${config.CORS_ORIGIN}/projects?google_error=invalid_state`);
+      return res.redirect(`${getFrontendUrl()}/projects?google_error=invalid_state`);
     }
 
     const { projectId } = verified;
     const project = await Project.findOne({ _id: projectId, deletedAt: null });
     if (!project) {
-      return res.redirect(`${config.CORS_ORIGIN}/projects?google_error=project_not_found`);
+      return res.redirect(`${getFrontendUrl()}/projects?google_error=project_not_found`);
     }
 
     // Exchange code for tokens
@@ -117,25 +123,21 @@ router.get('/callback', async (req: Request, res: Response) => {
       grant_type: 'authorization_code',
     });
 
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: tokenParams.toString(),
-    });
-
-    if (!tokenResponse.ok) {
-      const errText = await tokenResponse.text();
-      console.error('[Google OAuth Callback] Token exchange failed:', errText);
-      return res.redirect(`${config.CORS_ORIGIN}/projects/${projectId}?google_error=token_exchange_failed`);
+    let tokenData: { access_token?: string; refresh_token?: string; scope?: string };
+    try {
+      const tokenResponse = await axios.post<{
+        access_token?: string;
+        refresh_token?: string;
+        scope?: string;
+      }>('https://oauth2.googleapis.com/token', tokenParams.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: 15000,
+      });
+      tokenData = tokenResponse.data;
+    } catch (tokenErr) {
+      console.error('[Google OAuth Callback] Token exchange failed:', tokenErr instanceof Error ? tokenErr.message : tokenErr);
+      return res.redirect(`${getFrontendUrl()}/projects/${projectId}?google_error=token_exchange_failed`);
     }
-
-    const tokenData = (await tokenResponse.json()) as {
-      access_token?: string;
-      refresh_token?: string;
-      scope?: string;
-    };
 
     const refreshToken = tokenData.refresh_token;
     if (!refreshToken) {
@@ -160,10 +162,10 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     await project.save();
 
-    return res.redirect(`${config.CORS_ORIGIN}/projects/${projectId}?google_connected=true`);
+    return res.redirect(`${getFrontendUrl()}/projects/${projectId}?google_connected=true`);
   } catch (error) {
     console.error('[Google OAuth Callback] Exception:', error);
-    return res.redirect(`${config.CORS_ORIGIN}/projects?google_error=server_error`);
+    return res.redirect(`${getFrontendUrl()}/projects?google_error=server_error`);
   }
 });
 
@@ -270,12 +272,12 @@ router.post('/projects/:id/integrations/google/disconnect', paidApiRateLimiter, 
     if (project.googleIntegration?.encryptedRefreshToken) {
       try {
         const refreshToken = decryptToken(project.googleIntegration.encryptedRefreshToken);
-        await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(refreshToken)}`, {
-          method: 'POST',
+        await axios.post(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(refreshToken)}`, null, {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          timeout: 10000,
         });
       } catch (err) {
-        console.warn('[Google Disconnect] Revoke token failed (best effort):', err);
+        console.warn('[Google Disconnect] Revoke token failed (best effort):', err instanceof Error ? err.message : err);
       }
     }
 
@@ -306,61 +308,76 @@ router.get('/projects/:id/integrations/google/available-properties', paidApiRate
       return res.status(400).json({ error: 'Google integration is not connected for this project' });
     }
 
-    const accessToken = await getFreshAccessToken(project);
+    let accessToken: string;
+    try {
+      accessToken = await getFreshAccessToken(project);
+    } catch (tokenErr) {
+      console.warn('[Available Properties] Token refresh error:', tokenErr);
+      return res.status(400).json({
+        error: 'Google authentication failed or expired. Please reconnect your Google account.',
+        gaProperties: [],
+        gscSites: [],
+      });
+    }
+
+    let gaError: string | null = null;
+    let gscError: string | null = null;
 
     // Fetch GA4 Properties from Admin API
     let gaProperties: Array<{ id: string; name: string }> = [];
     try {
-      const gaRes = await fetch('https://analyticsadmin.googleapis.com/v1beta/accountSummaries', {
+      const gaRes = await axios.get<{
+        accountSummaries?: Array<{
+          propertySummaries?: Array<{ property: string; displayName: string }>;
+        }>;
+      }>('https://analyticsadmin.googleapis.com/v1beta/accountSummaries', {
         headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: 15000,
       });
-      if (gaRes.ok) {
-        const gaData = (await gaRes.json()) as {
-          accountSummaries?: Array<{
-            propertySummaries?: Array<{ property: string; displayName: string }>;
-          }>;
-        };
-        if (gaData.accountSummaries) {
-          for (const acc of gaData.accountSummaries) {
-            if (acc.propertySummaries) {
-              for (const prop of acc.propertySummaries) {
-                gaProperties.push({
-                  id: prop.property.replace('properties/', ''),
-                  name: prop.displayName,
-                });
-              }
+
+      if (gaRes.data?.accountSummaries) {
+        for (const acc of gaRes.data.accountSummaries) {
+          if (acc.propertySummaries) {
+            for (const prop of acc.propertySummaries) {
+              gaProperties.push({
+                id: prop.property.replace('properties/', ''),
+                name: prop.displayName,
+              });
             }
           }
         }
       }
-    } catch (e) {
-      console.warn('[Available Properties] GA4 fetch error:', e);
+    } catch (e: any) {
+      gaError = e?.response?.data?.error?.message || e.message || 'Failed to fetch GA4 properties';
+      console.warn('[Available Properties] GA4 fetch error:', gaError);
     }
 
     // Fetch Search Console sites
     let gscSites: Array<{ siteUrl: string; permissionLevel: string }> = [];
     try {
-      const gscRes = await fetch('https://www.googleapis.com/webmasters/v3/sites', {
+      const gscRes = await axios.get<{
+        siteEntry?: Array<{ siteUrl: string; permissionLevel: string }>;
+      }>('https://www.googleapis.com/webmasters/v3/sites', {
         headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: 15000,
       });
-      if (gscRes.ok) {
-        const gscData = (await gscRes.json()) as {
-          siteEntry?: Array<{ siteUrl: string; permissionLevel: string }>;
-        };
-        if (gscData.siteEntry) {
-          gscSites = gscData.siteEntry.map((s) => ({
-            siteUrl: s.siteUrl,
-            permissionLevel: s.permissionLevel,
-          }));
-        }
+
+      if (gscRes.data?.siteEntry) {
+        gscSites = gscRes.data.siteEntry.map((s) => ({
+          siteUrl: s.siteUrl,
+          permissionLevel: s.permissionLevel,
+        }));
       }
-    } catch (e) {
-      console.warn('[Available Properties] GSC fetch error:', e);
+    } catch (e: any) {
+      gscError = e?.response?.data?.error?.message || e.message || 'Failed to fetch GSC sites';
+      console.warn('[Available Properties] GSC fetch error:', gscError);
     }
 
     return res.json({
       gaProperties,
       gscSites,
+      gaError,
+      gscError,
     });
   } catch (error) {
     console.error('[Available Properties] Error:', error);

@@ -25,8 +25,9 @@ async def process_crawl_job(job, job_token):
     domain = job_data.get("domain", "unknown-domain")
     staging_domain = job_data.get("stagingDomain")
     job_type = job_data.get("type", "crawl")
+    max_pages = job_data.get("maxPages", 50)
     
-    log_json("INFO", "job_start", crawlJobId=crawl_job_id, domain=domain, type=job_type)
+    log_json("INFO", "job_start", crawlJobId=crawl_job_id, domain=domain, type=job_type, maxPages=max_pages)
     start_time = datetime.datetime.now(datetime.timezone.utc)
 
     try:
@@ -39,8 +40,11 @@ async def process_crawl_job(job, job_token):
             # Execute migration check redirect validation loop
             crawl_result_id, page_count = await run_migration_check(crawl_job_id, domain, staging_domain)
         else:
-            # Execute standard Playwright crawl site traversal
-            crawl_result_id, page_count = await crawl_site(crawl_job_id, domain)
+            # Execute standard Playwright crawl site traversal (max 50 pages or 180s timeout)
+            crawl_result_id, page_count = await asyncio.wait_for(
+                crawl_site(crawl_job_id, domain, limit=max_pages),
+                timeout=180
+            )
 
         elapsed = (datetime.datetime.now(datetime.timezone.utc) - start_time).total_seconds()
         log_json(

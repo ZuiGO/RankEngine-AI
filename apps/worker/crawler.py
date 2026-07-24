@@ -19,19 +19,18 @@ def log_json(level: str, event: str, **kwargs):
     }
     print(json.dumps(log_data), flush=True)
 
-# CAPTCHA detection logic
-def is_captcha_present(html_content: str) -> bool:
+# CAPTCHA / anti-bot challenge detection logic
+def is_captcha_present(html_content: str, status_code: int = 200) -> bool:
     content_lower = html_content.lower()
-    captcha_markers = [
-        "captcha",
-        "hcaptcha",
-        "recaptcha",
-        "cloudflare challenge",
-        "verify you are human",
-        "ddos protection",
-        "page security check"
-    ]
-    return any(marker in content_lower for marker in captcha_markers)
+    
+    # Specific Cloudflare / Bot Challenge markers
+    if "just a moment..." in content_lower or "attention required! | cloudflare" in content_lower or "verify you are human" in content_lower:
+        return True
+
+    if status_code in (403, 429, 503) and ("cloudflare" in content_lower or "ddos protection" in content_lower or "challenge-running" in content_lower):
+        return True
+
+    return False
 
 # Registrable domain checker
 def is_internal_link(url: str, target_hostname: str) -> bool:
@@ -680,7 +679,7 @@ def identify_indexing_issues(crawled_pages: list, crawl_job_id: str, robots_pars
     return issues
 
 
-async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_concurrency: int = 5):
+async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 50, max_concurrency: int = 5):
     # Ensure start url contains schema protocol
     if not target_url.startswith(('http://', 'https://')):
         start_url = 'https://' + target_url
@@ -715,7 +714,7 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
             robots_url = urljoin(start_url, '/robots.txt')
             ctx = await browser.new_context()
             pg = await ctx.new_page()
-            response = await pg.goto(robots_url, timeout=10000)
+            response = await pg.goto(robots_url, timeout=10000, wait_until="domcontentloaded")
             if response and response.status < 400:
                 robots_txt = await response.text()
                 robots_parser.parse(robots_txt.splitlines())
@@ -807,9 +806,7 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 5000, max_
                 break
             await asyncio.sleep(0.2)
 
-        await queue.join()
-
-        # Cancel active workers
+        # Cancel active workers immediately once stop_event is set or queue is empty
         for w in workers:
             w.cancel()
         await asyncio.gather(*workers, return_exceptions=True)
@@ -1514,8 +1511,25 @@ async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | 
                 context = await browser.new_context()
             page = await context.new_page()
 
-            response = await page.goto(url, timeout=15000)
-            
+            try:
+                response = await page.goto(url, timeout=15000, wait_until="domcontentloaded")
+            except PlaywrightTimeoutError:
+                html = await page.content()
+                if html and len(html) > 200:
+                    status_code = 200
+                    response_headers = {}
+                    x_robots_tag = ''
+                    seo_data = extract_seo_data(html, url, status_code, x_robots_tag=x_robots_tag, response_headers=response_headers)
+                    seo_data["html"] = html
+                    seo_data["x_robots_tag"] = x_robots_tag
+                    await page.close()
+                    if context:
+                        await context.close()
+                        context = None
+                    return seo_data
+                else:
+                    raise
+
             status_code = response.status if response else 0
             response_headers = response.headers if response else {}
             x_robots_tag = response_headers.get('x-robots-tag', '')
@@ -1526,7 +1540,7 @@ async def crawl_page_with_retry(browser, url: str, crawl_job_id: str) -> dict | 
                 raise IOError(f"HTTP Status 429 Too Many Requests")
 
             # Retry Trigger 2: CAPTCHA block detected in source code
-            if is_captcha_present(html):
+            if is_captcha_present(html, status_code):
                 raise IOError("CAPTCHA challenge block detected on page")
 
             # Success: Parse page SEO data
@@ -1652,7 +1666,7 @@ async def run_migration_check(crawl_job_id: str, live_domain: str, staging_domai
                             try:
                                 context = await browser.new_context()
                                 page = await context.new_page()
-                                response = await page.goto(url, timeout=10000)
+                                response = await page.goto(url, timeout=10000, wait_until="domcontentloaded")
                                 if response:
                                     if response.status == 429 or response.status >= 500:
                                         raise IOError(f"HTTP Status {response.status}")
@@ -1738,7 +1752,7 @@ async def run_migration_check(crawl_job_id: str, live_domain: str, staging_domai
                             
                             # Playwright follows redirects automatically.
                             # We will resolve the final page and inspect request chain.
-                            response = await page.goto(staging_page_url, timeout=15000)
+                            response = await page.goto(staging_page_url, timeout=15000, wait_until="domcontentloaded")
                             if response:
                                 if response.status == 429 or response.status >= 500:
                                     raise IOError(f"HTTP Status {response.status}")

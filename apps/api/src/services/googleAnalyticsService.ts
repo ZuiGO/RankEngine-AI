@@ -1,4 +1,5 @@
 import IORedis from 'ioredis';
+import axios from 'axios';
 import { PageAnalyticsSnapshot } from '@rankengine/shared-types';
 import { IProject } from '../models/Project';
 import { getFreshAccessToken } from './googleTokenService';
@@ -50,59 +51,58 @@ export async function getPageMetrics(
     }
   }
 
-  const accessToken = await getFreshAccessToken(project);
-  const propertyPath = gaPropertyId.startsWith('properties/') ? gaPropertyId : `properties/${gaPropertyId}`;
-  const url = `https://analyticsdata.googleapis.com/v1beta/${propertyPath}:runReport`;
-
-  const requestBody = {
-    dateRanges: [{ startDate, endDate }],
-    dimensions: [{ name: 'pagePath' }],
-    metrics: [
-      { name: 'sessions' },
-      { name: 'engagementRate' },
-      { name: 'averageSessionDuration' },
-      { name: 'conversions' },
-    ],
-  };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`GA4 runReport API error: ${response.status} ${errText}`);
-  }
-
-  const data = (await response.json()) as {
-    rows?: Array<{
-      dimensionValues?: Array<{ value: string }>;
-      metricValues?: Array<{ value: string }>;
-    }>;
-  };
-
   const map = new Map<string, PageAnalyticsSnapshot>();
 
-  if (data.rows && Array.isArray(data.rows)) {
-    for (const row of data.rows) {
-      const path = row.dimensionValues?.[0]?.value || '/';
-      const sessions = Number(row.metricValues?.[0]?.value || 0);
-      const engagementRate = Number(row.metricValues?.[1]?.value || 0);
-      const avgEngagementTimeSec = Number(row.metricValues?.[2]?.value || 0);
-      const conversions = Number(row.metricValues?.[3]?.value || 0);
+  try {
+    const accessToken = await getFreshAccessToken(project);
+    const propertyPath = gaPropertyId.startsWith('properties/') ? gaPropertyId : `properties/${gaPropertyId}`;
+    const url = `https://analyticsdata.googleapis.com/v1beta/${propertyPath}:runReport`;
 
-      map.set(path, {
-        sessions,
-        engagementRate,
-        avgEngagementTimeSec,
-        conversions,
-      });
+    const requestBody = {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: 'pagePath' }],
+      metrics: [
+        { name: 'sessions' },
+        { name: 'engagementRate' },
+        { name: 'averageSessionDuration' },
+        { name: 'conversions' },
+      ],
+    };
+
+    const response = await axios.post<{
+      rows?: Array<{
+        dimensionValues?: Array<{ value: string }>;
+        metricValues?: Array<{ value: string }>;
+      }>;
+    }>(url, requestBody, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 15000,
+    });
+
+    const data = response.data;
+
+    if (data.rows && Array.isArray(data.rows)) {
+      for (const row of data.rows) {
+        const path = row.dimensionValues?.[0]?.value || '/';
+        const sessions = Number(row.metricValues?.[0]?.value || 0);
+        const engagementRate = Number(row.metricValues?.[1]?.value || 0);
+        const avgEngagementTimeSec = Number(row.metricValues?.[2]?.value || 0);
+        const conversions = Number(row.metricValues?.[3]?.value || 0);
+
+        map.set(path, {
+          sessions,
+          engagementRate,
+          avgEngagementTimeSec,
+          conversions,
+        });
+      }
     }
+  } catch (err) {
+    console.warn('[GA4 Service] Could not fetch GA4 metrics:', err instanceof Error ? err.message : err);
+    return map;
   }
 
   if (redis) {

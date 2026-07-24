@@ -131,16 +131,20 @@ JSON Schema format:
     for attempt in range(attempts):
         try:
             print(f"[LLM FixList]: Requesting Groq LLM completion (attempt {attempt + 1})...")
-            chat_completion = await call_groq_with_backoff(
-                client,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt if attempt == 0 else prompt + "\n\nSTRICT RE-INSTRUCTION: Your previous response failed JSON parsing. Return ONLY valid JSON matching the schema. Do NOT wrap in markdown blocks, do not include any header/footer prose. Response must begin with '{' and end with '}'."
-                    }
-                ],
-                model=model_name,
-                temperature=0.1,
+            chat_completion = await asyncio.wait_for(
+                call_groq_with_backoff(
+                    client,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt if attempt == 0 else prompt + "\n\nSTRICT RE-INSTRUCTION: Return ONLY a valid JSON object starting with '{' and ending with '}'."
+                        }
+                    ],
+                    model=model_name,
+                    temperature=0.1,
+                    response_format={"type": "json_object"},
+                ),
+                timeout=15
             )
             
             content = chat_completion.choices[0].message.content
@@ -165,7 +169,7 @@ JSON Schema format:
             parsed_response = validated.items
             print(f"[LLM FixList]: Successfully parsed and validated {len(parsed_response)} checklist items.")
             break
-        except (json.JSONDecodeError, ValidationError) as err:
+        except (json.JSONDecodeError, ValidationError, asyncio.TimeoutError) as err:
             print(f"[LLM FixList]: Attempt {attempt + 1} validation failed: {str(err)}")
             if attempt == attempts - 1:
                 print("[LLM FixList]: All LLM attempts failed. Falling back to raw issues response.")

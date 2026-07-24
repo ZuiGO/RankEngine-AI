@@ -11,7 +11,7 @@ const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
 const trackKeywordSchema = z.object({
   keyword: z.string().min(1, 'Keyword is required'),
-  targetUrl: z.string().url('Target URL must be a valid absolute URL'),
+  targetUrl: z.string().optional().default(''),
   competitorDomains: z.array(z.string()).default([]),
 });
 
@@ -36,7 +36,14 @@ router.post('/:id/keywords', async (req: Request, res: Response) => {
       });
     }
 
-    const { keyword, targetUrl, competitorDomains } = validation.data;
+    let { keyword, targetUrl, competitorDomains } = validation.data;
+
+    // Normalize targetUrl
+    if (!targetUrl || targetUrl.trim() === '') {
+      targetUrl = project.domain.startsWith('http') ? project.domain : `https://${project.domain}`;
+    } else if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = `https://${targetUrl}`;
+    }
 
     const tracked = new TrackedKeyword({
       projectId: project._id,

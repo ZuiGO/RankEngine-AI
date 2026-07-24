@@ -59,7 +59,6 @@ export const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
   { label: 'Competitors', items: [{ label: 'Overview & Gap Analysis', to: null as string | null, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' }] },
   { label: 'Optimization', items: [
     { label: 'Internal Linking', to: null as string | null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
-    { label: 'AI Chat', to: null as string | null, icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
   ]},
   { label: 'Reports', items: [
     { label: 'Content Performance', to: null as string | null, icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
@@ -82,7 +81,6 @@ const LABEL_ROUTE_MAP: Record<string, string> = {
   'AI Visibility': '/ai-visibility',
   'Overview & Gap Analysis': '/competitors',
   'Internal Linking': '/internal-links',
-  'AI Chat': '/chat',
   'Content Performance': '/reports/content-performance',
   'Before / After': '/reports/comparison',
   'Project Settings': '/settings',

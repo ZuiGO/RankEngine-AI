@@ -1,4 +1,5 @@
 import IORedis from 'ioredis';
+import axios from 'axios';
 import { PageSearchConsoleSnapshot } from '@rankengine/shared-types';
 import { IProject } from '../models/Project';
 import { getFreshAccessToken } from './googleTokenService';
@@ -50,70 +51,69 @@ export async function getPageMetrics(
     }
   }
 
-  const accessToken = await getFreshAccessToken(project);
-  const encodedSiteUrl = encodeURIComponent(gscSiteUrl);
-  const url = `https://www.googleapis.com/webmasters/v3/sites/${encodedSiteUrl}/searchAnalytics/query`;
-
-  const requestBody = {
-    startDate,
-    endDate,
-    dimensions: ['page'],
-    rowLimit: 5000,
-  };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Search Console searchAnalytics query API error: ${response.status} ${errText}`);
-  }
-
-  const data = (await response.json()) as {
-    rows?: Array<{
-      keys?: string[];
-      clicks?: number;
-      impressions?: number;
-      ctr?: number;
-      position?: number;
-    }>;
-  };
-
   const map = new Map<string, PageSearchConsoleSnapshot>();
 
-  if (data.rows && Array.isArray(data.rows)) {
-    for (const row of data.rows) {
-      const pageKey = row.keys?.[0] || '';
-      if (!pageKey) continue;
+  try {
+    const accessToken = await getFreshAccessToken(project);
+    const encodedSiteUrl = encodeURIComponent(gscSiteUrl);
+    const url = `https://www.googleapis.com/webmasters/v3/sites/${encodedSiteUrl}/searchAnalytics/query`;
 
-      const snapshot: PageSearchConsoleSnapshot = {
-        clicks: row.clicks || 0,
-        impressions: row.impressions || 0,
-        ctr: row.ctr || 0,
-        avgPosition: row.position || 0,
-      };
+    const requestBody = {
+      startDate,
+      endDate,
+      dimensions: ['page'],
+      rowLimit: 5000,
+    };
 
-      // Store by raw URL/key
-      map.set(pageKey, snapshot);
+    const response = await axios.post<{
+      rows?: Array<{
+        keys?: string[];
+        clicks?: number;
+        impressions?: number;
+        ctr?: number;
+        position?: number;
+      }>;
+    }>(url, requestBody, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 15000,
+    });
 
-      // Also store by extracted path if pageKey is a full URL
-      if (pageKey.startsWith('http://') || pageKey.startsWith('https://')) {
-        try {
-          const parsedPath = new URL(pageKey).pathname;
-          if (!map.has(parsedPath)) {
-            map.set(parsedPath, snapshot);
+    const data = response.data;
+
+    if (data.rows && Array.isArray(data.rows)) {
+      for (const row of data.rows) {
+        const pageKey = row.keys?.[0] || '';
+        if (!pageKey) continue;
+
+        const snapshot: PageSearchConsoleSnapshot = {
+          clicks: row.clicks || 0,
+          impressions: row.impressions || 0,
+          ctr: row.ctr || 0,
+          avgPosition: row.position || 0,
+        };
+
+        // Store by raw URL/key
+        map.set(pageKey, snapshot);
+
+        // Also store by extracted path if pageKey is a full URL
+        if (pageKey.startsWith('http://') || pageKey.startsWith('https://')) {
+          try {
+            const parsedPath = new URL(pageKey).pathname;
+            if (!map.has(parsedPath)) {
+              map.set(parsedPath, snapshot);
+            }
+          } catch {
+            // Ignore URL parse errors
           }
-        } catch {
-          // Ignore URL parse errors
         }
       }
     }
+  } catch (err) {
+    console.warn('[GSC Service] Could not fetch GSC metrics:', err instanceof Error ? err.message : err);
+    return map;
   }
 
   if (redis) {

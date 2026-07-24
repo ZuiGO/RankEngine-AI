@@ -54,6 +54,7 @@ export default function KeywordResearchPage() {
   const [recentSearches, setRecentSearches] = useState<RecentQuery[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [trackingKeyword, setTrackingKeyword] = useState<string | null>(null);
+  const [trackedKeywords, setTrackedKeywords] = useState<Set<string>>(new Set());
   const [pickerProject, setPickerProject] = useState<string>('');
   const [clusters, setClusters] = useState<{ topicName: string; keywords: string[] }[]>([]);
   const [clusteringLoading, setClusteringLoading] = useState(false);
@@ -135,12 +136,15 @@ export default function KeywordResearchPage() {
     if (!pickerProject) return;
     setTrackingKeyword(kw);
     try {
+      const proj = projects.find((p) => p._id === pickerProject);
+      const homepageUrl = proj?.domain ? (proj.domain.startsWith('http') ? proj.domain : `https://${proj.domain}`) : '';
       await api.post(`/projects/${pickerProject}/keywords`, {
         keyword: kw,
-        targetUrl: '',
+        targetUrl: homepageUrl,
       });
-    } catch {
-      // silently ignore
+      setTrackedKeywords((prev) => new Set(prev).add(kw));
+    } catch (err: any) {
+      console.error('Failed to track keyword:', err);
     } finally {
       setTrackingKeyword(null);
     }
@@ -310,10 +314,10 @@ export default function KeywordResearchPage() {
                             )}
                             <Button
                               onClick={() => handleTrack(row.keyword)}
-                              disabled={trackingKeyword === row.keyword || !pickerProject}
+                              disabled={trackingKeyword === row.keyword || trackedKeywords.has(row.keyword)}
                               className="text-2xs px-3 py-1.5"
                             >
-                              {trackingKeyword === row.keyword ? '…' : 'Track'}
+                              {trackingKeyword === row.keyword ? '…' : trackedKeywords.has(row.keyword) ? 'Tracked ✓' : 'Track'}
                             </Button>
                           </div>
                         </td>

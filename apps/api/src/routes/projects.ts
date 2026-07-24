@@ -294,10 +294,19 @@ router.post('/:id/crawl', async (req: Request, res: Response) => {
       type: { $ne: 'migration-check' },
     });
     if (existingActive) {
-      return res.status(409).json({
-        error: 'A crawl job is already queued or running for this project',
-        crawlJobId: existingActive._id,
-      });
+      const jobTime = existingActive.createdAt || (existingActive as any).startedAt || new Date();
+      const ageMs = Date.now() - new Date(jobTime).getTime();
+      if (ageMs > 3 * 60 * 1000) {
+        existingActive.status = 'failed';
+        existingActive.errorMessage = 'Stale job timed out';
+        existingActive.completedAt = new Date();
+        await existingActive.save();
+      } else {
+        return res.status(409).json({
+          error: 'A crawl job is already queued or running for this project',
+          crawlJobId: existingActive._id,
+        });
+      }
     }
 
     const { crawlJobId } = await enqueueCrawlJob(project);

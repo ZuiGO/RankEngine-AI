@@ -135,4 +135,33 @@ router.get('/:id/ai-visibility', async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/projects/:id/ai-visibility/prompts/:promptId - Delete tracked prompt
+router.delete('/:id/ai-visibility/prompts/:promptId', async (req: Request, res: Response) => {
+  try {
+    const project = await resolveProject(req, res);
+    if (!project) return;
+
+    const { promptId } = req.params;
+    if (!isValidObjectId(promptId)) {
+      return res.status(400).json({ error: 'Invalid prompt ID format' });
+    }
+
+    const prompt = await TrackedPrompt.findOneAndDelete({
+      _id: promptId,
+      projectId: project._id,
+    });
+
+    if (!prompt) {
+      return res.status(404).json({ error: 'Tracked prompt not found' });
+    }
+
+    await AiVisibilitySnapshot.deleteMany({ trackedPromptId: promptId });
+
+    return res.json({ message: 'Prompt deleted successfully' });
+  } catch (error) {
+    console.error('[AiVisibility] DELETE prompt error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

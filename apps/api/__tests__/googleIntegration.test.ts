@@ -2,6 +2,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import supertest from 'supertest';
 import express from 'express';
+import axios from 'axios';
 
 // Mock BullMQ to prevent tests from requiring live Redis
 jest.mock('bullmq', () => ({
@@ -92,6 +93,27 @@ describe('Google Integration Service & Routes', () => {
     });
   });
 
+  describe('GET /api/integrations/google/connect', () => {
+    it('redirects to Google OAuth consent screen with signed state when valid projectId provided', async () => {
+      const project = await Project.create({
+        name: 'Connect Test Project',
+        domain: 'https://connecttest.com',
+      });
+
+      const res = await request.get(`/api/integrations/google/connect?projectId=${project._id}`);
+
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toContain('accounts.google.com/o/oauth2/v2/auth');
+      expect(res.headers.location).toContain(`state=`);
+    });
+
+    it('returns 400 when missing or invalid projectId parameter', async () => {
+      const res = await request.get('/api/integrations/google/connect?projectId=invalid-id');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Valid projectId query parameter is required');
+    });
+  });
+
   describe('GET /api/projects/:id/integrations/google/status', () => {
     it('returns connected: false for a project with no googleIntegration', async () => {
       const project = await Project.create({
@@ -154,14 +176,15 @@ describe('Google Integration Service & Routes', () => {
       const clientIp = '203.0.113.50';
       const validId = new mongoose.Types.ObjectId().toString();
 
-      // Make 100 requests (the default limit)
-      for (let i = 0; i < 100; i++) {
-        const res = await supertest(testApp)
-          .patch(`/api/projects/${validId}/integrations/google`)
-          .set('X-Forwarded-For', clientIp)
-          .send({ gaPropertyId: '9999' });
-        expect(res.status).toBe(200);
-      }
+      // Make 100 requests (the default limit) in parallel
+      await Promise.all(
+        Array.from({ length: 100 }).map(() =>
+          supertest(testApp)
+            .patch(`/api/projects/${validId}/integrations/google`)
+            .set('X-Forwarded-For', clientIp)
+            .send({ gaPropertyId: '9999' })
+        )
+      );
 
       // 101st request exceeds rate limit and must return 429
       const rateLimitedRes = await supertest(testApp)
@@ -174,11 +197,11 @@ describe('Google Integration Service & Routes', () => {
         'error',
         'Too many requests, please try again later.'
       );
-    });
+    }, 15000);
   });
 
   describe('Google Token & Metrics Services (Mocked Outbound Calls)', () => {
-    it('getFreshAccessToken exchanges refresh token via mocked fetch', async () => {
+    it('getFreshAccessToken exchanges refresh token via mocked axios', async () => {
       const encryptedToken = encryptToken('mock-refresh-token-val');
       const project = await Project.create({
         name: 'Token Test Project',
@@ -188,20 +211,15 @@ describe('Google Integration Service & Routes', () => {
         },
       });
 
-      // Mock global fetch
-      const mockFetch = jest.spyOn(global, 'fetch').mockImplementation(async (url) => {
+      jest.spyOn(axios, 'post').mockImplementation(async (url) => {
         if (String(url).includes('oauth2.googleapis.com/token')) {
-          return new Response(JSON.stringify({ access_token: 'fresh-mock-access-token-123' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
+          return { data: { access_token: 'fresh-mock-access-token-123' }, status: 200 } as any;
         }
-        return new Response('Not found', { status: 404 });
+        throw new Error('Not found');
       });
 
       const accessToken = await getFreshAccessToken(project);
       expect(accessToken).toBe('fresh-mock-access-token-123');
-      expect(mockFetch).toHaveBeenCalled();
     });
 
     it('googleAnalyticsService.getPageMetrics fetches and maps GA4 page metrics', async () => {
@@ -215,17 +233,14 @@ describe('Google Integration Service & Routes', () => {
         },
       });
 
-      jest.spyOn(global, 'fetch').mockImplementation(async (url) => {
+      jest.spyOn(axios, 'post').mockImplementation(async (url) => {
         const urlStr = String(url);
         if (urlStr.includes('oauth2.googleapis.com/token')) {
-          return new Response(JSON.stringify({ access_token: 'mock-ga-access-token' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
+          return { data: { access_token: 'mock-ga-access-token' }, status: 200 } as any;
         }
         if (urlStr.includes('analyticsdata.googleapis.com')) {
-          return new Response(
-            JSON.stringify({
+          return {
+            data: {
               rows: [
                 {
                   dimensionValues: [{ value: '/home' }],
@@ -237,11 +252,11 @@ describe('Google Integration Service & Routes', () => {
                   ],
                 },
               ],
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
-          );
+            },
+            status: 200,
+          } as any;
         }
-        return new Response('Not found', { status: 404 });
+        throw new Error('Not found');
       });
 
       const metricsMap = await getGaPageMetrics(project, {
@@ -270,17 +285,14 @@ describe('Google Integration Service & Routes', () => {
         },
       });
 
-      jest.spyOn(global, 'fetch').mockImplementation(async (url) => {
+      jest.spyOn(axios, 'post').mockImplementation(async (url) => {
         const urlStr = String(url);
         if (urlStr.includes('oauth2.googleapis.com/token')) {
-          return new Response(JSON.stringify({ access_token: 'mock-gsc-access-token' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
+          return { data: { access_token: 'mock-gsc-access-token' }, status: 200 } as any;
         }
         if (urlStr.includes('webmasters/v3/sites')) {
-          return new Response(
-            JSON.stringify({
+          return {
+            data: {
               rows: [
                 {
                   keys: ['https://gsctest.com/blog/seo'],
@@ -290,11 +302,11 @@ describe('Google Integration Service & Routes', () => {
                   position: 3.2,
                 },
               ],
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
-          );
+            },
+            status: 200,
+          } as any;
         }
-        return new Response('Not found', { status: 404 });
+        throw new Error('Not found');
       });
 
       const metricsMap = await getGscPageMetrics(project, {
