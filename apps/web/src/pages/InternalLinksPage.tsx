@@ -74,8 +74,26 @@ export default function InternalLinksPage() {
             <tbody>
               {suggestions.map((s, i) => (
                 <tr key={i} className="border-b border-app-border/50 last:border-b-0 hover:bg-app-base/50">
-                  <td className="py-3 px-4 font-mono text-app-text-muted truncate max-w-[300px]">{s.sourcePage}</td>
-                  <td className="py-3 px-4 font-mono text-app-signal truncate max-w-[300px]">{s.targetPage}</td>
+                  <td className="py-3 px-4 font-mono text-app-text-muted truncate max-w-[300px]">
+                    <a
+                      href={s.sourcePage.startsWith('http') ? s.sourcePage : `https://${s.sourcePage}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-app-signal hover:underline truncate block"
+                    >
+                      {s.sourcePage}
+                    </a>
+                  </td>
+                  <td className="py-3 px-4 font-mono text-app-signal truncate max-w-[300px]">
+                    <a
+                      href={s.targetPage.startsWith('http') ? s.targetPage : `https://${s.targetPage}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline truncate block"
+                    >
+                      {s.targetPage}
+                    </a>
+                  </td>
                   <td className="py-3 px-4 text-white">{s.suggestedAnchorText}</td>
                 </tr>
               ))}

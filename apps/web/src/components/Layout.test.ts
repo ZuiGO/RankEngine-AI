@@ -84,6 +84,9 @@ const ALL_ROUTES = [
   '/projects/:id/backlinks',
   '/projects/:id/ai-visibility',
   '/projects/:id/competitors',
+  '/projects/:id/reports/content-performance',
+  '/projects/:id/reports/comparison',
+  '/projects/:id/settings',
   '/keyword-research',
   '/settings',
   '/notifications',
@@ -95,6 +98,8 @@ type Route = (typeof ALL_ROUTES)[number];
 const INTENTIONAL_ORPHANS: Route[] = [
   '/dev/score-reveal',
   '/',
+  '/projects/:id/chat',
+  '/projects/:id/content-writer',
 ];
 
 /**
@@ -206,14 +211,18 @@ describe('LABEL_ROUTE_MAP covers every project-scoped nav item', () => {
     'Audit / Checklist': '',
     'Migration Check': '',
     'Core Web Vitals': '/cwv',
+    'Content Editor & AI Writer': '/content-editor',
     'Content Editor': '/content-editor',
-    'AI Writer': '/content-writer',
+    'AI Writer': '/content-editor',
     'Keywords': '/keywords',
     'Keyword Clustering': '/keyword-clustering',
     'Backlinks': '/backlinks',
     'AI Visibility': '/ai-visibility',
     'Overview & Gap Analysis': '/competitors',
     'Internal Linking': '/internal-links',
+    'Content Performance': '/reports/content-performance',
+    'Before / After': '/reports/comparison',
+    'Project Settings': '/settings',
   };
 
   for (const group of NAV_GROUPS) {

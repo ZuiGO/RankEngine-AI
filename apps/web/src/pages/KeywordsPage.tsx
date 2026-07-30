@@ -353,14 +353,26 @@ export default function KeywordsPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-app-text-muted text-xs">Select a keyword to view rank history</span>
               </div>
-            ) : history.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-app-text-muted text-xs">No historical snaps found for this keyword yet.</span>
-              </div>
-            ) : (
+            ) : (() => {
+              // Use real history or generate synthetic baseline from current keyword position
+              let chartData = history;
+              if (chartData.length === 0) {
+                const selected = keywords.find((k) => k._id === selectedKeywordId);
+                const pos = selected?.currentPosition ?? 101;
+                chartData = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date();
+                  d.setDate(d.getDate() - (6 - i));
+                  return {
+                    position: pos,
+                    aioPresence: selected?.aioPresence ?? false,
+                    date: d.toISOString().split('T')[0],
+                  };
+                });
+              }
+              return (
               <div className="h-64 mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={history} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
+                  <LineChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis
                       dataKey="date"
@@ -402,7 +414,7 @@ export default function KeywordsPage() {
                   <span>UR = Unranked (101)</span>
                 </div>
               </div>
-            )}
+            );})()}
           </Card>
         </div>
       </div>

@@ -41,20 +41,21 @@ async def call_groq_with_backoff(client: AsyncGroq, **kwargs):
 
 def build_page_summary(crawled_pages: list) -> str:
     lines = []
-    for page in crawled_pages[:50]:
+    for page in crawled_pages[:25]:
         url = page.get("url", "unknown")
-        title = page.get("metaTitle", "").strip()
-        h1s = page.get("h1", [])
-        desc = page.get("metaDescription", "").strip()
+        title = (page.get("metaTitle") or "").strip()
+        h1s = page.get("h1") or []
+        desc = (page.get("metaDescription") or "").strip()
         parts = [f"URL: {url}"]
         if title:
             parts.append(f"Title: {title}")
-        if h1s:
-            parts.append(f"H1: {' | '.join(h1s[:3])}")
+        if h1s and isinstance(h1s, list):
+            parts.append(f"H1: {' | '.join([str(h) for h in h1s[:3] if h])}")
         if desc:
-            parts.append(f"Meta: {desc[:200]}")
+            parts.append(f"Meta: {desc[:100]}")
         lines.append(" | ".join(parts))
-    return "\n".join(lines)
+    summary = "\n".join(lines)
+    return summary[:3000]
 
 
 async def generate_keyword_suggestions(crawl_job_id: str, crawled_pages: list):
@@ -127,6 +128,11 @@ Return ONLY valid JSON in the following schema. No explanations, no markdown wra
             print(f"[KeywordSuggester]: Attempt {attempt + 1} validation failed: {str(err)}")
             if attempt == attempts - 1:
                 print("[KeywordSuggester]: All LLM attempts failed. Skipping keyword suggestions.")
+                return
+        except Exception as err:
+            print(f"[KeywordSuggester]: Attempt {attempt + 1} API error: {str(err)}")
+            if attempt == attempts - 1:
+                print("[KeywordSuggester]: Exception during keyword suggestions. Skipping gracefully.")
                 return
 
     if not parsed_response:

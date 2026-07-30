@@ -9,6 +9,7 @@ const mockedApi = vi.mocked(api);
 const defaultProps = {
   targetKeyword: 'SEO tips',
   onInsert: vi.fn(),
+  onReplaceContent: vi.fn(),
 };
 
 beforeEach(() => {
@@ -20,6 +21,34 @@ function findButton(text: string): HTMLButtonElement {
 }
 
 describe('AIWriterPanel', () => {
+  it('generates full custom AI article when topic input and Generate Full AI Article is clicked', async () => {
+    mockedApi.post.mockResolvedValue({
+      data: {
+        title: 'Mastering SEO Tips for 2026',
+        content: '# Mastering SEO Tips for 2026\n\n## What is SEO?\nSEO is optimization.',
+        metaDescription: 'Complete guide to SEO tips and strategies.',
+        keyPoints: ['Point 1', 'Point 2'],
+      },
+    });
+
+    const onReplaceContent = vi.fn();
+    render(<AIWriterPanel {...defaultProps} onReplaceContent={onReplaceContent} />);
+
+    const topicInput = screen.getByPlaceholderText(/Complete Guide to SEO tips/i);
+    fireEvent.change(topicInput, { target: { value: 'Mastering SEO Tips for 2026' } });
+
+    fireEvent.click(findButton('Generate Full AI Article'));
+
+    await waitFor(() => {
+      expect(mockedApi.post).toHaveBeenCalledWith('/content/write-article', expect.objectContaining({
+        topic: 'Mastering SEO Tips for 2026',
+        targetKeyword: 'SEO tips',
+      }));
+      expect(onReplaceContent).toHaveBeenCalledWith('# Mastering SEO Tips for 2026\n\n## What is SEO?\nSEO is optimization.');
+      expect(screen.getByText('Mastering SEO Tips for 2026')).toBeInTheDocument();
+    });
+  });
+
   it('renders title variants when Generate Titles is clicked and API succeeds', async () => {
     mockedApi.post.mockResolvedValue({ data: { variants: ['Title A', 'Title B'] } });
 

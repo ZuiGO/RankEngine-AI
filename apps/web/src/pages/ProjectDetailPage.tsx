@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { SearchCheck, MessageSquare, Trash2, Settings } from 'lucide-react';
+import { SearchCheck, MessageSquare, Trash2, Settings, ExternalLink, Globe, FileText, Eye } from 'lucide-react';
 import api from '../lib/api';
 import { Card, CardBody, Badge, Button, ScoreReveal, StatGauge, EmptyState } from '../components/ui';
 import ChatPanel from '../components/ChatPanel';
+import VisualPageInspector from '../components/VisualPageInspector';
 
 // ─────────────────────────────────────── TYPES ──────────────────────────────
 
@@ -101,10 +102,12 @@ function ChecklistSection({
   severity,
   items,
   tag,
+  onInspectVisually,
 }: {
   severity: keyof typeof SEV_CONFIG;
   items: AuditIssue[];
   tag?: string; // e.g. "Migration"
+  onInspectVisually?: (url: string, issue: AuditIssue) => void;
 }) {
   const [open, setOpen] = useState(severity === 'critical');
   const cfg = SEV_CONFIG[severity];
@@ -179,10 +182,63 @@ function ChecklistSection({
                         </p>
                       </details>
                     )}
-                    {issue.url && issue.url !== 'N/A' && (
-                      <p className="text-[11px] text-app-text-muted truncate font-mono mt-1.5">
-                        {issue.url}
-                      </p>
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <button
+                        onClick={() => {
+                          if (onInspectVisually) {
+                            onInspectVisually(issue.url && issue.url !== 'N/A' ? issue.url : '', issue);
+                          }
+                        }}
+                        className="px-2.5 py-1 text-[11px] font-bold bg-app-signal/10 text-app-signal hover:bg-app-signal/20 border border-app-signal/30 rounded-lg transition-all inline-flex items-center gap-1.5"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Inspect & Fix Visually
+                      </button>
+                      {issue.url && issue.url !== 'N/A' && (
+                        <a
+                          href={issue.url.startsWith('http') ? issue.url : `https://${issue.url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-app-signal hover:text-app-signal/80 font-mono inline-flex items-center gap-1.5 hover:underline truncate max-w-full"
+                        >
+                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{issue.url}</span>
+                        </a>
+                      )}
+                    </div>
+                    {issue.details && issue.details.length > 0 && (
+                      <div className="mt-2.5 pt-2 border-t border-app-border/40 space-y-1.5">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-app-text-muted">
+                          Affected Pages ({issue.details.length}):
+                        </p>
+                        <div className="max-h-40 overflow-y-auto space-y-1 pr-1">
+                          {issue.details.map((d, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-[11px] font-mono bg-app-base/60 px-2.5 py-1 rounded border border-app-border/40">
+                              <a
+                                href={d.url.startsWith('http') ? d.url : `https://${d.url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-app-signal hover:underline truncate flex-1 mr-2 inline-flex items-center gap-1"
+                              >
+                                <ExternalLink className="h-2.5 w-2.5 flex-shrink-0" />
+                                <span className="truncate">{d.url}</span>
+                              </a>
+                              {d.rating && (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                                  d.rating === 'good' ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/40' :
+                                  d.rating === 'needs-improvement' ? 'bg-amber-950/60 text-amber-300 border border-amber-800/40' :
+                                  'bg-rose-950/60 text-rose-300 border border-rose-800/40'
+                                }`}>
+                                  {d.rating}
+                                </span>
+                              )}
+                              {d.value !== undefined && (
+                                <span className="text-[10px] text-app-text-muted ml-2">{d.value}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -387,6 +443,11 @@ export default function ProjectDetailPage() {
   const [projectLoading, setProjectLoading] = useState(true);
   const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
 
+  // Visual Inspector State
+  const [visualInspectorOpen, setVisualInspectorOpen] = useState(false);
+  const [visualInspectorTargetUrl, setVisualInspectorTargetUrl] = useState('');
+  const [visualInspectorIssue, setVisualInspectorIssue] = useState<any>(null);
+
   // Audit schedule state
   const [scheduleUpdating, setScheduleUpdating] = useState(false);
 
@@ -530,8 +591,10 @@ export default function ProjectDetailPage() {
         
         if (latestJob) {
           setActiveJob(latestJob);
-          if (latestJob.status === 'completed') {
-            setHealthScore(latestJob.healthScore ?? null);
+          if (latestJob.status === 'completed' || latestJob.status === 'failed') {
+            if (latestJob.status === 'completed') {
+              setHealthScore(latestJob.healthScore ?? null);
+            }
             fetchChecklist(latestJob._id);
           } else if (latestJob.status === 'running' || latestJob.status === 'queued') {
             startPolling(latestJob._id);
@@ -927,12 +990,56 @@ export default function ProjectDetailPage() {
 
       {/* ─────────────────── AUDIT SECTION ─────────────────── */}
       <div>
-        <h2 className="text-base font-bold font-display text-white mb-4 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-app-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-          </svg>
-          SEO Audit
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 className="text-base font-bold font-display text-white flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-app-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            SEO Audit & Checklist
+          </h2>
+
+          {/* Crawl & Total Pages Badge */}
+          <div className="flex items-center gap-2 bg-app-surface px-3 py-1.5 rounded-xl border border-app-border">
+            <Globe className="h-3.5 w-3.5 text-app-signal" />
+            <span className="text-xs font-medium text-app-text-muted">Total Pages Crawled:</span>
+            <span className="text-xs font-bold text-white tabular-nums">
+              {activeJob ? (activeJob.pageCount ?? 0).toLocaleString() : '0'} pages
+            </span>
+          </div>
+        </div>
+
+        {/* Live status banner */}
+        <div className="mb-4 bg-gradient-to-r from-indigo-950/40 via-app-surface to-app-surface border border-indigo-700/30 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white">
+                {activeJob?.status === 'running' || activeJob?.status === 'queued'
+                  ? 'Crawling Website in Progress…'
+                  : activeJob?.status === 'completed'
+                  ? `Site Crawl Completed (${(activeJob.pageCount ?? 0).toLocaleString()} Total Pages Scanned)`
+                  : 'Ready to Audit Website'}
+              </p>
+              <p className="text-2xs text-app-text-muted mt-0.5">
+                {activeJob?.status === 'running' || activeJob?.status === 'queued'
+                  ? `Scanning page metadata, headings, internal links & speed metrics. ${activeJob.pageCount ?? 0} pages found.`
+                  : activeJob?.status === 'completed'
+                  ? `Inspected ${project.domain} across ${(activeJob.pageCount ?? 0).toLocaleString()} pages for AI Overview readiness.`
+                  : 'Run an automated scan to inspect all pages for technical SEO and indexing issues.'}
+              </p>
+            </div>
+          </div>
+          <Button
+            id="run-audit-banner-btn"
+            onClick={handleRunAudit}
+            disabled={auditLoading || activeJob?.status === 'running' || activeJob?.status === 'queued'}
+            className="text-xs py-2 px-3 flex-shrink-0"
+          >
+            {auditLoading ? 'Starting…' : activeJob?.status === 'running' ? 'Scanning…' : 'Run New Audit'}
+          </Button>
+        </div>
 
         {/* Health Score Gauge — shown prominently above everything else */}
         {healthScore !== null && (
@@ -943,8 +1050,8 @@ export default function ProjectDetailPage() {
           </div>
         )}
 
-        {/* Live progress bar */}
-        {activeJob && (activeJob.status === 'running' || activeJob.status === 'queued') && (
+        {/* Crawl progress bar */}
+        {activeJob && (
           <div className="mb-4">
             <CrawlProgressBar
               job={activeJob}
@@ -1027,9 +1134,33 @@ export default function ProjectDetailPage() {
             )}
 
             {/* Main checklist sections */}
-            <ChecklistSection severity="critical" items={mainCritical} />
-            <ChecklistSection severity="warning" items={mainWarning} />
-            <ChecklistSection severity="passed" items={mainPassed} />
+            <ChecklistSection
+              severity="critical"
+              items={mainCritical}
+              onInspectVisually={(url, issue) => {
+                setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
+                setVisualInspectorIssue(issue);
+                setVisualInspectorOpen(true);
+              }}
+            />
+            <ChecklistSection
+              severity="warning"
+              items={mainWarning}
+              onInspectVisually={(url, issue) => {
+                setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
+                setVisualInspectorIssue(issue);
+                setVisualInspectorOpen(true);
+              }}
+            />
+            <ChecklistSection
+              severity="passed"
+              items={mainPassed}
+              onInspectVisually={(url, issue) => {
+                setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
+                setVisualInspectorIssue(issue);
+                setVisualInspectorOpen(true);
+              }}
+            />
 
             {/* ── Indexing section ── */}
             {(indexingCritical.length > 0 || indexingWarning.length > 0 || indexingPassed.length > 0) && (
@@ -1040,9 +1171,33 @@ export default function ProjectDetailPage() {
                   </svg>
                   Indexing
                 </h3>
-                <ChecklistSection severity="critical" items={indexingCritical} />
-                <ChecklistSection severity="warning" items={indexingWarning} />
-                <ChecklistSection severity="passed" items={indexingPassed} />
+                <ChecklistSection
+                  severity="critical"
+                  items={indexingCritical}
+                  onInspectVisually={(url, issue) => {
+                    setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
+                    setVisualInspectorIssue(issue);
+                    setVisualInspectorOpen(true);
+                  }}
+                />
+                <ChecklistSection
+                  severity="warning"
+                  items={indexingWarning}
+                  onInspectVisually={(url, issue) => {
+                    setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
+                    setVisualInspectorIssue(issue);
+                    setVisualInspectorOpen(true);
+                  }}
+                />
+                <ChecklistSection
+                  severity="passed"
+                  items={indexingPassed}
+                  onInspectVisually={(url, issue) => {
+                    setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
+                    setVisualInspectorIssue(issue);
+                    setVisualInspectorOpen(true);
+                  }}
+                />
               </div>
             )}
 
@@ -1078,6 +1233,17 @@ export default function ProjectDetailPage() {
                               </span>
                             </div>
                             <p className="text-xs text-app-text-muted leading-relaxed">{issue.recommendation}</p>
+                            {issue.url && issue.url !== 'N/A' && (
+                              <a
+                                href={issue.url.startsWith('http') ? issue.url : `https://${issue.url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-app-signal hover:text-app-signal/80 font-mono mt-1.5 inline-flex items-center gap-1.5 hover:underline truncate max-w-full"
+                              >
+                                <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{issue.url}</span>
+                              </a>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1200,6 +1366,13 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       )}
+      {/* Visual Page Inspector Modal */}
+      <VisualPageInspector
+        isOpen={visualInspectorOpen}
+        onClose={() => setVisualInspectorOpen(false)}
+        targetUrl={visualInspectorTargetUrl || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : 'https://apple.com')}
+        initialIssue={visualInspectorIssue}
+      />
     </div>
   );
 }

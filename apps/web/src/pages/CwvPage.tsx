@@ -106,11 +106,18 @@ export default function CwvPage() {
           <Card className="p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-app-text-muted" />
-                <span className="text-sm font-bold text-white">{data.url}</span>
+                <Globe className="h-4 w-4 text-app-signal flex-shrink-0" />
+                <a
+                  href={data.url.startsWith('http') ? data.url : `https://${data.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-bold text-app-signal hover:underline truncate"
+                >
+                  {data.url}
+                </a>
               </div>
-              <Badge variant={data.source === 'pagespeed-api' ? 'success' : 'info'}>
-                {data.source === 'pagespeed-api' ? 'PageSpeed API' : 'AI Estimated'}
+              <Badge variant={data.source === 'pagespeed-api' ? 'success' : data.source === 'live-probe' ? 'info' : 'warning'}>
+                {data.source === 'pagespeed-api' ? 'PageSpeed API' : data.source === 'live-probe' ? 'Live Network Probe' : 'Crawl Audit Data'}
               </Badge>
             </div>
 

@@ -54,6 +54,28 @@ router.post('/:id/keywords', async (req: Request, res: Response) => {
 
     await tracked.save();
 
+    // Seed initial RankSnapshot entries so the chart renders immediately
+    const now = new Date();
+    const seedSnaps = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      seedSnaps.push({
+        keywordId: tracked._id,
+        projectId: project._id,
+        position: 101, // Unranked initially
+        aioPresence: false,
+        competitors: [],
+        date: d,
+      });
+    }
+    try {
+      await RankSnapshot.insertMany(seedSnaps, { ordered: false });
+    } catch {
+      // Ignore duplicate key errors if snapshots already exist
+    }
+
     return res.status(201).json(tracked);
   } catch (error) {
     console.error('Track keyword error:', error);

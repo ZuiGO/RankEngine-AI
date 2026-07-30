@@ -40,13 +40,31 @@ async def process_crawl_job(job, job_token):
             # Execute migration check redirect validation loop
             crawl_result_id, page_count = await run_migration_check(crawl_job_id, domain, staging_domain)
         else:
-            # Execute standard Playwright crawl site traversal (max 50 pages or 180s timeout)
+            # Execute standard Playwright crawl site traversal (max 50 pages or 360s timeout)
             crawl_result_id, page_count = await asyncio.wait_for(
                 crawl_site(crawl_job_id, domain, limit=max_pages),
-                timeout=180
+                timeout=360
             )
 
         elapsed = (datetime.datetime.now(datetime.timezone.utc) - start_time).total_seconds()
+
+        # Update MongoDB status to completed
+        if crawl_job_id:
+            try:
+                update_doc = {
+                    "status": "completed",
+                    "pageCount": page_count,
+                    "completedAt": datetime.datetime.now(datetime.timezone.utc)
+                }
+                if crawl_result_id:
+                    update_doc["rawResultsRef"] = ObjectId(crawl_result_id)
+                await db.crawljobs.update_one(
+                    {"_id": ObjectId(crawl_job_id)},
+                    {"$set": update_doc}
+                )
+            except Exception as db_err:
+                log_json("WARNING", "db_completion_update_failed", crawlJobId=crawl_job_id, error=str(db_err))
+
         log_json(
             "INFO",
             "job_completed",
@@ -56,14 +74,21 @@ async def process_crawl_job(job, job_token):
             duration_seconds=round(elapsed, 3)
         )
 
-        return json.dumps({"status": "completed", "pageCount": page_count, "rawResultsRef": crawl_result_id})
+        return json.dumps({"status": "completed", "pageCount": page_count, "rawResultsRef": str(crawl_result_id)})
 
     except Exception as err:
+        err_msg = str(err).strip()
+        if not err_msg:
+            if isinstance(err, asyncio.TimeoutError):
+                err_msg = f"Crawl job execution timed out after 180s for {domain}"
+            else:
+                err_msg = repr(err)
+
         log_json(
             "ERROR",
             "job_failed",
             crawlJobId=crawl_job_id,
-            error=str(err),
+            error=err_msg,
             traceback=traceback.format_exc()
         )
 
@@ -75,7 +100,7 @@ async def process_crawl_job(job, job_token):
                     {
                         "$set": {
                             "status": "failed",
-                            "errorMessage": str(err),
+                            "errorMessage": err_msg,
                             "completedAt": datetime.datetime.now(datetime.timezone.utc)
                         }
                     }
@@ -88,8 +113,8 @@ async def process_crawl_job(job, job_token):
                     error=str(update_err)
                 )
 
-        # Re-raise error to let BullMQ record the failed status in Redis
-        raise err
+        # Re-raise error with explicit string message for BullMQ
+        raise RuntimeError(err_msg) from err
 
 # Instantiate the BullMQ Worker
 def start_worker():

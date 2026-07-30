@@ -437,6 +437,9 @@ def aggregate_severity(classifications: list) -> str:
 
 
 async def measure_page_cwv(browser, url: str) -> dict:
+    if any(url.lower().endswith(ext) for ext in ('.pdf', '.jpg', '.jpeg', '.png', '.gif', '.zip', '.doc', '.docx', '.svg', '.webp', '.xml')):
+        return {"url": url, "error": "Non-HTML resource"}
+
     context = await browser.new_context(
         viewport={"width": 1366, "height": 768},
         user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -458,7 +461,7 @@ async def measure_page_cwv(browser, url: str) -> dict:
         except Exception:
             pass
 
-        await page.goto(url, timeout=15000, wait_until="load")
+        await page.goto(url, timeout=7000, wait_until="domcontentloaded")
 
         metrics = await page.evaluate("""() => {
             return new Promise((resolve) => {
@@ -558,7 +561,7 @@ async def measure_core_web_vitals(crawled_pages: list, crawl_job_id: str):
 
     sampled = [crawled_pages[0]]
     for page in crawled_pages[1:]:
-        if len(sampled) >= 20:
+        if len(sampled) >= 5:
             break
         sampled.append(page)
 
@@ -568,10 +571,13 @@ async def measure_core_web_vitals(crawled_pages: list, crawl_job_id: str):
         browser = await p.chromium.launch(headless=True)
         for page_data in sampled:
             url = page_data.get("url", "")
-            if not url:
+            if not url or any(url.lower().endswith(ext) for ext in ('.pdf', '.jpg', '.jpeg', '.png', '.gif', '.zip', '.doc', '.docx', '.svg', '.webp', '.xml')):
                 continue
-            m = await measure_page_cwv(browser, url)
-            measurements.append(m)
+            try:
+                m = await measure_page_cwv(browser, url)
+                measurements.append(m)
+            except Exception as exc:
+                log_json("WARNING", "cwv_page_measurement_failed", crawlJobId=crawl_job_id, url=url, error=str(exc))
         await browser.close()
 
     valid = [m for m in measurements if "error" not in m]

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Pencil } from 'lucide-react';
+import { Link, useSearchParams, useParams } from 'react-router-dom';
+import { Pencil, Eye } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import api from '../lib/api';
 import { Card, Badge, EmptyState } from '../components/ui';
 import AIWriterPanel from '../components/AIWriterPanel';
+import VisualPageInspector from '../components/VisualPageInspector';
 
 interface GradeBreakdown {
   entityCoverage: number;
@@ -65,6 +66,7 @@ const analyzeH2Headings = (text: string): H2Analysis[] => {
 };
 
 export default function ContentEditorPage() {
+  const { id: projectId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const urlKeyword = searchParams.get('keyword');
   const urlTopic = searchParams.get('topic');
@@ -77,6 +79,8 @@ export default function ContentEditorPage() {
   const [sharedSubtopics, setSharedSubtopics] = useState<string[]>([]);
   const [serpLoading, setSerpLoading] = useState(false);
   const [serpError, setSerpError] = useState('');
+  const [visualInspectorOpen, setVisualInspectorOpen] = useState(false);
+  const [projectDomain, setProjectDomain] = useState('');
 
   const [h2Analyses, setH2Analyses] = useState<H2Analysis[]>([]);
 
@@ -87,6 +91,17 @@ export default function ContentEditorPage() {
     readability: 0,
   });
   const [gradingLoading, setGradingLoading] = useState(false);
+
+  // Fetch project domain for visual inspector
+  useEffect(() => {
+    if (!projectId) return;
+    api.get(`/projects/${projectId}`)
+      .then(({ data }) => {
+        const domain = data?.project?.domain || data?.domain || '';
+        setProjectDomain(domain);
+      })
+      .catch(() => {});
+  }, [projectId]);
 
   useEffect(() => {
     const analyses = analyzeH2Headings(text);
@@ -199,6 +214,13 @@ export default function ContentEditorPage() {
           <span>← Back to Dashboard</span>
         </Link>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setVisualInspectorOpen(true)}
+            className="px-3 py-1 bg-app-signal/10 border border-app-signal/30 hover:bg-app-signal/20 text-xs font-bold text-app-signal rounded-lg transition-all flex items-center gap-1.5"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            Inspect & Fix Visually
+          </button>
           <button
             onClick={handleCopyMarkdown}
             className="px-3 py-1 bg-app-surface border border-app-border hover:border-app-signal text-xs font-semibold text-white rounded-lg transition-all"
@@ -512,10 +534,22 @@ export default function ContentEditorPage() {
           <AIWriterPanel
             targetKeyword={targetKeyword}
             pageContext={text}
+            sharedEntities={sharedEntities}
             onInsert={(inserted) => setText((prev) => prev + '\n\n' + inserted)}
+            onReplaceContent={(newText) => setText(newText)}
           />
         </div>
       </div>
+
+      <VisualPageInspector
+        isOpen={visualInspectorOpen}
+        onClose={() => setVisualInspectorOpen(false)}
+        targetUrl={
+          projectDomain
+            ? (projectDomain.startsWith('http') ? projectDomain : `https://${projectDomain}`)
+            : 'https://example.com'
+        }
+      />
     </div>
   );
 }

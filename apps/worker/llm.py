@@ -45,19 +45,20 @@ def summarize_issues(issues: List[dict]) -> str:
             summary_map[key].append(url)
             
     summary_lines = []
-    for (category, severity, desc), urls in summary_map.items():
+    for (category, severity, desc), urls in list(summary_map.items())[:30]:
         if severity == "passed":
             summary_lines.append(
                 f"- [PASSED] Category: {category} | Positive confirmation: {desc}"
             )
             continue
-        urls_str = ", ".join(urls[:10])  # Cap at 10 URLs per group for token limits
-        if len(urls) > 10:
-            urls_str += f" (and {len(urls) - 10} more)"
+        urls_str = ", ".join(urls[:3])  # Cap at 3 URLs per group for token limits
+        if len(urls) > 3:
+            urls_str += f" (and {len(urls) - 3} more)"
         summary_lines.append(
             f"- [{severity.upper()}] Category: {category} | Issue: {desc} | Affected URLs: [{urls_str}]"
         )
-    return "\n".join(summary_lines)
+    result = "\n".join(summary_lines)
+    return result[:2500]
 
 async def call_groq_with_backoff(client: AsyncGroq, **kwargs):
     max_retries = 3

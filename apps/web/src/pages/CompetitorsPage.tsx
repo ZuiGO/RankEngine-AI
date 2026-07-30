@@ -325,8 +325,15 @@ export default function CompetitorsPage() {
                     key={c}
                     className="inline-flex items-center gap-1.5 bg-app-signal/10 border border-app-signal/20 text-app-signal text-2xs font-semibold px-2.5 py-1 rounded-full"
                   >
-                    {c}
-                    <button onClick={() => handleRemoveCompetitor(c)} className="hover:text-white transition-colors">
+                    <a
+                      href={c.startsWith('http') ? c : `https://${c}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline flex items-center gap-1"
+                    >
+                      {c}
+                    </a>
+                    <button onClick={() => handleRemoveCompetitor(c)} className="hover:text-white transition-colors ml-1">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>

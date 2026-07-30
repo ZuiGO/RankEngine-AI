@@ -46,8 +46,7 @@ export const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
     { label: 'Core Web Vitals', to: null as string | null, icon: 'M13 10V3L4 14h7v7l9-11h-7zM9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
   ]},
   { label: 'Content', items: [
-    { label: 'Content Editor', to: null as string | null, icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-    { label: 'AI Writer', to: null as string | null, icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+    { label: 'Content Editor & AI Writer', to: null as string | null, icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
   ]},
   { label: 'Rankings', items: [
     { label: 'Keywords', to: null as string | null, icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z' },
@@ -73,8 +72,9 @@ const LABEL_ROUTE_MAP: Record<string, string> = {
   'Audit / Checklist': '',
   'Migration Check': '',
   'Core Web Vitals': '/cwv',
+  'Content Editor & AI Writer': '/content-editor',
   'Content Editor': '/content-editor',
-  'AI Writer': '/content-writer',
+  'AI Writer': '/content-editor',
   'Keywords': '/keywords',
   'Keyword Clustering': '/keyword-clustering',
   'Backlinks': '/backlinks',
