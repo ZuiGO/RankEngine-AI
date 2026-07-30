@@ -10,6 +10,7 @@ export interface IAuditIssue extends Document {
   description: string;
   recommendation: string;
   whyItMatters?: string;
+  details?: any[];
 }
 
 const AuditIssueSchema = new Schema<IAuditIssue>({
@@ -47,7 +48,11 @@ const AuditIssueSchema = new Schema<IAuditIssue>({
     type: String,
     trim: true,
   },
-});
+  details: {
+    type: Schema.Types.Mixed,
+    default: [],
+  },
+}, { strict: false });
 
 // Indexes to speed up queries grouping/filtering issues by crawl job and severity
 AuditIssueSchema.index({ crawlJobId: 1 });
