@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { SearchCheck, MessageSquare, Trash2, Settings, ExternalLink, Globe, FileText, Eye } from 'lucide-react';
+import { SearchCheck, MessageSquare, Trash2, Settings, ExternalLink, Globe, FileText, Eye, LinkIcon, TrendingUp, Shield } from 'lucide-react';
 import api from '../lib/api';
 import { Card, CardBody, Badge, Button, ScoreReveal, StatGauge, EmptyState } from '../components/ui';
 import ChatPanel from '../components/ChatPanel';
@@ -496,6 +496,14 @@ export default function ProjectDetailPage() {
   const [checklistData, setChecklistData] = useState<ChecklistResponse | null>(null);
   const [checklistLoading, setChecklistLoading] = useState(false);
 
+  // Backlink summary state (fetched in parallel, non-blocking)
+  const [backlinkSummary, setBacklinkSummary] = useState<{
+    totalBacklinks: number;
+    referringDomains: number;
+    authorityScore: number;
+  } | null>(null);
+  const [backlinkLoading, setBacklinkLoading] = useState(false);
+
   // Migration state
   const [migrationLoading, setMigrationLoading] = useState(false);
   const [migrationJob, setMigrationJob] = useState<CrawlJob | null>(null);
@@ -573,10 +581,30 @@ export default function ProjectDetailPage() {
     }, 1200);
   }, []);
 
+  // ── Backlink overview fetch (non-blocking, fires in parallel) ─────────────
+  const fetchBacklinkSummary = useCallback(async (projectId: string) => {
+    setBacklinkLoading(true);
+    try {
+      const { data } = await api.get<{
+        totalBacklinks: number;
+        referringDomains: number;
+        authorityScore: number;
+      }>(`/projects/${projectId}/backlinks/overview`);
+      setBacklinkSummary(data);
+    } catch {
+      // Non-critical — silently ignore (e.g. DataForSEO not configured)
+    } finally {
+      setBacklinkLoading(false);
+    }
+  }, []);
+
   // ── Load project and latest crawl status ───────────────────────────────
   useEffect(() => {
     if (!id) return;
     setProjectLoading(true);
+
+    // Fire backlink fetch in parallel — it should not block the audit UI
+    fetchBacklinkSummary(id);
     
     // Load project metadata
     api.get<Project>(`/projects/${id}`)
@@ -614,7 +642,7 @@ export default function ProjectDetailPage() {
       })
       .catch(() => {})
       .finally(() => setProjectLoading(false));
-  }, [id, fetchChecklist, startPolling, startMigrationPolling]);
+  }, [id, fetchChecklist, startPolling, startMigrationPolling, fetchBacklinkSummary]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -959,6 +987,77 @@ export default function ProjectDetailPage() {
         ))}
       </div>
 
+      {/* ── Backlink Summary ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold font-display text-white flex items-center gap-2">
+            <LinkIcon className="h-4 w-4 text-indigo-400" />
+            Link Authority
+          </h2>
+          <Link
+            to={`/projects/${id}/backlinks`}
+            className="text-[11px] text-app-signal hover:text-app-signal/80 font-medium transition-colors flex items-center gap-1"
+          >
+            See all backlinks
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+        </div>
+
+        {/* Loading skeleton */}
+        {backlinkLoading && !backlinkSummary && (
+          <div className="grid grid-cols-3 gap-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-20 bg-app-surface border border-app-border rounded-xl animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {/* Stats */}
+        {backlinkSummary && (
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              {
+                label: 'Total Backlinks',
+                value: backlinkSummary.totalBacklinks.toLocaleString(),
+                icon: <LinkIcon className="h-4 w-4" />,
+                color: 'text-indigo-400',
+                bg: 'bg-indigo-950/40 border-indigo-800/30',
+              },
+              {
+                label: 'Referring Domains',
+                value: backlinkSummary.referringDomains.toLocaleString(),
+                icon: <Globe className="h-4 w-4" />,
+                color: 'text-violet-400',
+                bg: 'bg-violet-950/40 border-violet-800/30',
+              },
+              {
+                label: 'Authority Score',
+                value: String(backlinkSummary.authorityScore),
+                icon: <Shield className="h-4 w-4" />,
+                color: backlinkSummary.authorityScore >= 60 ? 'text-emerald-400' : backlinkSummary.authorityScore >= 30 ? 'text-amber-400' : 'text-rose-400',
+                bg: 'bg-app-surface-raised border-app-border',
+              },
+            ].map((stat) => (
+              <div key={stat.label} className={`border rounded-xl px-4 py-3.5 ${stat.bg}`}>
+                <div className={`${stat.color} mb-2`}>{stat.icon}</div>
+                <p className={`text-xl font-extrabold tabular-nums ${stat.color}`}>{stat.value}</p>
+                <p className="text-[11px] text-app-text-muted mt-0.5 leading-tight">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* No data state — only shown once loading is done and no data returned */}
+        {!backlinkLoading && !backlinkSummary && (
+          <div className="border border-app-border rounded-xl px-5 py-4 text-xs text-app-text-muted flex items-center gap-3">
+            <TrendingUp className="h-4 w-4 flex-shrink-0 text-app-text-muted/50" />
+            Backlink data unavailable — DataForSEO may not be configured.
+            <Link to={`/projects/${id}/backlinks`} className="ml-auto text-app-signal hover:underline flex-shrink-0">
+              Try anyway →
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* ── Chat panel (collapsible) ── */}
       <div className="mt-2">

@@ -41,31 +41,28 @@ export interface NavItemDef {
 }
 
 export const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
-  { label: 'Site Health', items: [
-    { label: 'Audit / Checklist', to: null as string | null, icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { label: 'Core Web Vitals', to: null as string | null, icon: 'M13 10V3L4 14h7v7l9-11h-7zM9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-  ]},
-  { label: 'Content', items: [
-    { label: 'Content Editor & AI Writer', to: null as string | null, icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-  ]},
-  { label: 'Rankings', items: [
-    { label: 'Keywords', to: null as string | null, icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z' },
-    { label: 'Keyword Research', to: '/keyword-research' as string | null, icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
-    { label: 'Keyword Clustering', to: null as string | null, icon: 'M4 7h16M4 12h16M4 17h16' },
-  ]},
-  { label: 'Authority', items: [{ label: 'Backlinks', to: null as string | null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' }] },
-  { label: 'AI Visibility', items: [{ label: 'AI Visibility', to: null as string | null, icon: 'M13 10V3L4 14h7v7l9-11h-7z' }] },
-  { label: 'Competitors', items: [{ label: 'Overview & Gap Analysis', to: null as string | null, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' }] },
-  { label: 'Optimization', items: [
-    { label: 'Internal Linking', to: null as string | null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
-  ]},
-  { label: 'Reports', items: [
-    { label: 'Content Performance', to: null as string | null, icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-    { label: 'Before / After', to: null as string | null, icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' },
-  ]},
-  { label: 'Settings', items: [
-    { label: 'Project Settings', to: null as string | null, icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
-  ]},
+  {
+    label: 'Advanced Tools',
+    items: [
+      { label: 'Core Web Vitals', to: null as string | null, icon: 'M13 10V3L4 14h7v7l9-11h-7zM9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+      { label: 'Content Editor & AI Writer', to: null as string | null, icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+      { label: 'Keywords', to: null as string | null, icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z' },
+      { label: 'Keyword Research', to: '/keyword-research' as string | null, icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+      { label: 'Keyword Clustering', to: null as string | null, icon: 'M4 7h16M4 12h16M4 17h16' },
+      { label: 'Backlinks', to: null as string | null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
+      { label: 'AI Visibility', to: null as string | null, icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+      { label: 'Overview & Gap Analysis', to: null as string | null, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+      { label: 'Internal Linking', to: null as string | null, icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
+      { label: 'Content Performance', to: null as string | null, icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+      { label: 'Before / After', to: null as string | null, icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' },
+    ],
+  },
+  {
+    label: 'Settings',
+    items: [
+      { label: 'Project Settings', to: null as string | null, icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+    ],
+  },
 ];
 
 const LABEL_ROUTE_MAP: Record<string, string> = {
@@ -232,6 +229,32 @@ export default function Layout() {
         )}
 
         <nav className="flex-1 py-3 overflow-y-auto space-y-3">
+          {/* ── Always-visible: back to URL analyzer ── */}
+          <div>
+            {sidebarOpen && (
+              <p className="px-5 text-2xs font-semibold text-app-text-muted uppercase tracking-widest mb-0.5">
+                Analyze
+              </p>
+            )}
+            <NavLink
+              to="/dashboard"
+              end
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-2 text-sm font-medium mx-2 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-signal/70 ${
+                  isActive
+                    ? 'bg-app-signal/20 text-app-signal border border-app-signal/30'
+                    : 'text-app-text-muted hover:text-app-text hover:bg-app-surface/60'
+                }`
+              }
+              title="Analyze a URL"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {sidebarOpen && <span>Analyze URL</span>}
+            </NavLink>
+          </div>
+
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               {sidebarOpen && (

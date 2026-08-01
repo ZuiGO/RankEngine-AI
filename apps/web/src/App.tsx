@@ -8,23 +8,22 @@ import { MotionConfig } from 'framer-motion';
 
 import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
-import DashboardPage from './pages/DashboardPage';
-import ProjectDetailPage from './pages/ProjectDetailPage';
-import SettingsPage from './pages/SettingsPage';
-import KeywordResearchPage from './pages/KeywordResearchPage';
-import BacklinksPage from './pages/BacklinksPage';
-import AiVisibilityPage from './pages/AiVisibilityPage';
-import CompetitorsPage from './pages/CompetitorsPage';
+import AnalyzePage from './pages/AnalyzePage';
 import ContentEditorPage from './pages/ContentEditorPage';
+import KeywordsPage from './pages/KeywordsPage';
 import KeywordClusteringPage from './pages/KeywordClusteringPage';
 import CwvPage from './pages/CwvPage';
 import InternalLinksPage from './pages/InternalLinksPage';
 import ChatPage from './pages/ChatPage';
-import KeywordsPage from './pages/KeywordsPage';
-import NotificationsPage from './pages/NotificationsPage';
+import BacklinksPage from './pages/BacklinksPage';
+import AiVisibilityPage from './pages/AiVisibilityPage';
+import CompetitorsPage from './pages/CompetitorsPage';
 import ProjectSettingsPage from './pages/ProjectSettingsPage';
 import ContentPerformancePage from './pages/ContentPerformancePage';
 import ComparisonReportPage from './pages/ComparisonReportPage';
+import KeywordResearchPage from './pages/KeywordResearchPage';
+import SettingsPage from './pages/SettingsPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 export default function App() {
   return (
@@ -33,8 +32,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/dashboard" element={<AnalyzePage />} />
+            <Route path="/analyze" element={<AnalyzePage />} />
+            <Route path="/projects/:id" element={<AnalyzePage />} />
             <Route path="/projects/:id/content-editor" element={<ContentEditorPage />} />
             <Route path="/projects/:id/content-writer" element={<Navigate to="../content-editor" replace />} />
             <Route path="/projects/:id/keywords" element={<KeywordsPage />} />

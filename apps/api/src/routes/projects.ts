@@ -110,6 +110,44 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
+// GET /api/projects/by-domain?url= - Find project by domain (used by URL-first entry flow)
+// MUST be declared before /:id so "by-domain" is not interpreted as an ObjectId.
+router.get('/by-domain', async (req: Request, res: Response) => {
+  try {
+    const rawUrl = String(req.query.url || '').trim();
+    if (!rawUrl) {
+      return res.status(400).json({ error: 'url query param is required' });
+    }
+
+    // Normalise: strip protocol, www prefix, and trailing slash so that
+    // "https://www.example.com/" and "example.com" both resolve to "example.com"
+    const normalised = rawUrl
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/$/, '')
+      .toLowerCase();
+
+    if (!normalised) {
+      return res.status(400).json({ error: 'Could not parse a hostname from the provided url' });
+    }
+
+    // Case-insensitive domain match (handles stored values that may include protocol)
+    const project = await Project.findOne({
+      deletedAt: null,
+      domain: { $regex: normalised.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' },
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: 'No project found for this domain' });
+    }
+
+    return res.json(project);
+  } catch (error) {
+    console.error('By-domain lookup error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // GET /api/projects/:id - Get one project by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
