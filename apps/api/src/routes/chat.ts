@@ -4,12 +4,14 @@ import mongoose from 'mongoose';
 import { Project } from '../models/Project';
 import { callGroq, LlmError } from '../services/llmService';
 import { buildProjectContext } from '../services/chatContextService';
+import { searchProjectVectors } from '../services/vectorService';
 
 const router = Router();
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
 const chatRequestSchema = z.object({
   question: z.string().min(1),
+  section: z.enum(['Overview', 'Pages', 'Action Items', 'Content', 'All']).optional(),
   history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })).optional(),
 });
 
@@ -32,15 +34,31 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Validation failed', details: validation.error.flatten().fieldErrors });
     }
 
-    const { question, history } = validation.data;
+    const { question, section, history } = validation.data;
 
-    const context = await buildProjectContext(id);
+    const baseContext = await buildProjectContext(id);
 
-    if (context === 'No audit data available yet for this project.') {
+    if (baseContext === 'No audit data available yet for this project.') {
       return res.json({ answer: NO_DATA_RESPONSE });
     }
 
-    const scopingInstruction = `You are an expert SEO assistant integrated into RankEngine AI. You have access to the following project data:\n\n${context}\n\nIMPORTANT: This product has NO Google Analytics or Search Console integration. It does NOT know a project's real traffic numbers. Do not answer a traffic question with a fabricated or guessed cause. If asked about traffic, say that RankEngine doesn't have traffic data, then state what data it DOES have access to (audit findings, rank positions, competitor movement, AI visibility).`;
+    // Search Qdrant vector embeddings for semantically matching content
+    let vectorMatches: any[] = [];
+    try {
+      vectorMatches = await searchProjectVectors(id, question, section, 5);
+    } catch (e) {
+      vectorMatches = [];
+    }
+
+    const safeVectorMatches = Array.isArray(vectorMatches) ? vectorMatches : [];
+    const vectorContextText = safeVectorMatches.length > 0
+      ? `Top Vector Search Matches (Section: ${section || 'Overview'}):\n` +
+        safeVectorMatches.map((m) => `- [${m.section} | ${m.contentType} | ${m.pageUrl}]: ${m.text}`).join('\n')
+      : '';
+
+    const combinedContext = `${baseContext}\n\n${vectorContextText}`;
+
+    const scopingInstruction = `You are an expert SEO assistant integrated into RankEngine AI. You are responding within the "${section || 'Overview'}" section context.\n\nProject Data & Vector Search Results:\n${combinedContext}\n\nIMPORTANT: This product has NO Google Analytics or Search Console integration. It does NOT know a project's real traffic numbers. Do not answer a traffic question with a fabricated or guessed cause. If asked about traffic, say that RankEngine doesn't have traffic data, then state what data it DOES have access to (audit findings, rank positions, competitor movement, AI visibility).`;
 
     const conversationParts = [
       { role: 'system', content: scopingInstruction },
@@ -54,7 +72,11 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
 
     const result = await callGroq<{ answer: string }>(prompt, 30000);
 
-    return res.json({ answer: result.answer });
+    const responsePayload: any = { answer: result.answer };
+    if (safeVectorMatches.length > 0) {
+      responsePayload.vectorMatches = safeVectorMatches.map((v) => ({ section: v.section, pageUrl: v.pageUrl, score: v.score }));
+    }
+    return res.json(responsePayload);
   } catch (error) {
     if (error instanceof LlmError) {
       return res.status(502).json({ error: error.message });

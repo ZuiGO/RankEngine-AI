@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
+import type { HTMLMotionProps } from 'framer-motion';
 import { badgePop } from '../../lib/motion';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
-interface BadgeProps {
+interface BadgeProps extends HTMLMotionProps<'span'> {
   children: ReactNode;
   variant?: BadgeVariant;
   className?: string;
@@ -18,13 +19,14 @@ const variantStyles: Record<BadgeVariant, string> = {
   info: 'bg-app-signal/10 text-app-signal border-app-signal/20',
 };
 
-export function Badge({ children, variant = 'default', className = '' }: BadgeProps) {
+export function Badge({ children, variant = 'default', className = '', ...props }: BadgeProps) {
   return (
     <motion.span
       variants={badgePop}
       initial="hidden"
       animate="visible"
       className={`inline-block text-2xs font-semibold px-2.5 py-0.5 rounded-full border ${variantStyles[variant]} ${className}`}
+      {...props}
     >
       {children}
     </motion.span>

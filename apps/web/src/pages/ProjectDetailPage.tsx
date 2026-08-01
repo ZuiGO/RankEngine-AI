@@ -1018,14 +1018,14 @@ export default function ProjectDetailPage() {
             {[
               {
                 label: 'Total Backlinks',
-                value: backlinkSummary.totalBacklinks.toLocaleString(),
+                value: (backlinkSummary?.totalBacklinks ?? 0).toLocaleString(),
                 icon: <LinkIcon className="h-4 w-4" />,
                 color: 'text-indigo-400',
                 bg: 'bg-indigo-950/40 border-indigo-800/30',
               },
               {
                 label: 'Referring Domains',
-                value: backlinkSummary.referringDomains.toLocaleString(),
+                value: (backlinkSummary?.referringDomains ?? 0).toLocaleString(),
                 icon: <Globe className="h-4 w-4" />,
                 color: 'text-violet-400',
                 bg: 'bg-violet-950/40 border-violet-800/30',

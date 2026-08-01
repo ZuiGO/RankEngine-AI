@@ -121,10 +121,13 @@ describe('ProjectDetailPage', () => {
   });
 
   it('renders CWV section with LCP gauge in poor color state', async () => {
-    mockedApi.get
-      .mockResolvedValueOnce({ data: mockProject })
-      .mockResolvedValueOnce({ data: mockLatestCrawl })
-      .mockResolvedValueOnce({ data: buildChecklist(['critical', 'warning', 'passed'], false) });
+    mockedApi.get.mockImplementation(async (url: string) => {
+      if (url.includes('checklist')) return { data: buildChecklist(['critical', 'warning', 'passed'], false) };
+      if (url.includes('latest')) return { data: mockLatestCrawl };
+      if (url.includes('backlinks')) return { data: { totalBacklinks: 10, referringDomains: 5 } };
+      if (url.includes('ai-visibility')) return { data: { visibilityScore: 80 } };
+      return { data: mockProject };
+    });
 
     renderPage();
 
@@ -134,10 +137,13 @@ describe('ProjectDetailPage', () => {
   });
 
   it('TBT gauge label contains proxy for INP text', async () => {
-    mockedApi.get
-      .mockResolvedValueOnce({ data: mockProject })
-      .mockResolvedValueOnce({ data: mockLatestCrawl })
-      .mockResolvedValueOnce({ data: buildChecklist(['critical', 'warning', 'passed'], false) });
+    mockedApi.get.mockImplementation(async (url: string) => {
+      if (url.includes('checklist')) return { data: buildChecklist(['critical', 'warning', 'passed'], false) };
+      if (url.includes('latest')) return { data: mockLatestCrawl };
+      if (url.includes('backlinks')) return { data: { totalBacklinks: 10, referringDomains: 5 } };
+      if (url.includes('ai-visibility')) return { data: { visibilityScore: 80 } };
+      return { data: mockProject };
+    });
 
     renderPage();
 
@@ -147,10 +153,13 @@ describe('ProjectDetailPage', () => {
   });
 
   it('renders indexing critical issues in checklist', async () => {
-    mockedApi.get
-      .mockResolvedValueOnce({ data: mockProject })
-      .mockResolvedValueOnce({ data: mockLatestCrawl })
-      .mockResolvedValueOnce({ data: buildChecklist([], true) });
+    mockedApi.get.mockImplementation(async (url: string) => {
+      if (url.includes('checklist')) return { data: buildChecklist([], true) };
+      if (url.includes('latest')) return { data: mockLatestCrawl };
+      if (url.includes('backlinks')) return { data: { totalBacklinks: 10, referringDomains: 5 } };
+      if (url.includes('ai-visibility')) return { data: { visibilityScore: 80 } };
+      return { data: mockProject };
+    });
 
     renderPage();
 

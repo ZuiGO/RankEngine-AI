@@ -20,8 +20,8 @@ describe('ChatPanel', () => {
 
     renderPanel();
 
-    const input = screen.getByPlaceholderText('Ask about this project...');
-    const sendButton = screen.getByRole('button');
+    const input = screen.getByPlaceholderText(/Ask about/i);
+    const sendButton = screen.getByTestId('send-chat-btn');
 
     fireEvent.change(input, { target: { value: 'How is my site doing?' } });
     fireEvent.click(sendButton);
@@ -43,8 +43,8 @@ describe('ChatPanel', () => {
 
     renderPanel();
 
-    const input = screen.getByPlaceholderText('Ask about this project...');
-    const sendButton = screen.getByRole('button');
+    const input = screen.getByPlaceholderText(/Ask about/i);
+    const sendButton = screen.getByTestId('send-chat-btn');
 
     fireEvent.change(input, { target: { value: 'First question' } });
     fireEvent.click(sendButton);
@@ -78,8 +78,8 @@ describe('ChatPanel', () => {
 
     renderPanel();
 
-    const input = screen.getByPlaceholderText('Ask about this project...');
-    const sendButton = screen.getByRole('button');
+    const input = screen.getByPlaceholderText(/Ask about/i);
+    const sendButton = screen.getByTestId('send-chat-btn');
 
     fireEvent.change(input, { target: { value: 'Failed question' } });
     fireEvent.click(sendButton);

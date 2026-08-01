@@ -32,6 +32,7 @@ import chatRouter from './routes/chat';
 import googleIntegrationRouter from './routes/googleIntegration';
 import siteReportRouter from './routes/siteReport';
 import pendingChangesRouter from './routes/pendingChanges';
+import graphRouter from './routes/graph';
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/projects', cwvRouter);
 app.use('/api/projects', internalLinksRouter);
 app.use('/api/projects', chatRouter);
 app.use('/api/projects', siteReportRouter);
+app.use('/api/projects', graphRouter);
 app.use('/api', pendingChangesRouter);
 app.use('/api', googleIntegrationRouter);
 

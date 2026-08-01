@@ -37,6 +37,11 @@ const envSchema = z.object({
   STORAGE_PATH: z.string().default('./data/reports'),
 
   DOWNLOAD_TOKEN_TTL_MS: z.coerce.number().default(3600000),
+
+  NEO4J_URI: z.string().default('bolt://localhost:7687'),
+  NEO4J_USER: z.string().default('neo4j'),
+  NEO4J_PASSWORD: z.string().default('rankengine_password'),
+  QDRANT_URL: z.string().default('http://localhost:6333'),
 });
 
 const parseEnv = () => {

@@ -30,9 +30,24 @@ export interface SiteReportIssue {
   description: string;
 }
 
+export interface PageContentItem {
+  _id?: string;
+  contentType: 'text' | 'image' | 'video' | 'pdf' | 'docx' | 'pptx' | 'xlsx';
+  sourceUrl: string;
+  altText?: string;
+  extractionStatus: 'pending' | 'success' | 'failed' | 'unsupported';
+  extractionError?: string;
+  extractedText?: string;
+  extractedTables?: { sheetName?: string; headers?: string[]; rows?: string[][] }[];
+  extractedImages?: { storagePath: string }[];
+  hasTranscript?: boolean;
+  storagePath?: string;
+}
+
 export interface SiteReportPageItem {
   url: string;
   issues: SiteReportIssue[];
+  content?: PageContentItem[];
 }
 
 export interface SiteReportCounts {
@@ -41,6 +56,10 @@ export interface SiteReportCounts {
   totalHyperlinks: number;
   internalLinks: number;
   backlinkCount: number;
+  pdfCount?: number;
+  videoCount?: number;
+  imageCount?: number;
+  documentCount?: number;
 }
 
 export interface SiteReport {
@@ -98,8 +117,8 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
   const [errorMsg, setErrorMsg] = useState('');
 
   const [reportData, setReportData] = useState<SiteReportData | null>(null);
-
   const [expandedPages, setExpandedPages] = useState<Record<string, boolean>>({});
+  const [expandedContentItems, setExpandedContentItems] = useState<Record<string, boolean>>({});
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -470,6 +489,7 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                   return (
                     <Card key={page.url || idx} className="border-app-border overflow-hidden">
                       <button
+                        data-testid={`page-expand-btn-${idx}`}
                         onClick={() => togglePageExpand(page.url || String(idx))}
                         className="w-full px-4 py-3 bg-app-surface hover:bg-app-surface/80 flex items-center justify-between text-left transition-colors"
                       >
@@ -479,7 +499,7 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                           ) : (
                             <ChevronRight className="h-4 w-4 text-app-text-muted flex-shrink-0" />
                           )}
-                          <span className="text-xs font-mono text-white truncate">{page.url}</span>
+                          <span data-testid={`page-url-${idx}`} className="text-xs font-mono text-white truncate">{page.url}</span>
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0 text-2xs font-semibold">
                           {criticals > 0 && (
@@ -501,7 +521,7 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                       </button>
 
                       {isExpanded && (
-                        <div className="p-4 border-t border-app-border bg-app-base space-y-2">
+                        <div className="p-4 border-t border-app-border bg-app-base space-y-3">
                           {page.issues.map((issue, issueIdx) => (
                             <div
                               key={issueIdx}
@@ -524,6 +544,128 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                               </div>
                             </div>
                           ))}
+
+                          {page.content && page.content.length > 0 && (
+                            <div className="mt-4 pt-3 border-t border-app-border" data-testid={`content-inventory-${idx}`}>
+                              <h4 className="text-xs font-semibold text-white mb-2 flex items-center gap-1.5">
+                                <FileText className="h-3.5 w-3.5 text-app-signal" />
+                                Content Inventory ({page.content.length})
+                              </h4>
+                              <div className="space-y-2">
+                                {page.content.map((cItem, cIdx) => {
+                                  const cKey = `${page.url || idx}-content-${cIdx}`;
+                                  const isContentExpanded = !!expandedContentItems[cKey];
+
+                                  return (
+                                    <div
+                                      key={cIdx}
+                                      className="p-2.5 rounded-lg bg-app-surface border border-app-border/60 text-xs space-y-2"
+                                    >
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 truncate min-w-0">
+                                          <Badge
+                                            variant="default"
+                                            data-testid={`content-badge-${cItem.contentType}`}
+                                            className="uppercase text-[10px] px-1.5 py-0.2"
+                                          >
+                                            {cItem.contentType}
+                                          </Badge>
+                                          <span className="font-mono text-[11px] text-white truncate">
+                                            {cItem.sourceUrl}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                          <Badge
+                                            variant={cItem.extractionStatus === 'success' ? 'success' : cItem.extractionStatus === 'failed' ? 'danger' : 'warning'}
+                                            className="text-[10px]"
+                                          >
+                                            {cItem.extractionStatus}
+                                          </Badge>
+
+                                          {cItem.contentType === 'pdf' && (
+                                            <span className="text-[10px] text-app-text-muted">
+                                              {cItem.extractedTables?.length || 0} tables, {cItem.extractedImages?.length || 0} imgs
+                                            </span>
+                                          )}
+
+                                          {cItem.contentType === 'video' && (
+                                            <span className={`text-[10px] ${cItem.hasTranscript ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                              {cItem.hasTranscript ? 'Transcript found' : 'No transcript'}
+                                            </span>
+                                          )}
+
+                                          {(cItem.extractedText || (cItem.extractedTables && cItem.extractedTables.length > 0)) && (
+                                            <button
+                                              data-testid={`view-content-${idx}-${cIdx}`}
+                                              onClick={() =>
+                                                setExpandedContentItems((prev) => ({
+                                                  ...prev,
+                                                  [cKey]: !prev[cKey],
+                                                }))
+                                              }
+                                              className="text-[10px] text-app-signal hover:underline flex items-center gap-0.5 ml-1"
+                                            >
+                                              {isContentExpanded ? 'Hide Data' : 'View Extracted Data'}
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {isContentExpanded && (
+                                        <div className="p-3 mt-2 bg-app-base border border-app-border rounded-md space-y-3 font-mono text-[11px]" data-testid={`extracted-data-view-${idx}-${cIdx}`}>
+                                          {cItem.extractedText && (
+                                            <div>
+                                              <h5 className="text-[10px] uppercase font-sans font-semibold text-app-text-muted mb-1">Extracted Text:</h5>
+                                              <div className="bg-app-surface p-2 rounded max-h-40 overflow-y-auto text-app-text-muted leading-relaxed whitespace-pre-wrap">
+                                                {cItem.extractedText}
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          {cItem.extractedTables && cItem.extractedTables.length > 0 && (
+                                            <div className="space-y-2">
+                                              <h5 className="text-[10px] uppercase font-sans font-semibold text-app-text-muted mb-1">Extracted Tables ({cItem.extractedTables.length}):</h5>
+                                              {cItem.extractedTables.map((tbl, tIdx) => (
+                                                <div key={tIdx} className="overflow-x-auto border border-app-border rounded">
+                                                  <table className="w-full text-left text-[11px]" data-testid={`extracted-table-${tIdx}`}>
+                                                    <caption className="bg-app-surface/60 text-left px-2 py-1 text-[10px] font-sans text-app-signal font-semibold border-b border-app-border">
+                                                      {tbl.sheetName || `Table ${tIdx + 1}`}
+                                                    </caption>
+                                                    {tbl.headers && tbl.headers.length > 0 && (
+                                                      <thead className="bg-app-surface text-white">
+                                                        <tr>
+                                                          {tbl.headers.map((h, hIdx) => (
+                                                            <th key={hIdx} className="px-2 py-1 border-b border-app-border font-semibold">
+                                                              {h}
+                                                            </th>
+                                                          ))}
+                                                        </tr>
+                                                      </thead>
+                                                    )}
+                                                    <tbody>
+                                                      {tbl.rows?.map((r, rIdx) => (
+                                                        <tr key={rIdx} className="border-b border-app-border/40 hover:bg-app-surface/20">
+                                                          {r.map((cell, cellIdx) => (
+                                                            <td key={cellIdx} className="px-2 py-1 text-app-text-muted">
+                                                              {cell}
+                                                            </td>
+                                                          ))}
+                                                        </tr>
+                                                      ))}
+                                                    </tbody>
+                                                  </table>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </Card>
@@ -555,6 +697,12 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                 </thead>
                 <tbody className="divide-y divide-app-border">
                   {reportData.actionItems.map((item) => {
+                    const isContentIssue =
+                      item.identifiedIssues.startsWith('pdf-') ||
+                      item.identifiedIssues.startsWith('video-') ||
+                      item.identifiedIssues.startsWith('image-') ||
+                      item.identifiedIssues.startsWith('document-');
+
                     return (
                       <tr key={item.contentId} className="hover:bg-app-surface/40 transition-colors">
                         <td className="px-4 py-3 font-mono text-[11px] text-app-text-muted">
@@ -567,6 +715,17 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                           {item.impactOnRanking}
                         </td>
                         <td className="px-4 py-3 font-medium text-white max-w-[200px]">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            {isContentIssue ? (
+                              <Badge variant="info" data-testid={`type-indicator-${item.contentId}`} className="text-[9px] px-1.5 py-0.2 uppercase font-mono">
+                                Content
+                              </Badge>
+                            ) : (
+                              <Badge variant="default" data-testid={`type-indicator-${item.contentId}`} className="text-[9px] px-1.5 py-0.2 uppercase font-mono">
+                                Page
+                              </Badge>
+                            )}
+                          </div>
                           {item.identifiedIssues}
                         </td>
                         <td className="px-4 py-3 text-app-text-muted max-w-[220px]">

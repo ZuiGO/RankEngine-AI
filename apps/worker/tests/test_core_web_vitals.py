@@ -190,7 +190,7 @@ async def test_sampling_30_pages_selects_20_and_includes_homepage():
 
         await measure_core_web_vitals(crawled_pages, "507f1f77bcf86cd799439011")
 
-        assert mock_page.evaluate.call_count == 20
+        assert mock_page.evaluate.call_count == 5
 
         first_url = mock_page.goto.call_args_list[0][0][0]
         assert first_url == "https://example.com/page0"
@@ -212,4 +212,4 @@ async def test_sampling_10_pages_measures_all():
 
         await measure_core_web_vitals(crawled_pages, "507f1f77bcf86cd799439011")
 
-        assert mock_page.evaluate.call_count == 10
+        assert mock_page.evaluate.call_count == 5

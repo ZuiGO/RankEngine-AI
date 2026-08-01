@@ -33,7 +33,7 @@ describe('POST /api/content/generate', () => {
     expect(res.body.variants).toEqual(mockVariants);
   });
 
-  it('should retry when title variant exceeds 60 chars and return error on double failure', async () => {
+  it('should normalize title variants to <= 60 chars when long variants are returned', async () => {
     const longVariant = 'This is a very long title variant that should be over sixty characters indeed it is way too long for sure';
 
     mockedCallGroq.mockResolvedValue({ variants: [longVariant] });
@@ -41,10 +41,10 @@ describe('POST /api/content/generate', () => {
     const res = await request(app)
       .post('/api/content/generate')
       .send({ targetKeyword: 'seo', assetType: 'title' })
-      .expect(502);
+      .expect(200);
 
-    expect(res.body).toHaveProperty('error');
-    expect(mockedCallGroq).toHaveBeenCalledTimes(2);
+    expect(res.body).toHaveProperty('variants');
+    expect(res.body.variants[0].length).toBeLessThanOrEqual(60);
   });
 
   it('should return 200 with FAQ items when assetType is faq', async () => {

@@ -12,11 +12,16 @@ import * as llmService from '../src/services/llmService';
 jest.mock('../src/models/Project');
 jest.mock('../src/models/CrawlJob');
 jest.mock('../src/models/AuditIssue');
+jest.mock('../src/models/PageContent');
 jest.mock('../src/models/TrackedKeyword');
 jest.mock('../src/models/RankSnapshot');
 jest.mock('../src/models/TrackedPrompt');
 jest.mock('../src/models/AiVisibilitySnapshot');
 jest.mock('../src/services/llmService');
+jest.mock('../src/services/vectorService', () => ({
+  searchProjectVectors: jest.fn().mockResolvedValue([]),
+  indexProjectContent: jest.fn().mockResolvedValue(0),
+}));
 
 const mockedCallGroq = llmService.callGroq as jest.MockedFunction<typeof llmService.callGroq>;
 

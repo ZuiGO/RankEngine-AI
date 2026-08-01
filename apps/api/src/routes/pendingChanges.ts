@@ -2,14 +2,35 @@ import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { PendingChange } from '../models/PendingChange';
 import { AuditIssue } from '../models/AuditIssue';
+import { PageContent } from '../models/PageContent';
 import { CrawlJob } from '../models/CrawlJob';
+import { verifyApprovedChanges } from '../services/previewVerificationService';
 
 const router = Router();
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
 /**
+ * POST /api/pending-changes/verify
+ * Runs pre-publish verification over approved changes for a project, verifying preview render health before applying.
+ */
+router.post('/pending-changes/verify', async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.body;
+    if (!projectId || !isValidObjectId(projectId)) {
+      return res.status(400).json({ error: 'Valid projectId is required' });
+    }
+
+    const report = await verifyApprovedChanges(projectId);
+    return res.json({ report });
+  } catch (error: any) {
+    console.error('Verify pending changes error:', error);
+    return res.status(500).json({ error: error.message || 'Failed to verify pending changes' });
+  }
+});
+
+/**
  * POST /api/pending-changes/:id/approve
- * Approves a PendingChange or creates a new approved PendingChange for an AuditIssue contentId (:id).
+ * Approves a PendingChange or creates a new approved PendingChange for an AuditIssue or PageContent contentId (:id).
  */
 router.post('/pending-changes/:id/approve', async (req: Request, res: Response) => {
   try {
@@ -27,18 +48,27 @@ router.post('/pending-changes/:id/approve', async (req: Request, res: Response) 
       await pendingChange.save();
     } else {
       const issue = await AuditIssue.findById(id);
-      if (!issue) {
-        return res.status(404).json({ error: 'Audit issue not found' });
+      const pageContent = await PageContent.findById(id);
+
+      if (!issue && !pageContent) {
+        return res.status(404).json({ error: 'Audit issue or content item not found' });
       }
 
-      const crawlJob = await CrawlJob.findById(issue.crawlJobId);
-      const projectId = crawlJob ? crawlJob.projectId : (req.body.projectId || issue.crawlJobId);
+      let projectId = req.body.projectId;
+      if (issue) {
+        const crawlJob = await CrawlJob.findById(issue.crawlJobId);
+        projectId = crawlJob ? crawlJob.projectId : (projectId || issue.crawlJobId);
+      } else if (pageContent) {
+        projectId = pageContent.projectId;
+      }
 
       pendingChange = await PendingChange.create({
-        sourceAuditIssueId: issue._id,
+        sourceAuditIssueId: new mongoose.Types.ObjectId(id),
         projectId,
         status: 'approved',
-        proposedChange: issue.recommendation || issue.description,
+        proposedChange: issue
+          ? (issue.recommendation || issue.description)
+          : (pageContent ? `${pageContent.contentType} optimization for ${pageContent.sourceUrl}` : 'Content fix'),
       });
     }
 

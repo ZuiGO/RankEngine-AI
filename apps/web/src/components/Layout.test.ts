@@ -98,6 +98,7 @@ type Route = (typeof ALL_ROUTES)[number];
 const INTENTIONAL_ORPHANS: Route[] = [
   '/dev/score-reveal',
   '/',
+  '/projects/:id',
   '/projects/:id/chat',
   '/projects/:id/content-writer',
 ];
