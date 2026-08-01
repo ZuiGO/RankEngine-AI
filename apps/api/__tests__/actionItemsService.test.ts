@@ -24,6 +24,7 @@ jest.mock('bullmq', () => ({
 
 import { CrawlJob } from '../src/models/CrawlJob';
 import { AuditIssue } from '../src/models/AuditIssue';
+import { PageContent } from '../src/models/PageContent';
 import { PendingChange } from '../src/models/PendingChange';
 import {
   getActionItems,
@@ -405,5 +406,113 @@ describe('getActionItems — error handling', () => {
     await expect(getActionItems(migrationOnlyId.toString())).rejects.toThrow(
       NoCompletedCrawlError
     );
+  });
+});
+
+describe('getActionItems — Content-Type Action Items (Phase 2)', () => {
+  it('Test 1: given a mock scanned PDF PageContent record, asserts an ActionItem is generated with high-impact framing', async () => {
+    const projId = new mongoose.Types.ObjectId();
+    const crawlJob = await CrawlJob.create({
+      projectId: projId,
+      status: 'completed',
+      type: 'crawl',
+      pageCount: 1,
+      completedAt: new Date(),
+    });
+
+    await PageContent.create({
+      projectId: projId,
+      crawlJobId: crawlJob._id,
+      pageUrl: 'https://example.com/scanned-report.pdf',
+      contentType: 'pdf',
+      sourceUrl: 'https://example.com/scanned-report.pdf',
+      isScannedOnly: true,
+      extractedText: '',
+      extractionStatus: 'success',
+    });
+
+    const items = await getActionItems(projId.toString());
+
+    expect(items.length).toBe(1);
+    const pdfItem = items[0];
+    expect(pdfItem.identifiedIssues).toContain('pdf-accessibility');
+    expect(pdfItem.impactOnRanking).toContain('Search engines cannot index scanned image-only PDFs');
+    expect(pdfItem.howToImprove).toContain('Optical Character Recognition (OCR)');
+    expect(pdfItem.status).toBe('open');
+  });
+
+  it('Test 2: given a mock video with no transcript, asserts the corresponding ActionItem is generated', async () => {
+    const projId = new mongoose.Types.ObjectId();
+    const crawlJob = await CrawlJob.create({
+      projectId: projId,
+      status: 'completed',
+      type: 'crawl',
+      pageCount: 1,
+      completedAt: new Date(),
+    });
+
+    await PageContent.create({
+      projectId: projId,
+      crawlJobId: crawlJob._id,
+      pageUrl: 'https://example.com/video-demo',
+      contentType: 'video',
+      sourceUrl: 'https://example.com/video-demo.mp4',
+      hasTranscript: false,
+      extractionStatus: 'success',
+    });
+
+    const items = await getActionItems(projId.toString());
+
+    expect(items.length).toBe(1);
+    const videoItem = items[0];
+    expect(videoItem.identifiedIssues).toContain('video-transcript');
+    expect(videoItem.impactOnRanking).toContain('Search engines cannot process audio streams without written transcripts');
+    expect(videoItem.howToImprove).toContain('WebVTT closed captions');
+    expect(videoItem.status).toBe('open');
+  });
+
+  it('Test 3: given a normal page with no content-type issues, asserts no spurious content-type action items are generated', async () => {
+    const projId = new mongoose.Types.ObjectId();
+    const crawlJob = await CrawlJob.create({
+      projectId: projId,
+      status: 'completed',
+      type: 'crawl',
+      pageCount: 1,
+      completedAt: new Date(),
+    });
+
+    // Clean page: image has altText, video has transcript, text is normal
+    await PageContent.create([
+      {
+        projectId: projId,
+        crawlJobId: crawlJob._id,
+        pageUrl: 'https://example.com/clean-page',
+        contentType: 'text',
+        sourceUrl: 'https://example.com/clean-page',
+        extractionStatus: 'success',
+      },
+      {
+        projectId: projId,
+        crawlJobId: crawlJob._id,
+        pageUrl: 'https://example.com/clean-page',
+        contentType: 'image',
+        sourceUrl: 'https://example.com/clean-logo.png',
+        altText: 'Clean Company Logo',
+        extractionStatus: 'success',
+      },
+      {
+        projectId: projId,
+        crawlJobId: crawlJob._id,
+        pageUrl: 'https://example.com/clean-page',
+        contentType: 'video',
+        sourceUrl: 'https://example.com/clean-video.mp4',
+        hasTranscript: true,
+        extractedText: 'Subtitles text content',
+        extractionStatus: 'success',
+      },
+    ]);
+
+    const items = await getActionItems(projId.toString());
+    expect(items).toEqual([]);
   });
 });
