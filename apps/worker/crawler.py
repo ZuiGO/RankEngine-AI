@@ -861,6 +861,64 @@ async def crawl_site(crawl_job_id: str, target_url: str, limit: int = 50, max_co
                             except Exception as e:
                                 log_json("ERROR", "schema_validation_error", url=url, error=str(e))
 
+                            # Content Type Inventory & Extractor Integration
+                            try:
+                                from content_extractor import (
+                                    detect_page_contents,
+                                    inventory_content,
+                                    download_asset,
+                                    extract_pdf_structured_data,
+                                    extract_docx_text,
+                                    extract_xlsx_data,
+                                    extract_pptx_text,
+                                    extract_video_transcript
+                                )
+                                from content_auditor import audit_content_inventory
+
+                                # Detect and catalog PageContent records (extractionStatus: 'pending')
+                                detected_records = detect_page_contents(url, html, project_id, crawl_job_id)
+                                if detected_records:
+                                    await db.pagecontents.insert_many(detected_records)
+
+                                inventory = inventory_content(url, html, soup)
+
+                                # Process document downloads & structured data extraction
+                                storage_dir = os.getenv("STORAGE_PATH", os.path.abspath(os.path.join(os.path.dirname(__file__), "../api/storage")))
+                                for doc in inventory.get("documents", []):
+                                    doc_url = doc.get("url")
+                                    doc_type = doc.get("type")
+                                    asset_res = await download_asset(doc_url, storage_dir)
+                                    if asset_res:
+                                        buf = asset_res.get("contentBuffer", b"")
+                                        doc["fileSize"] = asset_res.get("fileSize", 0)
+                                        doc["storedPath"] = asset_res.get("filePath", "")
+
+                                        if doc_type == "pdf":
+                                            doc["extracted"] = extract_pdf_structured_data(buf)
+                                        elif doc_type == "docx":
+                                            doc["extracted"] = extract_docx_text(buf)
+                                        elif doc_type == "xlsx":
+                                            doc["extracted"] = extract_xlsx_data(buf)
+                                        elif doc_type == "pptx":
+                                            doc["extracted"] = extract_pptx_text(buf)
+
+                                # Process video transcript extraction
+                                for vid in inventory.get("videos", []):
+                                    v_res = await extract_video_transcript(vid, html)
+                                    vid["hasTranscript"] = v_res.get("hasTranscript", False)
+                                    if v_res.get("transcriptText"):
+                                        vid["transcriptText"] = v_res.get("transcriptText")
+
+                                page_data["contentInventory"] = inventory
+
+                                # Audit content inventory and generate AuditIssue records
+                                content_issues = audit_content_inventory(inventory, crawl_job_id)
+                                if content_issues:
+                                    await db.auditissues.insert_many(content_issues)
+
+                            except Exception as e:
+                                log_json("ERROR", "content_inventory_error", url=url, error=str(e))
+
                     if len(crawled_pages) >= limit:
                         stop_event.set()
 

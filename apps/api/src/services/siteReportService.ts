@@ -56,6 +56,14 @@ export interface SiteReportCounts {
    * Source: BacklinkSnapshot model.
    */
   backlinkCount: number;
+
+  /**
+   * Summary content inventory counters extracted from crawled pages.
+   */
+  pdfCount?: number;
+  videoCount?: number;
+  imageCount?: number;
+  documentCount?: number;
 }
 
 export interface SiteReport {
@@ -158,6 +166,10 @@ export async function generateSiteReport(projectId: string): Promise<SiteReport>
   // rawResultsRef on CrawlJob is the stringified ObjectId of that document.
   let totalLinks = 0;
   let internalLinks = 0;
+  let pdfCount = 0;
+  let videoCount = 0;
+  let imageCount = 0;
+  let documentCount = 0;
 
   const db = mongoose.connection.db;
 
@@ -166,7 +178,7 @@ export async function generateSiteReport(projectId: string): Promise<SiteReport>
     if (mongoose.Types.ObjectId.isValid(crawlJob.rawResultsRef)) {
       const crawlResult = await db.collection<CrawlResult>('crawlresults').findOne(
         { _id: new mongoose.Types.ObjectId(crawlJob.rawResultsRef) },
-        { projection: { 'pages.internalLinkCount': 1, 'pages.externalLinkCount': 1 } }
+        { projection: { 'pages.internalLinkCount': 1, 'pages.externalLinkCount': 1, 'pages.contentInventory': 1 } }
       );
 
       if (crawlResult?.pages) {
@@ -175,6 +187,18 @@ export async function generateSiteReport(projectId: string): Promise<SiteReport>
           const el = Number(page.externalLinkCount ?? 0);
           internalLinks += il;
           totalLinks += il + el;
+
+          const inv = (page as any).contentInventory;
+          if (inv) {
+            imageCount += Number(inv.imageCount ?? 0);
+            videoCount += Number(inv.videoCount ?? 0);
+            documentCount += Number(inv.documentCount ?? 0);
+            if (Array.isArray(inv.documents)) {
+              for (const doc of inv.documents) {
+                if (doc.type === 'pdf') pdfCount++;
+              }
+            }
+          }
         }
       }
     }
@@ -203,6 +227,10 @@ export async function generateSiteReport(projectId: string): Promise<SiteReport>
       totalHyperlinks: totalLinks,
       internalLinks,
       backlinkCount,
+      pdfCount,
+      videoCount,
+      imageCount,
+      documentCount,
     },
     pages,
   };
