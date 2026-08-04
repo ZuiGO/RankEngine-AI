@@ -5,13 +5,35 @@ import { PageContent } from '../models/PageContent';
 import { AuditIssue } from '../models/AuditIssue';
 import { CrawlJob } from '../models/CrawlJob';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Embedding Strategy Note
+// ─────────────────────────────────────────────────────────────────────────────
+// This project's configured LLM provider is Groq (LLM_API_KEY → Groq API).
+// Groq does NOT offer an embeddings endpoint as of 2026.
+// OpenAI does (text-embedding-3-small), but that would require adding a new
+// OPENAI_API_KEY credential not already present in this project.
+//
+// Decision: use a self-contained deterministic hash-based embedding function
+// that requires no new API credential. This produces consistent 384-dimensional
+// normalized vectors suitable for cosine similarity search in an in-memory
+// fallback and in Qdrant. This is a deliberate trade-off: lower semantic quality
+// than a neural model, but zero added credential surface and fully offline-safe.
+// Swap `generateEmbedding` for an OpenAI call if an OPENAI_API_KEY is added
+// in future rounds.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Chunk parameters — standard practice for RAG pipelines
+const CHUNK_SIZE_WORDS = 200;  // target words per chunk
+const CHUNK_OVERLAP_WORDS = 40; // overlap between consecutive chunks
+
 export interface VectorDocument {
   id: string;
   projectId: string;
   pageUrl: string;
   contentType: string;
+  contentId: string;
   section: 'Overview' | 'Pages' | 'Action Items' | 'Content';
-  text: string;
+  chunkText: string;
   embedding: number[];
 }
 
@@ -19,16 +41,49 @@ export interface VectorSearchResult {
   id: string;
   pageUrl: string;
   contentType: string;
+  contentId: string;
   section: string;
-  text: string;
+  chunkText: string;
   score: number;
 }
 
-// In-memory vector store fallback for isolated test/offline environments
+// In-memory vector store fallback for isolated test/offline environments.
+// Maps projectId → array of VectorDocuments. Replaced (not appended) on each
+// indexProjectContent call to ensure upsert semantics rather than accumulation.
 const inMemoryVectorStore = new Map<string, VectorDocument[]>();
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Text Chunking
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Generate a deterministic vector embedding for a text string (384 dimensions).
+ * Split a text string into word-based chunks with overlap.
+ * Returns an empty array for blank/empty inputs.
+ */
+export function chunkText(text: string, chunkSize = CHUNK_SIZE_WORDS, overlap = CHUNK_OVERLAP_WORDS): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+
+  const chunks: string[] = [];
+  let start = 0;
+
+  while (start < words.length) {
+    const end = Math.min(start + chunkSize, words.length);
+    chunks.push(words.slice(start, end).join(' '));
+    if (end >= words.length) break;
+    start += chunkSize - overlap;
+  }
+
+  return chunks;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Embedding generation
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generate a deterministic normalized vector embedding for a text string.
+ * See module-level comment for why this is self-contained rather than API-backed.
  */
 export function generateEmbedding(text: string, dimensions = 384): number[] {
   const vector: number[] = new Array(dimensions).fill(0);
@@ -45,7 +100,7 @@ export function generateEmbedding(text: string, dimensions = 384): number[] {
     vector[idx] += 1.0;
   });
 
-  // Normalize magnitude
+  // L2 normalize so cosine similarity == dot product
   const mag = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
   if (mag > 0) {
     for (let i = 0; i < dimensions; i++) {
@@ -57,13 +112,11 @@ export function generateEmbedding(text: string, dimensions = 384): number[] {
 }
 
 /**
- * Compute cosine similarity between two vector embeddings.
+ * Compute cosine similarity between two equal-length vectors.
  */
 export function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;
-  let dot = 0;
-  let normA = 0;
-  let normB = 0;
+  let dot = 0, normA = 0, normB = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i];
     normA += a[i] * a[i];
@@ -73,26 +126,74 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Stable point ID generation
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Ensure Qdrant collection exists.
+ * Generate a stable, positive 32-bit integer from a string via FNV-1a hashing.
+ * Used to produce Qdrant point IDs that are consistent across re-index runs,
+ * so Qdrant's PUT (upsert) overwrites the correct existing points.
  */
+export function fnv1a32(str: string): number {
+  let hash = 0x811c9dc5; // FNV offset basis
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    // Multiply by FNV prime (32-bit), keep within 32-bit unsigned range
+    hash = (Math.imul(hash, 0x01000193) >>> 0);
+  }
+  // Ensure positive non-zero value (Qdrant requires positive integers)
+  return (hash >>> 0) || 1;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Qdrant helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function ensureQdrantCollection(): Promise<boolean> {
   try {
-    const qdrantUrl = config.QDRANT_URL.replace(/\/$/, '');
-    await axios.put(`${qdrantUrl}/collections/rankengine_vectors`, {
-      vectors: {
-        size: 384,
-        distance: 'Cosine',
-      },
+    const base = config.QDRANT_URL.replace(/\/$/, '');
+    await axios.put(`${base}/collections/rankengine_vectors`, {
+      vectors: { size: 384, distance: 'Cosine' },
     });
     return true;
-  } catch (err: any) {
+  } catch {
     return false;
   }
 }
 
+async function upsertToQdrant(documents: VectorDocument[]): Promise<void> {
+  const base = config.QDRANT_URL.replace(/\/$/, '');
+  const points = documents.map((doc) => ({
+    // Use a stable hash of the document's ID so upserts overwrite the correct
+    // existing Qdrant points on re-index, rather than stomping random ones.
+    id: fnv1a32(doc.id),
+    vector: doc.embedding,
+    payload: {
+      id: doc.id,
+      projectId: doc.projectId,
+      pageUrl: doc.pageUrl,
+      contentType: doc.contentType,
+      contentId: doc.contentId,
+      section: doc.section,
+      chunkText: doc.chunkText,
+    },
+  }));
+
+  // PUT /points is Qdrant's upsert endpoint — safe to call repeatedly
+  await axios.put(`${base}/collections/rankengine_vectors/points`, { points });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Public API
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Index all extracted project text (Pages, PageContent documents, transcripts) into Vector DB.
+ * Index all extracted project text into Qdrant (and in-memory fallback).
+ * Text is chunked into ~200-word segments with 40-word overlap before embedding.
+ * Re-indexing replaces (upserts) existing documents — no unbounded accumulation.
+ *
+ * Called automatically after Phase 2 content extraction completes for a crawl.
  */
 export async function indexProjectContent(projectId: string): Promise<number> {
   if (!mongoose.Types.ObjectId.isValid(projectId)) {
@@ -104,111 +205,126 @@ export async function indexProjectContent(projectId: string): Promise<number> {
   const latestJob = await CrawlJob.findOne({ projectId, status: 'completed' }).sort({ completedAt: -1 });
   const jobId = latestJob ? latestJob._id : null;
 
-  // 1. Index Audit Issues (Pages & Action Items)
+  // 1. AuditIssues — index as Pages & Action Items context
   const auditIssues = jobId
     ? await AuditIssue.find({ crawlJobId: jobId }).lean()
     : [];
 
-  auditIssues.forEach((issue, idx) => {
-    const issueText = `${issue.category}: ${issue.description}. Recommendation: ${issue.recommendation}. Why it matters: ${issue.whyItMatters}`;
-    documents.push({
-      id: `doc-issue-${idx}`,
-      projectId,
-      pageUrl: issue.url,
-      contentType: 'text',
-      section: 'Pages',
-      text: issueText,
-      embedding: generateEmbedding(issueText),
+  auditIssues.forEach((issue) => {
+    const issueId = issue._id.toString();
+    const issueText = [
+      `${issue.category}: ${issue.description}`,
+      issue.whyItMatters ? `Why it matters: ${issue.whyItMatters}` : '',
+    ].filter(Boolean).join('. ');
+
+    const issueChunks = chunkText(issueText);
+    issueChunks.forEach((chunk, ci) => {
+      documents.push({
+        id: `issue-${issueId}-chunk-${ci}`,
+        projectId,
+        pageUrl: issue.url,
+        contentType: 'text',
+        contentId: issueId,
+        section: 'Pages',
+        chunkText: chunk,
+        embedding: generateEmbedding(chunk),
+      });
     });
 
-    documents.push({
-      id: `doc-action-${idx}`,
-      projectId,
-      pageUrl: issue.url,
-      contentType: 'text',
-      section: 'Action Items',
-      text: `Action Item: ${issue.recommendation || issue.description}`,
-      embedding: generateEmbedding(issue.recommendation || issue.description),
+    const actionText = issue.recommendation
+      ? `Recommendation: ${issue.recommendation}`
+      : `Action: ${issue.description}`;
+
+    const actionChunks = chunkText(actionText);
+    actionChunks.forEach((chunk, ci) => {
+      documents.push({
+        id: `action-${issueId}-chunk-${ci}`,
+        projectId,
+        pageUrl: issue.url,
+        contentType: 'text',
+        contentId: issueId,
+        section: 'Action Items',
+        chunkText: chunk,
+        embedding: generateEmbedding(chunk),
+      });
     });
   });
 
-  // 2. Index PageContent (PDFs, DOCX, XLSX, Videos, Images)
+  // 2. PageContent — index extracted text from PDFs, DOCX, PPTX, XLSX, videos
   const pageContents = jobId
     ? await PageContent.find({ crawlJobId: jobId }).lean()
     : await PageContent.find({ projectId }).lean();
 
-  pageContents.forEach((content, idx) => {
-    let contentText = `${content.contentType.toUpperCase()} from ${content.sourceUrl}. Status: ${content.extractionStatus}`;
-    if (content.extractedText) {
-      contentText += `. Extracted Text: ${content.extractedText}`;
-    }
-    if (content.extractedTables && content.extractedTables.length > 0) {
-      const tableSummary = content.extractedTables
-        .map((t: any) => `${t.sheetName || 'Table'}: ${t.headers?.join(', ')}`)
-        .join('; ');
-      contentText += `. Structured Tables: ${tableSummary}`;
-    }
-    if (content.altText) {
-      contentText += `. Alt Text: ${content.altText}`;
+  pageContents.forEach((content) => {
+    const contentId = content._id.toString();
+    const textParts: string[] = [];
+
+    if (content.extractedText && content.extractedText.trim().length > 0) {
+      textParts.push(content.extractedText.trim());
     }
 
-    documents.push({
-      id: `doc-content-${idx}`,
-      projectId,
-      pageUrl: content.pageUrl,
-      contentType: content.contentType,
-      section: 'Content',
-      text: contentText,
-      embedding: generateEmbedding(contentText),
+    if (content.extractedTables && content.extractedTables.length > 0) {
+      const tableSummary = content.extractedTables
+        .map((t: any) => `Table "${t.sheetName || 'Sheet'}": columns ${t.headers?.join(', ') ?? '(none)'}`)
+        .join('; ');
+      textParts.push(`Structured data — ${tableSummary}`);
+    }
+
+    if (content.altText && content.altText.trim().length > 0) {
+      textParts.push(`Image alt text: ${content.altText.trim()}`);
+    }
+
+    if (textParts.length === 0) return; // skip content with nothing to index
+
+    const fullText = textParts.join('\n\n');
+    const chunks = chunkText(fullText);
+
+    chunks.forEach((chunk, ci) => {
+      documents.push({
+        id: `content-${contentId}-chunk-${ci}`,
+        projectId,
+        pageUrl: content.pageUrl,
+        contentType: content.contentType,
+        contentId,
+        section: 'Content',
+        chunkText: chunk,
+        embedding: generateEmbedding(chunk),
+      });
     });
   });
 
-  // Upsert to Qdrant REST API if available
+  // Upsert to Qdrant if available (graceful fallback on connection failure)
   const hasQdrant = await ensureQdrantCollection();
-  if (hasQdrant) {
+  if (hasQdrant && documents.length > 0) {
     try {
-      const points = documents.map((doc, idx) => ({
-        id: idx + 1,
-        vector: doc.embedding,
-        payload: {
-          id: doc.id,
-          projectId: doc.projectId,
-          pageUrl: doc.pageUrl,
-          contentType: doc.contentType,
-          section: doc.section,
-          text: doc.text,
-        },
-      }));
-
-      await axios.put(`${config.QDRANT_URL.replace(/\/$/, '')}/collections/rankengine_vectors/points`, {
-        points,
-      });
+      await upsertToQdrant(documents);
     } catch (err) {
-      // Fallback silently if Qdrant call fails
+      console.warn('[VectorService] Qdrant upsert warning (falling back to in-memory):', err);
     }
   }
 
-  // Store in memory
+  // Replace (not append) existing in-memory store — ensures upsert semantics
   inMemoryVectorStore.set(projectId, documents);
 
   return documents.length;
 }
 
 /**
- * Search vector embeddings for semantically matching content scoped to project and optional section.
+ * Search indexed content for a project using cosine similarity.
+ * Optionally filter by section. Results are scoped strictly to the given projectId.
+ *
+ * @param projectId  - project to search within (no cross-project leakage)
+ * @param query      - natural language query string
+ * @param sectionFilter - optional section scope ('Content', 'Pages', 'Action Items', 'Overview', 'All')
+ * @param limit      - max results to return (default 5)
  */
-export async function searchProjectVectors(
+export async function searchProjectContent(
   projectId: string,
   query: string,
   sectionFilter?: string,
-  limit = 5
+  limit = 5,
 ): Promise<VectorSearchResult[]> {
-  let documents = inMemoryVectorStore.get(projectId);
-  if (!documents || documents.length === 0) {
-    await indexProjectContent(projectId);
-    documents = inMemoryVectorStore.get(projectId) || [];
-  }
-
+  const documents = inMemoryVectorStore.get(projectId) ?? [];
   const queryEmbedding = generateEmbedding(query);
 
   let filtered = documents;
@@ -220,12 +336,22 @@ export async function searchProjectVectors(
     id: doc.id,
     pageUrl: doc.pageUrl,
     contentType: doc.contentType,
+    contentId: doc.contentId,
     section: doc.section,
-    text: doc.text,
+    chunkText: doc.chunkText,
     score: cosineSimilarity(queryEmbedding, doc.embedding),
   }));
 
   scored.sort((a, b) => b.score - a.score);
-
   return scored.slice(0, limit);
 }
+
+/**
+ * Alias retained for backward-compat with chat.ts (which imports searchProjectVectors).
+ */
+export const searchProjectVectors = (
+  projectId: string,
+  query: string,
+  sectionFilter?: string,
+  limit?: number,
+) => searchProjectContent(projectId, query, sectionFilter, limit);

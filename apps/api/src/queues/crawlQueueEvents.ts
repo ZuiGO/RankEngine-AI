@@ -2,6 +2,8 @@ import { QueueEvents } from 'bullmq';
 import redisConnection from './redisConnection';
 import { CrawlJob } from '../models/CrawlJob';
 import { computeAndStoreHealthScore } from '../services/healthScoreService';
+import { syncProjectGraph } from '../services/graphService';
+import { indexProjectContent } from '../services/vectorService';
 
 type CrawlCompletionResult = {
   pageCount: number;
@@ -86,13 +88,30 @@ crawlQueueEvents.on('completed', async ({ jobId, returnvalue }) => {
       );
     }
 
-    await CrawlJob.findByIdAndUpdate(jobId, update);
+    const crawlJob = await CrawlJob.findByIdAndUpdate(jobId, update, { new: true });
 
     // Compute and persist the SEO Health Score from the audit issues
     try {
       await computeAndStoreHealthScore(jobId);
     } catch (hsError) {
       console.error(`Failed to compute health score for Job ${jobId}:`, hsError);
+    }
+
+    // Automatically trigger Neo4j graph sync and vector indexing for the completed project
+    if (crawlJob && crawlJob.projectId) {
+      const pid = crawlJob.projectId.toString();
+
+      try {
+        await syncProjectGraph(pid);
+      } catch (graphError) {
+        console.error(`Failed to sync project graph for Job ${jobId}:`, graphError);
+      }
+
+      try {
+        await indexProjectContent(pid);
+      } catch (vectorError) {
+        console.error(`Failed to index vector content for Job ${jobId}:`, vectorError);
+      }
     }
   } catch (error) {
     console.error(`Failed to update status to completed for Job ${jobId}:`, error);

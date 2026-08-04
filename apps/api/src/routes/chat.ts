@@ -9,11 +9,19 @@ import { searchProjectVectors } from '../services/vectorService';
 const router = Router();
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
-const chatRequestSchema = z.object({
-  question: z.string().min(1),
-  section: z.enum(['Overview', 'Pages', 'Action Items', 'Content', 'All']).optional(),
-  history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })).optional(),
-});
+const chatRequestSchema = z
+  .object({
+    question: z.string().min(1).optional(),
+    message: z.string().min(1).optional(),
+    section: z.enum(['Overview', 'Pages', 'Action Items', 'Content', 'All']).optional(),
+    history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })).optional(),
+  })
+  .transform((data) => ({
+    question: (data.question ?? data.message ?? '').trim(),
+    section: data.section,
+    history: data.history,
+  }))
+  .refine((data) => data.question.length > 0, { message: 'question or message must be a non-empty string' });
 
 const NO_DATA_RESPONSE = "I don't have any audit data for this project yet — run an audit first so I have something to work with.";
 
@@ -53,8 +61,9 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
     const safeVectorMatches = Array.isArray(vectorMatches) ? vectorMatches : [];
     const vectorContextText = safeVectorMatches.length > 0
       ? `Top Vector Search Matches (Section: ${section || 'Overview'}):\n` +
-        safeVectorMatches.map((m) => `- [${m.section} | ${m.contentType} | ${m.pageUrl}]: ${m.text}`).join('\n')
+        safeVectorMatches.map((m) => `- [${m.section} | ${m.contentType} | ${m.pageUrl}]: ${m.chunkText}`).join('\n')
       : '';
+
 
     const combinedContext = `${baseContext}\n\n${vectorContextText}`;
 

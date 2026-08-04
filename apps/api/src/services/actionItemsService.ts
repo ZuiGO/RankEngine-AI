@@ -3,6 +3,7 @@ import { CrawlJob } from '../models/CrawlJob';
 import { AuditIssue } from '../models/AuditIssue';
 import { PageContent, IPageContent } from '../models/PageContent';
 import { PendingChange } from '../models/PendingChange';
+import { findOrphanPages } from './graphService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public types
@@ -230,6 +231,29 @@ export async function getActionItems(projectId: string): Promise<ActionItem[]> {
         status: pendingStatus ?? 'open',
       });
     }
+  }
+
+  // ── 5. Integrate Graph-based Orphan Page Action Items ─────────────────────
+  try {
+    const orphanUrls = await findOrphanPages(projectId);
+    for (const orphanUrl of orphanUrls) {
+      const key = `${orphanUrl}::orphan-page`;
+      if (!existingKeys.has(key)) {
+        existingKeys.add(key);
+        const contentId = `orphan-${Buffer.from(orphanUrl).toString('hex').substring(0, 12)}`;
+        const pendingStatus = statusByIssueId.get(contentId);
+        actionItems.push({
+          contentId,
+          pageUrl: orphanUrl,
+          impactOnRanking: 'Orphan pages have zero internal links pointing to them. Search engines struggle to discover, index, and assign PageRank authority to orphan pages.',
+          identifiedIssues: 'orphan-page — Orphan page detected with no incoming internal links.',
+          howToImprove: 'Add contextual internal links pointing to this page from relevant parent or category pages.',
+          status: pendingStatus ?? 'open',
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[ActionItemsService] Failed to fetch orphan pages from graphService:', err);
   }
 
   return actionItems;

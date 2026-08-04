@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { SearchCheck, MessageSquare, Trash2, Settings, ExternalLink, Globe, FileText, Eye, LinkIcon, TrendingUp, Shield } from 'lucide-react';
+import { SearchCheck, MessageSquare, Trash2, Settings, ExternalLink, Globe, FileText, Eye, LinkIcon, TrendingUp, Shield, Network, Share2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import api from '../lib/api';
 import { Card, CardBody, Badge, Button, ScoreReveal, StatGauge, EmptyState } from '../components/ui';
 import ChatPanel from '../components/ChatPanel';
@@ -510,6 +510,17 @@ export default function ProjectDetailPage() {
   const [migrationChecklist, setMigrationChecklist] = useState<ChecklistResponse | null>(null);
 
   const [chatOpen, setChatOpen] = useState(false);
+
+  // ── Site Graph ──────────────────────────────────────────────────────────
+  const [graphOpen, setGraphOpen] = useState(false);
+  const [graphData, setGraphData] = useState<{ nodes: any[]; edges: any[] } | null>(null);
+  const [graphLoading, setGraphLoading] = useState(false);
+  const [graphSyncing, setGraphSyncing] = useState(false);
+
+  // ── Preview Verification ─────────────────────────────────────────────────
+  const [verifyOpen, setVerifyOpen] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyReport, setVerifyReport] = useState<any | null>(null);
 
   const navigate = useNavigate();
 
@@ -1083,6 +1094,273 @@ export default function ProjectDetailPage() {
         {chatOpen && (
           <div className="mt-2">
             <ChatPanel projectId={id!} />
+          </div>
+        )}
+      </div>
+
+      {/* ── Site Graph panel (collapsible) ── */}
+      <div className="mt-2">
+        <button
+          id="site-graph-toggle"
+          onClick={async () => {
+            const next = !graphOpen;
+            setGraphOpen(next);
+            if (next && !graphData && !graphLoading) {
+              setGraphLoading(true);
+              try {
+                const { data } = await api.get(`/projects/${id}/graph`);
+                setGraphData(data.graph);
+              } catch {
+                // silently ignore — graph data unavailable until first crawl
+              } finally {
+                setGraphLoading(false);
+              }
+            }
+          }}
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-app-surface border border-app-border rounded-xl hover:brightness-110 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <Network className="h-4 w-4 text-app-signal" />
+            <span className="text-sm font-semibold text-white">Site Graph</span>
+            {graphData && (
+              <span className="text-2xs text-app-text-muted">{graphData.nodes.length} nodes · {graphData.edges.length} edges</span>
+            )}
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-app-text-muted transition-transform ${graphOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {graphOpen && (
+          <div className="mt-2 bg-app-surface border border-app-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Share2 className="h-3.5 w-3.5 text-app-signal" />
+                <span className="text-xs font-semibold text-white">Page &amp; Content Relationship Graph</span>
+              </div>
+              <button
+                id="graph-sync-btn"
+                onClick={async () => {
+                  setGraphSyncing(true);
+                  try {
+                    const { data } = await api.post(`/projects/${id}/graph/sync`);
+                    setGraphData(data.graph);
+                  } catch {
+                    // ignore
+                  } finally {
+                    setGraphSyncing(false);
+                  }
+                }}
+                disabled={graphSyncing}
+                className="flex items-center gap-1.5 text-2xs text-app-signal hover:text-app-signal/80 disabled:opacity-50 transition-colors"
+              >
+                <RefreshCw className={`h-3 w-3 ${graphSyncing ? 'animate-spin' : ''}`} />
+                {graphSyncing ? 'Syncing…' : 'Sync Graph'}
+              </button>
+            </div>
+
+            {graphLoading && (
+              <div className="flex items-center justify-center h-40 text-app-text-muted text-xs gap-2">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Loading graph…
+              </div>
+            )}
+
+            {!graphLoading && !graphData && (
+              <div className="flex items-center justify-center h-32 text-app-text-muted text-xs">
+                No graph data — run an audit first.
+              </div>
+            )}
+
+            {!graphLoading && graphData && (() => {
+              const W = 620, H = 320;
+              const nodeMap = new Map<string, { x: number; y: number; data: any }>();
+              graphData.nodes.forEach((n, i) => {
+                const angle = (2 * Math.PI * i) / Math.max(graphData.nodes.length, 1);
+                nodeMap.set(n.id, { x: W / 2 + (W / 3) * Math.cos(angle), y: H / 2 + (H / 3) * Math.sin(angle), data: n });
+              });
+              // Simple spring relaxation (20 iterations)
+              for (let iter = 0; iter < 20; iter++) {
+                const forces = new Map<string, { fx: number; fy: number }>();
+                nodeMap.forEach((_, id) => forces.set(id, { fx: 0, fy: 0 }));
+                // Repulsion
+                const nodeArr = Array.from(nodeMap.entries());
+                for (let a = 0; a < nodeArr.length; a++) {
+                  for (let b = a + 1; b < nodeArr.length; b++) {
+                    const [idA, nA] = nodeArr[a];
+                    const [idB, nB] = nodeArr[b];
+                    const dx = nA.x - nB.x, dy = nA.y - nB.y;
+                    const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+                    const rep = 3500 / (dist * dist);
+                    forces.get(idA)!.fx += (dx / dist) * rep;
+                    forces.get(idA)!.fy += (dy / dist) * rep;
+                    forces.get(idB)!.fx -= (dx / dist) * rep;
+                    forces.get(idB)!.fy -= (dy / dist) * rep;
+                  }
+                }
+                // Attraction along edges
+                graphData.edges.forEach((e) => {
+                  const s = nodeMap.get(e.source), t = nodeMap.get(e.target);
+                  if (!s || !t) return;
+                  const dx = t.x - s.x, dy = t.y - s.y;
+                  const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+                  const att = dist / 120;
+                  forces.get(e.source)!.fx += (dx / dist) * att;
+                  forces.get(e.source)!.fy += (dy / dist) * att;
+                  forces.get(e.target)!.fx -= (dx / dist) * att;
+                  forces.get(e.target)!.fy -= (dy / dist) * att;
+                });
+                nodeMap.forEach((node, id) => {
+                  const f = forces.get(id)!;
+                  node.x = Math.max(20, Math.min(W - 20, node.x + f.fx * 0.1));
+                  node.y = Math.max(20, Math.min(H - 20, node.y + f.fy * 0.1));
+                });
+              }
+              // Detect orphan node IDs (page nodes with zero incoming LINKS_TO edges)
+              const incomingLinks = new Set(graphData.edges.filter((e: any) => e.type === 'LINKS_TO').map((e: any) => e.target));
+              return (
+                <div className="overflow-x-auto">
+                  <svg width={W} height={H} className="rounded-lg bg-app-base border border-app-border">
+                    {/* Edge lines */}
+                    {graphData.edges.map((edge: any) => {
+                      const s = nodeMap.get(edge.source);
+                      const t = nodeMap.get(edge.target);
+                      if (!s || !t) return null;
+                      const isLink = edge.type === 'LINKS_TO';
+                      return (
+                        <line
+                          key={edge.id}
+                          x1={s.x} y1={s.y} x2={t.x} y2={t.y}
+                          stroke={isLink ? '#6366f1' : '#374151'}
+                          strokeWidth={isLink ? 1.5 : 1}
+                          strokeDasharray={edge.type === 'CONTAINS' ? '4 3' : undefined}
+                          strokeOpacity={0.6}
+                        />
+                      );
+                    })}
+                    {/* Nodes */}
+                    {Array.from(nodeMap.entries()).map(([nodeId, { x, y, data }]) => {
+                      const isPage = data.type === 'Page';
+                      const isOrphan = isPage && !incomingLinks.has(nodeId);
+                      const fill = isOrphan ? '#ef4444' : isPage ? '#6366f1' : '#f59e0b';
+                      const label = data.label.length > 28 ? data.label.slice(-28) : data.label;
+                      return (
+                        <g key={nodeId}>
+                          <circle cx={x} cy={y} r={isPage ? 8 : 5} fill={fill} fillOpacity={0.85} />
+                          <text x={x} y={y + (isPage ? 18 : 13)} textAnchor="middle" fontSize={8} fill="#9ca3af" fontFamily="monospace">
+                            {label}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                  <div className="flex items-center gap-4 mt-2 text-2xs text-app-text-muted">
+                    <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500" /> Page</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500" /> Content</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500" /> Orphan Page</span>
+                    <span className="flex items-center gap-1 ml-auto"><span className="inline-block w-4 border-t border-indigo-500" /> LINKS_TO</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 border-t border-dashed border-gray-600" /> CONTAINS</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+      </div>
+
+      {/* ── Pre-Publish Verify panel (collapsible) ── */}
+      <div className="mt-2">
+        <button
+          id="preview-verify-toggle"
+          onClick={() => setVerifyOpen((o) => !o)}
+          className="w-full flex items-center justify-between px-5 py-3.5 bg-app-surface border border-app-border rounded-xl hover:brightness-110 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <Shield className="h-4 w-4 text-app-signal" />
+            <span className="text-sm font-semibold text-white">Pre-Publish Verify</span>
+            {verifyReport && (
+              <span className={`text-2xs font-medium ${verifyReport.status === 'passed' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {verifyReport.status === 'passed' ? '✓ Passed' : '✗ Failed'}
+              </span>
+            )}
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-app-text-muted transition-transform ${verifyOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {verifyOpen && (
+          <div className="mt-2 bg-app-surface border border-app-border rounded-xl p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-xs text-app-text-muted leading-relaxed">
+                Scans all <strong className="text-white">approved</strong> action items for broken links and image sources before publishing them to your site.
+              </p>
+              <button
+                id="run-verify-btn"
+                onClick={async () => {
+                  setVerifyLoading(true);
+                  setVerifyReport(null);
+                  try {
+                    const { data } = await api.post('/pending-changes/verify', { projectId: id });
+                    setVerifyReport(data.report);
+                  } catch (err: any) {
+                    setVerifyReport({ status: 'error', error: err?.response?.data?.error || 'Verification failed' });
+                  } finally {
+                    setVerifyLoading(false);
+                  }
+                }}
+                disabled={verifyLoading}
+                className="flex-shrink-0 flex items-center gap-1.5 bg-app-signal/10 border border-app-signal/30 hover:bg-app-signal/20 disabled:opacity-50 text-app-signal text-xs font-medium px-3.5 py-2 rounded-lg transition-all"
+              >
+                {verifyLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
+                {verifyLoading ? 'Verifying…' : 'Run Verification'}
+              </button>
+            </div>
+
+            {verifyReport && verifyReport.status !== 'error' && (
+              <div className={`rounded-xl border p-3 space-y-2 ${
+                verifyReport.status === 'passed'
+                  ? 'border-emerald-500/30 bg-emerald-500/5'
+                  : 'border-rose-500/30 bg-rose-500/5'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {verifyReport.status === 'passed'
+                    ? <CheckCircle className="h-4 w-4 text-emerald-400" />
+                    : <XCircle className="h-4 w-4 text-rose-400" />}
+                  <span className={`text-sm font-semibold ${
+                    verifyReport.status === 'passed' ? 'text-emerald-400' : 'text-rose-400'
+                  }`}>
+                    {verifyReport.status === 'passed' ? 'All Clear — Safe to Publish' : 'Issues Found — Do Not Publish'}
+                  </span>
+                </div>
+                <div className="flex gap-4 text-2xs text-app-text-muted">
+                  <span>Verified: <strong className="text-white">{verifyReport.verifiedChangesCount}</strong> changes</span>
+                  <span>Applied: <strong className="text-emerald-400">{verifyReport.appliedCount}</strong></span>
+                  {verifyReport.issues?.length > 0 && (
+                    <span>Issues: <strong className="text-rose-400">{verifyReport.issues.length}</strong></span>
+                  )}
+                </div>
+                {verifyReport.issues && verifyReport.issues.length > 0 && (
+                  <div className="mt-2 space-y-1.5">
+                    {verifyReport.issues.map((issue: any, i: number) => (
+                      <div key={i} className="bg-app-base border border-rose-500/20 rounded-lg px-3 py-2 text-2xs">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-semibold text-rose-400 uppercase tracking-wider">{issue.issueType.replace('_', ' ')}</span>
+                          <span className="text-app-text-muted truncate">{issue.url}</span>
+                        </div>
+                        <p className="text-app-text-muted">{issue.details}</p>
+                        {issue.targetUrl && (
+                          <p className="text-app-text-muted mt-0.5">Target: <span className="font-mono text-rose-300">{issue.targetUrl}</span></p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {verifyReport?.status === 'error' && (
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-3 rounded-lg">
+                {verifyReport.error}
+              </div>
+            )}
           </div>
         )}
       </div>

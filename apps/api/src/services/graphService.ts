@@ -1,4 +1,4 @@
-import axios from 'axios';
+import neo4j, { Driver, Session } from 'neo4j-driver';
 import mongoose from 'mongoose';
 import config from '../config';
 import { AuditIssue } from '../models/AuditIssue';
@@ -17,7 +17,7 @@ export interface GraphEdge {
   id: string;
   source: string;
   target: string;
-  type: 'HAS_CONTENT' | 'LINKS_TO';
+  type: 'HAS_CONTENT' | 'CONTAINS' | 'LINKS_TO';
 }
 
 export interface ProjectGraphData {
@@ -26,37 +26,23 @@ export interface ProjectGraphData {
   edges: GraphEdge[];
 }
 
+export let driver: Driver;
+
+try {
+  driver = neo4j.driver(
+    config.NEO4J_URI || 'bolt://localhost:7687',
+    neo4j.auth.basic(config.NEO4J_USER || 'neo4j', config.NEO4J_PASSWORD || 'rankengine_password')
+  );
+} catch (err) {
+  console.warn('[GraphService] Failed to initialize Neo4j driver:', err);
+}
+
 // In-memory graph store fallback for test/offline environments
 const inMemoryGraphStore = new Map<string, ProjectGraphData>();
 
 /**
- * Execute Cypher query against Neo4j REST API or fallback to in-memory store.
- */
-async function executeCypher(statements: Array<{ statement: string; parameters?: any }>): Promise<any> {
-  const authHeader = 'Basic ' + Buffer.from(`${config.NEO4J_USER}:${config.NEO4J_PASSWORD}`).toString('base64');
-  const neo4jHttpUrl = config.NEO4J_URI.replace('bolt://', 'http://').replace('7687', '7474') + '/db/neo4j/tx/commit';
-
-  try {
-    const response = await axios.post(
-      neo4jHttpUrl,
-      { statements },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: authHeader,
-        },
-        timeout: 3000,
-      }
-    );
-    return response.data;
-  } catch (err: any) {
-    // If Neo4j container is not running, log once and allow fallback
-    return null;
-  }
-}
-
-/**
  * Synchronize project pages and PageContent items from MongoDB into Neo4j graph representation.
+ * Uses MERGE to ensure re-running a sync updates rather than duplicates nodes/relationships.
  */
 export async function syncProjectGraph(projectId: string): Promise<ProjectGraphData> {
   if (!mongoose.Types.ObjectId.isValid(projectId)) {
@@ -67,7 +53,7 @@ export async function syncProjectGraph(projectId: string): Promise<ProjectGraphD
   const jobId = latestJob ? latestJob._id : null;
 
   const pageIssues = jobId
-    ? await AuditIssue.find({ crawlJobId: jobId }).select('url category severity').lean()
+    ? await AuditIssue.find({ crawlJobId: jobId }).select('url category severity outboundLinks').lean()
     : [];
 
   const pageContents = jobId
@@ -84,9 +70,9 @@ export async function syncProjectGraph(projectId: string): Promise<ProjectGraphD
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
 
-  // Create Page Nodes
+  // 1. Merge Page Nodes
   uniquePageUrls.forEach((url, idx) => {
-    const pageId = `page-${idx}`;
+    const pageId = `page-${url}`;
     nodes.push({
       id: pageId,
       label: url,
@@ -95,9 +81,9 @@ export async function syncProjectGraph(projectId: string): Promise<ProjectGraphD
     });
   });
 
-  // Create Content Nodes & HAS_CONTENT Edges
-  pageContents.forEach((c, idx) => {
-    const contentId = `content-${idx}`;
+  // 2. Merge Content Nodes & CONTAINS Relationships
+  pageContents.forEach((c) => {
+    const contentId = `content-${c.sourceUrl}`;
     nodes.push({
       id: contentId,
       label: `${c.contentType.toUpperCase()}: ${c.sourceUrl}`,
@@ -109,59 +95,115 @@ export async function syncProjectGraph(projectId: string): Promise<ProjectGraphD
     const parentPageNode = nodes.find((n) => n.type === 'Page' && n.url === c.pageUrl);
     if (parentPageNode) {
       edges.push({
-        id: `edge-content-${idx}`,
+        id: `contains-${parentPageNode.url}->${c.sourceUrl}`,
         source: parentPageNode.id,
         target: contentId,
-        type: 'HAS_CONTENT',
+        type: 'CONTAINS',
       });
     }
   });
 
-  // Add inter-page LINKS_TO edges (sample link relationships across discovered pages)
-  const pageNodes = nodes.filter((n) => n.type === 'Page');
-  if (pageNodes.length > 1) {
-    for (let i = 0; i < pageNodes.length - 1; i++) {
-      edges.push({
-        id: `edge-link-${i}`,
-        source: pageNodes[i].id,
-        target: pageNodes[i + 1].id,
-        type: 'LINKS_TO',
+  // 3. Process LINKS_TO relationships from outboundLinks field if present
+  let hasOutboundLinks = false;
+  pageIssues.forEach((issue: any) => {
+    if (issue.outboundLinks && Array.isArray(issue.outboundLinks) && issue.outboundLinks.length > 0) {
+      hasOutboundLinks = true;
+      issue.outboundLinks.forEach((targetUrl: string) => {
+        const fromNode = nodes.find((n) => n.type === 'Page' && n.url === issue.url);
+        const toNode = nodes.find((n) => n.type === 'Page' && n.url === targetUrl);
+        if (fromNode && toNode) {
+          edges.push({
+            id: `link-${fromNode.url}->${toNode.url}`,
+            source: fromNode.id,
+            target: toNode.id,
+            type: 'LINKS_TO',
+          });
+        }
       });
     }
+  });
+
+  if (!hasOutboundLinks) {
+    console.log('[GraphSync] outboundLinks missing for crawl data, skipping LINKS_TO relationship creation');
   }
+
+  // Deduplicate nodes & edges for in-memory graph view
+  const uniqueNodesMap = new Map<string, GraphNode>();
+  nodes.forEach((n) => uniqueNodesMap.set(n.id, n));
+  const uniqueNodes = Array.from(uniqueNodesMap.values());
+
+  const uniqueEdgesMap = new Map<string, GraphEdge>();
+  edges.forEach((e) => uniqueEdgesMap.set(e.id, e));
+  const uniqueEdges = Array.from(uniqueEdgesMap.values());
 
   const graphData: ProjectGraphData = {
     projectId,
-    nodes,
-    edges,
+    nodes: uniqueNodes,
+    edges: uniqueEdges,
   };
 
-  // Upsert into Neo4j via Cypher statements
-  const cypherStatements = [
-    {
-      statement: `MATCH (n:Page {projectId: $projectId}) DETACH DELETE n`,
-      parameters: { projectId },
-    },
-    ...nodes.map((node) => ({
-      statement: `CREATE (n:${node.type} {id: $id, label: $label, url: $url, projectId: $projectId})`,
-      parameters: { ...node, projectId },
-    })),
-    ...edges.map((edge) => ({
-      statement: `MATCH (a {id: $source}), (b {id: $target}) CREATE (a)-[r:${edge.type}]->(b)`,
-      parameters: { source: edge.source, target: edge.target },
-    })),
-  ];
+  // Run Neo4j Cypher MERGE queries via driver if driver/session is available
+  if (driver) {
+    let session: Session | null = null;
+    try {
+      session = driver.session();
 
-  await executeCypher(cypherStatements);
+      // MERGE Page nodes
+      for (const node of uniqueNodes.filter((n) => n.type === 'Page')) {
+        await session.run(
+          `MERGE (p:Page {url: $url}) SET p.projectId = $projectId`,
+          { url: node.url, projectId }
+        );
+      }
 
-  // Store in memory for instant local retrieval
+      // MERGE Content nodes & CONTAINS relationships
+      for (const contentNode of uniqueNodes.filter((n) => n.type === 'Content')) {
+        const parentEdge = uniqueEdges.find((e) => e.target === contentNode.id && e.type === 'CONTAINS');
+        const parentUrl = parentEdge ? parentEdge.source.replace('page-', '') : '';
+
+        await session.run(
+          `MERGE (c:Content {sourceUrl: $sourceUrl})
+           SET c.contentType = $contentType, c.projectId = $projectId
+           WITH c
+           MATCH (p:Page {url: $parentUrl})
+           MERGE (p)-[:CONTAINS]->(c)`,
+          {
+            sourceUrl: contentNode.url,
+            contentType: contentNode.contentType || 'unknown',
+            parentUrl,
+            projectId,
+          }
+        );
+      }
+
+      // MERGE LINKS_TO relationships
+      for (const linkEdge of uniqueEdges.filter((e) => e.type === 'LINKS_TO')) {
+        const fromUrl = linkEdge.source.replace('page-', '');
+        const toUrl = linkEdge.target.replace('page-', '');
+
+        await session.run(
+          `MATCH (a:Page {url: $fromUrl}), (b:Page {url: $toUrl})
+           MERGE (a)-[:LINKS_TO]->(b)`,
+          { fromUrl, toUrl }
+        );
+      }
+    } catch (err: any) {
+      console.warn('[GraphSync] Neo4j session execution warning:', err?.message || err);
+    } finally {
+      if (session) {
+        await session.close();
+      }
+    }
+  }
+
+  // Cache in-memory for fast API responses
   inMemoryGraphStore.set(projectId, graphData);
 
   return graphData;
 }
 
 /**
- * Retrieve project graph representation (from Neo4j or cached in-memory store).
+ * Retrieve project graph representation.
  */
 export async function getProjectGraph(projectId: string): Promise<ProjectGraphData> {
   const existing = inMemoryGraphStore.get(projectId);
@@ -169,4 +211,46 @@ export async function getProjectGraph(projectId: string): Promise<ProjectGraphDa
     return existing;
   }
   return await syncProjectGraph(projectId);
+}
+
+/**
+ * Query graph layer for orphan pages (crawled pages with zero incoming LINKS_TO relationships).
+ * Excludes the homepage (e.g. root '/' or 'https://domain/'), which legitimately has zero inbound internal links.
+ */
+export async function findOrphanPages(projectId: string): Promise<string[]> {
+  const existing = inMemoryGraphStore.get(projectId);
+  if (!existing) {
+    return [];
+  }
+  const graph = existing;
+  const orphanUrls: string[] = [];
+
+  const pageNodes = graph.nodes.filter((n) => n.type === 'Page');
+
+  for (const page of pageNodes) {
+    const url = page.url;
+
+    // Exclude homepage
+    try {
+      const parsed = new URL(url);
+      if (parsed.pathname === '/' || parsed.pathname === '') {
+        continue;
+      }
+    } catch {
+      if (url === '/' || url === '' || url.endsWith('.com') || url.endsWith('.org') || url.endsWith('.io')) {
+        continue;
+      }
+    }
+
+    // Check incoming LINKS_TO edges
+    const hasIncomingLink = graph.edges.some(
+      (e) => e.type === 'LINKS_TO' && e.target === page.id
+    );
+
+    if (!hasIncomingLink) {
+      orphanUrls.push(url);
+    }
+  }
+
+  return orphanUrls;
 }
