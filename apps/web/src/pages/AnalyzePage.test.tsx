@@ -182,4 +182,81 @@ describe('AnalyzePage — Content Inventory & Unified Action Items (Phase 2)', (
       expect(screen.getByTestId('type-indicator-content-issue-2')).toHaveTextContent(/content/i);
     });
   });
+
+  it('Test 4: selects the Pages section tab, uses the chat panel, and asserts section: "Pages" is sent in the API request', async () => {
+    mockedApi.post.mockImplementation(async (url: string) => {
+      if (url.includes('/chat')) {
+        return { data: { answer: 'Pages section AI answer' } };
+      }
+      return { data: {} };
+    });
+
+    render(
+      <MemoryRouter>
+        <AnalyzePage initialProjectId="proj-123" />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('section-tab-pages')).toBeInTheDocument();
+    });
+
+    // Click onto Pages section tab
+    fireEvent.click(screen.getByTestId('section-tab-pages'));
+
+    // Assert ChatPanel active section indicator shows Pages
+    await waitFor(() => {
+      expect(screen.getByTestId('chat-active-section-indicator')).toHaveTextContent(/pages/i);
+    });
+
+    // Type question in chat input and send
+    const input = screen.getByPlaceholderText(/ask about/i);
+    fireEvent.change(input, { target: { value: 'What issues are on my pages?' } });
+    fireEvent.click(screen.getByTestId('send-chat-btn'));
+
+    await waitFor(() => {
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        expect.stringContaining('/chat'),
+        expect.objectContaining({
+          question: 'What issues are on my pages?',
+          section: 'Pages',
+        })
+      );
+    });
+  });
+
+  it('Test 5: renders approval flow with mock preview-check warning and asserts warning displays before confirm action', async () => {
+    mockedApi.post.mockImplementation(async (url: string) => {
+      if (url.includes('/approve')) {
+        return {
+          data: {
+            success: true,
+            previewWarning: ['Target link "https://example.com/404" returned 404 Not Found during preview crawl'],
+          },
+        };
+      }
+      return { data: {} };
+    });
+
+    render(
+      <MemoryRouter>
+        <AnalyzePage initialProjectId="proj-123" />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('approve-btn-issue-1')).toBeInTheDocument();
+    });
+
+    // Click Approve on an action item
+    fireEvent.click(screen.getByTestId('approve-btn-issue-1'));
+
+    // Assert the preview warning banner is displayed BEFORE the final confirm button is clicked
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-warning-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('preview-warning-banner')).toHaveTextContent(/404 Not Found/i);
+      expect(screen.getByTestId('confirm-publish-btn')).toBeInTheDocument();
+    });
+  });
 });
+

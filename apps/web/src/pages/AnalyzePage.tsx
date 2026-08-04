@@ -19,7 +19,7 @@ import {
   Layers,
 } from 'lucide-react';
 import api from '../lib/api';
-import { Card, Badge, Button, EmptyState } from '../components/ui';
+import { Card, Badge, Button } from '../components/ui';
 import ChatPanel from '../components/ChatPanel';
 
 // ─── Interfaces matching backend API ─────────────────────────────────────────
@@ -102,6 +102,103 @@ function displayDomain(raw: string): string {
     .replace(/\/$/, '');
 }
 
+// ─── Pre-populated Sample Demo Site Report ──────────────────────────────────
+
+const SAMPLE_DEMO_REPORT: SiteReportData = {
+  report: {
+    projectId: 'demo-sample-project',
+    generatedAt: new Date().toISOString(),
+    counts: {
+      pageCount: 18,
+      totalLinks: 142,
+      totalHyperlinks: 120,
+      internalLinks: 86,
+      backlinkCount: 340,
+      pdfCount: 4,
+      videoCount: 2,
+      imageCount: 28,
+      documentCount: 6,
+    },
+    pages: [
+      {
+        url: 'https://example-demo.com/blog/technical-seo-guide',
+        issues: [
+          { severity: 'critical', category: 'seo-title', description: 'Missing H1 heading tag and duplicate title tag' },
+          { severity: 'warning', category: 'canonical', description: 'Canonical URL points to non-HTTPS scheme' },
+          { severity: 'passed', category: 'meta-description', description: 'Meta description present (154 characters)' },
+        ],
+        content: [
+          {
+            contentType: 'pdf',
+            sourceUrl: 'https://example-demo.com/assets/seo-cheat-sheet.pdf',
+            extractionStatus: 'success',
+            extractedText: 'Comprehensive Technical SEO Checklist 2026 for Enterprise Web Applications.',
+            extractedTables: [
+              {
+                sheetName: 'Ranking Factors',
+                headers: ['Factor', 'Impact Score', 'Optimization Priority'],
+                rows: [
+                  ['Page Speed (LCP)', 'High', 'Crucial'],
+                  ['Internal Link Hierarchy', 'High', 'Important'],
+                  ['Structured Data Schema', 'Medium', 'Recommended'],
+                ],
+              },
+            ],
+          },
+          {
+            contentType: 'video',
+            sourceUrl: 'https://example-demo.com/videos/product-overview.mp4',
+            hasTranscript: true,
+            extractionStatus: 'success',
+            extractedText: 'Transcript: Welcome to RankEngine AI single-pipeline automated site analysis demo.',
+          },
+        ],
+      },
+      {
+        url: 'https://example-demo.com/products/rank-tracker',
+        issues: [
+          { severity: 'critical', category: 'orphan-page', description: 'Orphan page detected in Neo4j Graph — zero internal incoming links' },
+          { severity: 'warning', category: 'image-alt', description: '3 images missing descriptive alt tags' },
+        ],
+        content: [
+          {
+            contentType: 'image',
+            sourceUrl: 'https://example-demo.com/images/dashboard-hero.png',
+            altText: 'RankEngine AI Dashboard Mockup',
+            extractionStatus: 'success',
+          },
+        ],
+      },
+    ],
+  },
+  actionItems: [
+    {
+      contentId: 'action-orphan-101',
+      pageUrl: 'https://example-demo.com/products/rank-tracker',
+      impactOnRanking: 'Crucial internal page indexability boost',
+      identifiedIssues: 'orphan-page — Graph DB detected 0 incoming internal links',
+      howToImprove: 'Add contextual internal links from blog and header navigation',
+      status: 'proposed',
+    },
+    {
+      contentId: 'action-pdf-102',
+      pageUrl: 'https://example-demo.com/blog/technical-seo-guide',
+      impactOnRanking: 'Indexable PDF table content keyword signals',
+      identifiedIssues: 'pdf-table — PDF contains unindexed tabular keyword data',
+      howToImprove: 'Convert PDF ranking factor table into HTML table on target page',
+      status: 'proposed',
+    },
+    {
+      contentId: 'action-title-103',
+      pageUrl: 'https://example-demo.com/blog/technical-seo-guide',
+      impactOnRanking: 'Primary search engine ranking title tag',
+      identifiedIssues: 'seo-title — H1 heading tag missing',
+      howToImprove: 'Add <h1>Technical SEO Guide 2026</h1> to main template',
+      status: 'proposed',
+    },
+  ],
+};
+
 // ─── Main AnalyzePage Component ──────────────────────────────────────────────
 
 export default function AnalyzePage({ initialProjectId }: { initialProjectId?: string } = {}) {
@@ -117,11 +214,27 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
   const [errorMsg, setErrorMsg] = useState('');
 
   const [reportData, setReportData] = useState<SiteReportData | null>(null);
+  const [activeSection, setActiveSection] = useState<'Overview' | 'Pages' | 'Action Items' | 'Content' | 'All'>('Overview');
+  const [pendingApprovalWarning, setPendingApprovalWarning] = useState<{
+    contentId: string;
+    warnings: string[];
+  } | null>(null);
+
   const [expandedPages, setExpandedPages] = useState<Record<string, boolean>>({});
   const [expandedContentItems, setExpandedContentItems] = useState<Record<string, boolean>>({});
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleLoadDemoReport = () => {
+    setInputUrl('https://example-demo.com');
+    setProjectId('demo-sample-project');
+    setReportData(SAMPLE_DEMO_REPORT);
+    setErrorMsg('');
+    setActiveJob(null);
+    setExpandedPages({ 'https://example-demo.com/blog/technical-seo-guide': true, 'https://example-demo.com/products/rank-tracker': true });
+    setExpandedContentItems({ 'https://example-demo.com/blog/technical-seo-guide-content-0': true });
+  };
 
   // Synchronize routeProjectId with local state
   useEffect(() => {
@@ -271,13 +384,24 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
   };
 
   // ── Action item approval / rejection handlers ──
-  const handleApproveAction = async (contentId: string) => {
+  const handleApproveAction = async (contentId: string, skipWarningCheck = false) => {
     try {
-      if (projectId) {
-        await api.post(`/projects/${projectId}/pending-changes/${contentId}/approve`);
-      } else {
-        await api.post(`/pending-changes/${contentId}/approve`);
+      const endpoint = projectId
+        ? `/projects/${projectId}/pending-changes/${contentId}/approve`
+        : `/pending-changes/${contentId}/approve`;
+      const res = await api.post<any>(endpoint);
+      const data = res?.data || {};
+
+      if (!skipWarningCheck && data.previewWarning && Array.isArray(data.previewWarning) && data.previewWarning.length > 0) {
+        // Display preview verification warning before final publish confirmation!
+        setPendingApprovalWarning({
+          contentId,
+          warnings: data.previewWarning,
+        });
+        return;
       }
+
+      setPendingApprovalWarning(null);
       setReportData((prev) => {
         if (!prev) return null;
         return {
@@ -369,6 +493,17 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
               </>
             )}
           </button>
+
+          <button
+            type="button"
+            id="try-demo-btn"
+            data-testid="try-demo-btn"
+            onClick={handleLoadDemoReport}
+            className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold text-sm hover:bg-emerald-500/20 transition-all"
+          >
+            <Layers className="h-4 w-4" />
+            Try Demo Site
+          </button>
         </form>
 
         {errorMsg && (
@@ -406,17 +541,33 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
       )}
 
       {/* ── No Audit Completed State ── */}
-      {!loadingReport && !reportData && projectId && !activeJob && (
-        <EmptyState
-          icon={<FileText className="h-8 w-8" />}
-          title="No Audit Report Ready"
-          description="Run an automated site audit to scan your pages, extract issue metrics, and build action items."
-          action={
-            <Button id="run-audit-btn" onClick={handleRunAudit} className="rounded-xl py-2.5 px-5">
-              Run Audit Now
-            </Button>
-          }
-        />
+      {!loadingReport && !reportData && !activeJob && (
+        <Card className="p-8 text-center space-y-4 border-app-border bg-app-surface/50">
+          <div className="mx-auto h-12 w-12 rounded-full bg-app-signal/10 border border-app-signal/20 flex items-center justify-center text-app-signal">
+            <FileText className="h-6 w-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white">No Audit Report Ready</h3>
+            <p className="text-xs text-app-text-muted mt-1 max-w-md mx-auto">
+              Enter a website URL above to trigger a fresh automated audit, or click below to explore an instant demo report with extracted PDF tables, video transcripts, and orphan page graph checks.
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            {projectId && (
+              <Button id="run-audit-btn" onClick={handleRunAudit} className="rounded-xl py-2.5 px-5 text-xs">
+                Run Audit Now
+              </Button>
+            )}
+            <button
+              id="try-demo-state-btn"
+              data-testid="try-demo-state-btn"
+              onClick={handleLoadDemoReport}
+              className="px-5 py-2.5 bg-emerald-500 text-black font-bold rounded-xl text-xs hover:bg-emerald-400 transition-colors shadow-md"
+            >
+              Load Instant Demo Site Report
+            </button>
+          </div>
+        </Card>
       )}
 
       {/* ── Consolidated Report View ── */}
@@ -427,45 +578,98 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
           transition={{ duration: 0.3 }}
           className="space-y-8"
         >
-          {/* SECTION 1: Overview (5 Counts Stat Row) */}
-          <div id="overview-section" data-testid="overview-section">
-            <h2 className="text-base font-bold font-display text-white mb-3 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-app-signal" />
-              Report Overview
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              <Card className="p-4 bg-app-surface border-app-border">
-                <p className="text-2xs text-app-text-muted uppercase font-semibold">Total Pages</p>
-                <p className="text-xl font-bold text-white mt-1 tabular-nums">
-                  {reportData.report.counts.pageCount.toLocaleString()}
-                </p>
-              </Card>
-              <Card className="p-4 bg-app-surface border-app-border">
-                <p className="text-2xs text-app-text-muted uppercase font-semibold">Total Links</p>
-                <p className="text-xl font-bold text-white mt-1 tabular-nums">
-                  {reportData.report.counts.totalLinks.toLocaleString()}
-                </p>
-              </Card>
-              <Card className="p-4 bg-app-surface border-app-border">
-                <p className="text-2xs text-app-text-muted uppercase font-semibold">Hyperlinks</p>
-                <p className="text-xl font-bold text-white mt-1 tabular-nums">
-                  {reportData.report.counts.totalHyperlinks.toLocaleString()}
-                </p>
-              </Card>
-              <Card className="p-4 bg-app-surface border-app-border">
-                <p className="text-2xs text-app-text-muted uppercase font-semibold">Internal Links</p>
-                <p className="text-xl font-bold text-white mt-1 tabular-nums">
-                  {reportData.report.counts.internalLinks.toLocaleString()}
-                </p>
-              </Card>
-              <Card className="p-4 bg-app-surface border-app-border">
-                <p className="text-2xs text-app-text-muted uppercase font-semibold">Backlinks</p>
-                <p className="text-xl font-bold text-indigo-400 mt-1 tabular-nums">
-                  {reportData.report.counts.backlinkCount.toLocaleString()}
-                </p>
-              </Card>
-            </div>
+          {/* Section Navigation Tabs for Auto-Scoping Chat Context */}
+          <div className="flex items-center gap-2 border-b border-app-border pb-3" data-testid="report-section-tabs">
+            {(['Overview', 'Pages', 'Action Items', 'Content', 'All'] as const).map((sec) => (
+              <button
+                key={sec}
+                data-testid={`section-tab-${sec.toLowerCase().replace(/\s+/g, '-')}`}
+                onClick={() => setActiveSection(sec)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  activeSection === sec
+                    ? 'bg-app-signal text-app-base shadow-sm'
+                    : 'bg-app-surface border border-app-border text-app-text-muted hover:text-white'
+                }`}
+              >
+                {sec}
+              </button>
+            ))}
           </div>
+
+          {/* Pre-Publish Preview Verification Warning Banner (surfaced before final confirm publish action) */}
+          {pendingApprovalWarning && (
+            <Card data-testid="preview-warning-banner" className="p-4 bg-amber-950/60 border border-amber-500/40 space-y-3">
+              <div className="flex items-center gap-2 text-amber-400 font-semibold text-xs">
+                <AlertTriangle className="h-4 w-4" />
+                Pre-Publish Preview Verification Warnings
+              </div>
+              <p className="text-xs text-amber-200/80">
+                The targeted preview crawl detected potential issues before publishing:
+              </p>
+              <ul className="text-xs text-amber-200/90 list-disc pl-5 space-y-1 font-mono">
+                {pendingApprovalWarning.warnings.map((w, idx) => (
+                  <li key={idx}>{w}</li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-2 pt-2 border-t border-amber-500/20">
+                <button
+                  data-testid="confirm-publish-btn"
+                  onClick={() => handleApproveAction(pendingApprovalWarning.contentId, true)}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-xs transition-colors shadow-sm"
+                >
+                  Confirm & Publish Anyway
+                </button>
+                <button
+                  onClick={() => setPendingApprovalWarning(null)}
+                  className="px-3.5 py-1.5 bg-app-base border border-app-border text-app-text-muted rounded-lg text-xs hover:text-white"
+                >
+                  Cancel
+                </button>
+              </div>
+            </Card>
+          )}
+
+          {/* SECTION 1: Overview (5 Counts Stat Row) */}
+          {(activeSection === 'Overview' || activeSection === 'All') && (
+            <div id="overview-section" data-testid="overview-section">
+              <h2 className="text-base font-bold font-display text-white mb-3 flex items-center gap-2">
+                <Layers className="h-4 w-4 text-app-signal" />
+                Report Overview
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <Card className="p-4 bg-app-surface border-app-border">
+                  <p className="text-2xs text-app-text-muted uppercase font-semibold">Total Pages</p>
+                  <p className="text-xl font-bold text-white mt-1 tabular-nums">
+                    {reportData.report.counts.pageCount.toLocaleString()}
+                  </p>
+                </Card>
+                <Card className="p-4 bg-app-surface border-app-border">
+                  <p className="text-2xs text-app-text-muted uppercase font-semibold">Total Links</p>
+                  <p className="text-xl font-bold text-white mt-1 tabular-nums">
+                    {reportData.report.counts.totalLinks.toLocaleString()}
+                  </p>
+                </Card>
+                <Card className="p-4 bg-app-surface border-app-border">
+                  <p className="text-2xs text-app-text-muted uppercase font-semibold">Hyperlinks</p>
+                  <p className="text-xl font-bold text-white mt-1 tabular-nums">
+                    {reportData.report.counts.totalHyperlinks.toLocaleString()}
+                  </p>
+                </Card>
+                <Card className="p-4 bg-app-surface border-app-border">
+                  <p className="text-2xs text-app-text-muted uppercase font-semibold">Internal Links</p>
+                  <p className="text-xl font-bold text-white mt-1 tabular-nums">
+                    {reportData.report.counts.internalLinks.toLocaleString()}
+                  </p>
+                </Card>
+                <Card className="p-4 bg-app-surface border-app-border">
+                  <p className="text-2xs text-app-text-muted uppercase font-semibold">Backlinks</p>
+                  <p className="text-xl font-bold text-indigo-400 mt-1 tabular-nums">
+                    {reportData.report.counts.backlinkCount.toLocaleString()}
+                  </p>
+                </Card>
+              </div>
+            </div>
+          )}
 
           {/* SECTION 2: Pages (Expandable List with Issues) */}
           <div id="pages-section" data-testid="pages-section">
@@ -697,6 +901,9 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                 </thead>
                 <tbody className="divide-y divide-app-border">
                   {reportData.actionItems.map((item) => {
+                    const isOrphanIssue =
+                      item.identifiedIssues.toLowerCase().includes('orphan') ||
+                      item.identifiedIssues.startsWith('orphan-');
                     const isContentIssue =
                       item.identifiedIssues.startsWith('pdf-') ||
                       item.identifiedIssues.startsWith('video-') ||
@@ -716,7 +923,11 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
                         </td>
                         <td className="px-4 py-3 font-medium text-white max-w-[200px]">
                           <div className="flex items-center gap-1.5 mb-1">
-                            {isContentIssue ? (
+                            {isOrphanIssue ? (
+                              <Badge variant="danger" data-testid={`type-indicator-${item.contentId}`} className="text-[9px] px-1.5 py-0.2 uppercase font-mono bg-rose-500/20 text-rose-300 border-rose-500/30">
+                                Graph Orphan Page
+                              </Badge>
+                            ) : isContentIssue ? (
                               <Badge variant="info" data-testid={`type-indicator-${item.contentId}`} className="text-[9px] px-1.5 py-0.2 uppercase font-mono">
                                 Content
                               </Badge>
@@ -786,7 +997,7 @@ export default function AnalyzePage({ initialProjectId }: { initialProjectId?: s
               <MessageSquare className="h-4 w-4 text-app-signal" />
               Ask About This Report
             </h2>
-            {projectId && <ChatPanel projectId={projectId} />}
+            {projectId && <ChatPanel projectId={projectId} activeSection={activeSection} />}
           </div>
         </motion.div>
       )}

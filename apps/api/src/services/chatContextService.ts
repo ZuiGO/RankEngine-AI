@@ -6,7 +6,7 @@ import { RankSnapshot } from '../models/RankSnapshot';
 import { TrackedPrompt } from '../models/TrackedPrompt';
 import { AiVisibilitySnapshot } from '../models/AiVisibilitySnapshot';
 
-export async function buildProjectContext(projectId: string): Promise<string> {
+export async function buildOverviewContext(projectId: string): Promise<string> {
   const projectObjectId = new mongoose.Types.ObjectId(projectId);
   const now = new Date();
 
@@ -118,3 +118,46 @@ export async function buildProjectContext(projectId: string): Promise<string> {
 
   return parts.join('\n\n');
 }
+
+export async function buildActionItemsContext(projectId: string): Promise<string> {
+  const projectObjectId = new mongoose.Types.ObjectId(projectId);
+  const latestCrawl = await CrawlJob.findOne({ projectId: projectObjectId, status: 'completed' })
+    .sort({ completedAt: -1 })
+    .select('_id')
+    .lean();
+
+  if (!latestCrawl) {
+    return 'Action Items Context: No crawl data available yet for this project.';
+  }
+
+  const issues = await AuditIssue.find({ crawlJobId: latestCrawl._id })
+    .select('url category description recommendation whyItMatters severity')
+    .limit(10)
+    .lean();
+
+  if (issues.length === 0) {
+    return 'Action Items Context: No open action items found for this project.';
+  }
+
+  const lines = issues.map((item, idx) => {
+    const actionText = item.recommendation || item.description;
+    return `${idx + 1}. [${(item.severity || 'warning').toUpperCase()}] Page: ${item.url} - ${actionText}${item.whyItMatters ? ` (Why: ${item.whyItMatters})` : ''}`;
+  });
+
+  return `Current Open Action Items List:\n${lines.join('\n')}`;
+}
+
+export async function buildProjectContext(
+  projectId: string,
+  section?: string,
+  _question?: string
+): Promise<string> {
+  const normSection = (section || 'Overview').toLowerCase().replace(/[\s_]+/g, '');
+
+  if (normSection === 'actionitems' || normSection === 'actionitem') {
+    return buildActionItemsContext(projectId);
+  }
+
+  return buildOverviewContext(projectId);
+}
+

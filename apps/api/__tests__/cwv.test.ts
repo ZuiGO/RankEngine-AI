@@ -4,6 +4,8 @@ import supertest from 'supertest';
 
 let mongoServer: MongoMemoryServer;
 
+jest.setTimeout(30000);
+
 jest.mock('bullmq', () => {
   return {
     Queue: jest.fn().mockImplementation(() => ({

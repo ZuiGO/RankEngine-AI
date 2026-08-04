@@ -4,10 +4,37 @@ import { PendingChange } from '../models/PendingChange';
 import { AuditIssue } from '../models/AuditIssue';
 import { PageContent } from '../models/PageContent';
 import { CrawlJob } from '../models/CrawlJob';
-import { verifyApprovedChanges } from '../services/previewVerificationService';
+import {
+  verifyApprovedChanges,
+  renderPreviewHtml,
+  verifyPreviewChange,
+} from '../services/previewVerificationService';
 
 const router = Router();
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
+
+/**
+ * GET /preview/:changeId or GET /pending-changes/preview/:changeId
+ * Serves preview render of proposed change at a temporary, non-indexed URL.
+ */
+const handleGetPreview = async (req: Request, res: Response) => {
+  try {
+    const { changeId } = req.params;
+    if (!isValidObjectId(changeId)) {
+      return res.status(400).send('Invalid change ID format');
+    }
+
+    const html = await renderPreviewHtml(changeId);
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(html);
+  } catch (error: any) {
+    return res.status(404).send(error.message || 'Preview not found');
+  }
+};
+
+router.get('/preview/:changeId', handleGetPreview);
+router.get('/pending-changes/preview/:changeId', handleGetPreview);
 
 /**
  * POST /api/pending-changes/verify
@@ -31,6 +58,7 @@ router.post('/pending-changes/verify', async (req: Request, res: Response) => {
 /**
  * POST /api/pending-changes/:id/approve
  * Approves a PendingChange or creates a new approved PendingChange for an AuditIssue or PageContent contentId (:id).
+ * Runs pre-publish preview crawl check and returns any preview warnings while preserving human approval.
  */
 router.post('/pending-changes/:id/approve', async (req: Request, res: Response) => {
   try {
@@ -72,7 +100,15 @@ router.post('/pending-changes/:id/approve', async (req: Request, res: Response) 
       });
     }
 
-    return res.json({ success: true, pendingChange });
+    // Run preview verification check to surface warnings (broken links, long URLs)
+    const previewCheck = await verifyPreviewChange(pendingChange._id.toString());
+
+    return res.json({
+      success: true,
+      pendingChange,
+      previewCheck,
+      previewWarning: previewCheck.hasWarnings ? previewCheck.warnings : null,
+    });
   } catch (error) {
     console.error('Approve pending change error:', error);
     return res.status(500).json({ error: 'Failed to approve change' });
@@ -132,7 +168,14 @@ router.post('/projects/:projectId/pending-changes/:id/approve', async (req: Requ
       });
     }
 
-    return res.json({ success: true, pendingChange });
+    const previewCheck = await verifyPreviewChange(pendingChange._id.toString());
+
+    return res.json({
+      success: true,
+      pendingChange,
+      previewCheck,
+      previewWarning: previewCheck.hasWarnings ? previewCheck.warnings : null,
+    });
   } catch (error) {
     console.error('Approve project pending change error:', error);
     return res.status(500).json({ error: 'Failed to approve change' });
@@ -161,3 +204,4 @@ router.post('/projects/:projectId/pending-changes/:id/reject', async (req: Reque
 });
 
 export default router;
+

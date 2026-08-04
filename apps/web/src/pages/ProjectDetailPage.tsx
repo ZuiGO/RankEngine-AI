@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { SearchCheck, MessageSquare, Trash2, Settings, ExternalLink, Globe, FileText, Eye, LinkIcon, TrendingUp, Shield, Network, Share2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { SearchCheck, MessageSquare, Trash2, Settings, ExternalLink, Globe, FileText, LinkIcon, TrendingUp, Shield, Network, Share2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import api from '../lib/api';
 import { Card, CardBody, Badge, Button, ScoreReveal, StatGauge, EmptyState } from '../components/ui';
 import ChatPanel from '../components/ChatPanel';
-import VisualPageInspector from '../components/VisualPageInspector';
 
 // ─────────────────────────────────────── TYPES ──────────────────────────────
 
@@ -102,12 +101,10 @@ function ChecklistSection({
   severity,
   items,
   tag,
-  onInspectVisually,
 }: {
   severity: keyof typeof SEV_CONFIG;
   items: AuditIssue[];
   tag?: string; // e.g. "Migration"
-  onInspectVisually?: (url: string, issue: AuditIssue) => void;
 }) {
   const [open, setOpen] = useState(severity === 'critical');
   const cfg = SEV_CONFIG[severity];
@@ -183,17 +180,6 @@ function ChecklistSection({
                       </details>
                     )}
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <button
-                        onClick={() => {
-                          if (onInspectVisually) {
-                            onInspectVisually(issue.url && issue.url !== 'N/A' ? issue.url : '', issue);
-                          }
-                        }}
-                        className="px-2.5 py-1 text-[11px] font-bold bg-app-signal/10 text-app-signal hover:bg-app-signal/20 border border-app-signal/30 rounded-lg transition-all inline-flex items-center gap-1.5"
-                      >
-                        <Eye className="h-3 w-3" />
-                        Inspect & Fix Visually
-                      </button>
                       {issue.url && issue.url !== 'N/A' && (
                         <a
                           href={issue.url.startsWith('http') ? issue.url : `https://${issue.url}`}
@@ -442,11 +428,6 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [projectLoading, setProjectLoading] = useState(true);
   const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
-
-  // Visual Inspector State
-  const [visualInspectorOpen, setVisualInspectorOpen] = useState(false);
-  const [visualInspectorTargetUrl, setVisualInspectorTargetUrl] = useState('');
-  const [visualInspectorIssue, setVisualInspectorIssue] = useState<any>(null);
 
   // Audit schedule state
   const [scheduleUpdating, setScheduleUpdating] = useState(false);
@@ -1514,29 +1495,14 @@ export default function ProjectDetailPage() {
             <ChecklistSection
               severity="critical"
               items={mainCritical}
-              onInspectVisually={(url, issue) => {
-                setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
-                setVisualInspectorIssue(issue);
-                setVisualInspectorOpen(true);
-              }}
             />
             <ChecklistSection
               severity="warning"
               items={mainWarning}
-              onInspectVisually={(url, issue) => {
-                setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
-                setVisualInspectorIssue(issue);
-                setVisualInspectorOpen(true);
-              }}
             />
             <ChecklistSection
               severity="passed"
               items={mainPassed}
-              onInspectVisually={(url, issue) => {
-                setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
-                setVisualInspectorIssue(issue);
-                setVisualInspectorOpen(true);
-              }}
             />
 
             {/* ── Indexing section ── */}
@@ -1551,29 +1517,14 @@ export default function ProjectDetailPage() {
                 <ChecklistSection
                   severity="critical"
                   items={indexingCritical}
-                  onInspectVisually={(url, issue) => {
-                    setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
-                    setVisualInspectorIssue(issue);
-                    setVisualInspectorOpen(true);
-                  }}
                 />
                 <ChecklistSection
                   severity="warning"
                   items={indexingWarning}
-                  onInspectVisually={(url, issue) => {
-                    setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
-                    setVisualInspectorIssue(issue);
-                    setVisualInspectorOpen(true);
-                  }}
                 />
                 <ChecklistSection
                   severity="passed"
                   items={indexingPassed}
-                  onInspectVisually={(url, issue) => {
-                    setVisualInspectorTargetUrl(url || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : ''));
-                    setVisualInspectorIssue(issue);
-                    setVisualInspectorOpen(true);
-                  }}
                 />
               </div>
             )}
@@ -1743,13 +1694,6 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       )}
-      {/* Visual Page Inspector Modal */}
-      <VisualPageInspector
-        isOpen={visualInspectorOpen}
-        onClose={() => setVisualInspectorOpen(false)}
-        targetUrl={visualInspectorTargetUrl || (project?.domain ? `https://${project.domain.replace(/^https?:\/\//, '')}` : 'https://apple.com')}
-        initialIssue={visualInspectorIssue}
-      />
     </div>
   );
 }

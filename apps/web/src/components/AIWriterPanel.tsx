@@ -443,16 +443,24 @@ export default function AIWriterPanel({
                   {state.result && assetType === 'schema' && (
                     <div className="mt-2">
                       {state.result.valid && state.result.jsonLd ? (
-                        <div className="bg-app-base border border-app-border rounded-lg overflow-hidden p-2.5 space-y-1">
+                        <div className="bg-app-base border border-app-border rounded-lg overflow-hidden p-2.5 space-y-2">
                           <pre className="text-2xs text-app-text-muted overflow-x-auto max-h-48 overflow-y-auto font-mono">
                             {JSON.stringify(state.result.jsonLd, null, 2)}
                           </pre>
-                          <button
-                            onClick={() => handleCopy(JSON.stringify(state.result!.jsonLd, null, 2), 'schema')}
-                            className="text-2xs text-app-signal hover:underline font-semibold"
-                          >
-                            {copiedItem === 'schema' ? '✓ Copied' : 'Copy JSON-LD'}
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleCopy(JSON.stringify(state.result!.jsonLd, null, 2), 'schema')}
+                              className="text-2xs text-app-signal hover:underline font-semibold"
+                            >
+                              {copiedItem === 'schema' ? '✓ Copied' : 'Copy JSON-LD'}
+                            </button>
+                            <button
+                              onClick={() => onInsert(`\n\n\`\`\`html\n<script type="application/ld+json">\n${JSON.stringify(state.result!.jsonLd, null, 2)}\n</script>\n\`\`\`\n`)}
+                              className="text-2xs text-emerald-400 hover:underline font-semibold"
+                            >
+                              + Inject Schema into Document
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <p className="text-2xs text-amber-400 px-1 mt-1">

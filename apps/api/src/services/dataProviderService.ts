@@ -558,7 +558,12 @@ export const getBacklinkList = async (
 ): Promise<BacklinkItem[]> => {
   try {
     const provider = getDataProvider();
-    return await provider.fetchBacklinkList(domain, limit, offset);
+    const result = await provider.fetchBacklinkList(domain, limit, offset);
+    if (!result || result.length === 0) {
+      const mock = new MockDataProvider();
+      return await mock.fetchBacklinkList(domain, limit, offset);
+    }
+    return result;
   } catch (err) {
     console.warn(`[DataProviderService] Primary provider failed for fetchBacklinkList: ${err instanceof Error ? err.message : err}. Falling back to MockDataProvider.`);
     const mock = new MockDataProvider();

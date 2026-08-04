@@ -73,6 +73,12 @@ export default function ChatPanel({ projectId, activeSection = 'Overview' }: Cha
         <div className="flex items-center gap-1.5 min-w-max">
           <Sparkles className="h-3.5 w-3.5 text-app-signal" />
           <span className="text-2xs font-semibold text-app-text-muted uppercase tracking-wider">Context Scope:</span>
+          <span
+            data-testid="chat-active-section-indicator"
+            className="text-2xs font-bold text-app-signal uppercase bg-app-signal/10 border border-app-signal/20 px-2 py-0.5 rounded"
+          >
+            {selectedSection}
+          </span>
         </div>
         <div className="flex items-center gap-1 min-w-max">
           {SECTIONS.map((sec) => (

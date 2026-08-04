@@ -32,8 +32,9 @@ import axios from 'axios';
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // ── Mock LLM service ─────────────────────────────────────────────────────────
+import { callGroq as mockCallGroq } from '../src/services/llmService';
 jest.mock('../src/services/llmService', () => ({
-  callGroq: jest.fn().mockResolvedValue({ answer: 'mock answer from LLM' }),
+  callGroq: jest.fn().mockImplementation(() => Promise.resolve({ answer: 'mock answer from LLM' })),
   LlmError: class LlmError extends Error {},
 }));
 
@@ -81,6 +82,7 @@ afterAll(async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  (mockCallGroq as jest.Mock).mockResolvedValue({ answer: 'mock answer from LLM' });
   mockedAxios.put = jest.fn().mockResolvedValue({ status: 200, data: { result: true } });
 });
 

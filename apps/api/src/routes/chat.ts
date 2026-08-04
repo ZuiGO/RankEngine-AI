@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { Project } from '../models/Project';
 import { callGroq, LlmError } from '../services/llmService';
 import { buildProjectContext } from '../services/chatContextService';
-import { searchProjectVectors } from '../services/vectorService';
+import { searchProjectContent, searchProjectVectors } from '../services/vectorService';
 
 const router = Router();
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
@@ -13,7 +13,7 @@ const chatRequestSchema = z
   .object({
     question: z.string().min(1).optional(),
     message: z.string().min(1).optional(),
-    section: z.enum(['Overview', 'Pages', 'Action Items', 'Content', 'All']).optional(),
+    section: z.string().optional(),
     history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })).optional(),
   })
   .transform((data) => ({
@@ -44,30 +44,36 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
 
     const { question, section, history } = validation.data;
 
-    const baseContext = await buildProjectContext(id);
+    const baseContext = await buildProjectContext(id, section, question);
 
     if (baseContext === 'No audit data available yet for this project.') {
       return res.json({ answer: NO_DATA_RESPONSE });
     }
 
-    // Search Qdrant vector embeddings for semantically matching content
+    const normSection = (section || 'Overview').toLowerCase().replace(/[\s_]+/g, '');
+
+    // Execute real retrieval-augmented vector search ONLY for pages / content / all sections
     let vectorMatches: any[] = [];
-    try {
-      vectorMatches = await searchProjectVectors(id, question, section, 5);
-    } catch (e) {
-      vectorMatches = [];
+    if (normSection === 'pages' || normSection === 'content' || normSection === 'all') {
+      try {
+        const searchFn = typeof searchProjectContent === 'function' ? searchProjectContent : searchProjectVectors;
+        vectorMatches = await searchFn(id, question, section, 5);
+      } catch (e) {
+        vectorMatches = [];
+      }
     }
 
     const safeVectorMatches = Array.isArray(vectorMatches) ? vectorMatches : [];
     const vectorContextText = safeVectorMatches.length > 0
       ? `Top Vector Search Matches (Section: ${section || 'Overview'}):\n` +
-        safeVectorMatches.map((m) => `- [${m.section} | ${m.contentType} | ${m.pageUrl}]: ${m.chunkText}`).join('\n')
+        safeVectorMatches.map((m) => `- [Page: ${m.pageUrl} | Section: ${m.section} | Type: ${m.contentType}]: ${m.chunkText}`).join('\n')
       : '';
 
+    const combinedContext = safeVectorMatches.length > 0
+      ? `${baseContext}\n\n${vectorContextText}`
+      : baseContext;
 
-    const combinedContext = `${baseContext}\n\n${vectorContextText}`;
-
-    const scopingInstruction = `You are an expert SEO assistant integrated into RankEngine AI. You are responding within the "${section || 'Overview'}" section context.\n\nProject Data & Vector Search Results:\n${combinedContext}\n\nIMPORTANT: This product has NO Google Analytics or Search Console integration. It does NOT know a project's real traffic numbers. Do not answer a traffic question with a fabricated or guessed cause. If asked about traffic, say that RankEngine doesn't have traffic data, then state what data it DOES have access to (audit findings, rank positions, competitor movement, AI visibility).`;
+    const scopingInstruction = `You are an expert SEO assistant integrated into RankEngine AI. You are responding within the "${section || 'Overview'}" section context.\n\nProject Data & Vector Search Results:\n${combinedContext}\n\nIMPORTANT: This product has NO Google Analytics or Search Console integration. It does NOT know a project's real traffic numbers. Do not answer a traffic question with a fabricated or guessed cause. If asked about traffic, say that RankEngine doesn't have traffic data, then state what data it DOES have access to (audit findings, rank positions, competitor movement, AI visibility).\n\nWhen providing answers based on retrieved content, cite the source page URL in your answer or response.`;
 
     const conversationParts = [
       { role: 'system', content: scopingInstruction },
@@ -82,9 +88,20 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
     const result = await callGroq<{ answer: string }>(prompt, 30000);
 
     const responsePayload: any = { answer: result.answer };
+
     if (safeVectorMatches.length > 0) {
-      responsePayload.vectorMatches = safeVectorMatches.map((v) => ({ section: v.section, pageUrl: v.pageUrl, score: v.score }));
+      // Source attribution: include unique pageUrls derived from retrieved vector chunks
+      const uniquePageUrls = Array.from(new Set(safeVectorMatches.map((v) => v.pageUrl).filter(Boolean)));
+      responsePayload.citations = uniquePageUrls;
+      responsePayload.vectorMatches = safeVectorMatches.map((v) => ({
+        section: v.section,
+        pageUrl: v.pageUrl,
+        contentType: v.contentType,
+        score: v.score,
+        chunkText: v.chunkText,
+      }));
     }
+
     return res.json(responsePayload);
   } catch (error) {
     if (error instanceof LlmError) {
@@ -96,3 +113,4 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
 });
 
 export default router;
+
